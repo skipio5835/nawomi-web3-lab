@@ -1,0 +1,48 @@
+{
+  "name": "circle",
+  "version": "1.0.0",
+  "description": "Arc Testnet Circle Contracts deployment scripts",
+  "scripts": {
+    "generate-entity-secret": "tsx scripts/generate-entity-secret.ts",
+    "register-entity-secret": "tsx --env-file-if-exists=.env scripts/register-entity-secret.ts",
+    "compile-custom": "tsx scripts/compile-custom-contracts.ts",
+    "start-deployer": "tsx scripts/serve-deployer.ts",
+    "verify-skipio": "tsx scripts/verify-skipio-arcscan.ts",
+    "verify-skipio-legacy": "tsx scripts/verify-skipio-legacy.ts",
+    "verify-skipio-sourcify": "tsx scripts/verify-skipio-sourcify.ts",
+    "verify-skipio-arcscan-sourcify": "tsx scripts/verify-skipio-arcscan-sourcify.ts",
+    "build-appkit-send": "esbuild src/appkit-send.ts --bundle --format=esm --platform=browser --outfile=public/appkit-send.bundle.js",
+    "build-appkit-swap": "esbuild src/appkit-swap.ts --bundle --format=esm --platform=browser --outfile=public/appkit-swap.bundle.js",
+    "build-appkit-bridge": "esbuild src/appkit-bridge.ts --bundle --format=esm --platform=browser --outfile=public/appkit-bridge.bundle.js",
+    "bridge-usdc": "tsx --env-file-if-exists=.env scripts/bridge-usdc.ts",
+    "create-wallet": "tsx --env-file-if-exists=.env scripts/create-wallet.ts",
+    "deploy-erc20": "tsx --env-file-if-exists=.env scripts/deploy-template.ts erc20",
+    "deploy-erc721": "tsx --env-file-if-exists=.env scripts/deploy-template.ts erc721",
+    "deploy-erc1155": "tsx --env-file-if-exists=.env scripts/deploy-template.ts erc1155",
+    "deploy-airdrop": "tsx --env-file-if-exists=.env scripts/deploy-template.ts airdrop",
+    "grant-metamask-roles": "tsx --env-file-if-exists=.env scripts/grant-metamask-roles.ts",
+    "mint-token": "tsx --env-file-if-exists=.env scripts/mint-token.ts",
+    "check-transaction": "tsx --env-file-if-exists=.env scripts/check-transaction.ts",
+    "get-contract": "tsx --env-file-if-exists=.env scripts/get-contract.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@circle-fin/adapter-viem-v2": "^1.11.2",
+    "@circle-fin/app-kit": "^1.7.0",
+    "@circle-fin/developer-controlled-wallets": "^10.6.0",
+    "@circle-fin/smart-contract-platform": "^10.6.0",
+    "@openzeppelin/contracts": "^5.6.1",
+    "ethers": "^6.16.0",
+    "viem": "^2.52.2"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "solc": "^0.8.35",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  }
+}
