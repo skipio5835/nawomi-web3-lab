@@ -6,6 +6,7 @@ const root = process.cwd();
 const contractsToCompile = [
   { file: "contracts/Skipio.sol", name: "Skipio" },
   { file: "contracts/ProofToken.sol", name: "ProofToken" },
+  { file: "contracts/BaseActivityToken.sol", name: "BaseActivityToken" },
 ] as const;
 
 function findImports(importPath: string): { contents?: string; error?: string } {

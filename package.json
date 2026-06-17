@@ -20,6 +20,7 @@
     "deploy-erc721": "tsx --env-file-if-exists=.env scripts/deploy-template.ts erc721",
     "deploy-erc1155": "tsx --env-file-if-exists=.env scripts/deploy-template.ts erc1155",
     "deploy-airdrop": "tsx --env-file-if-exists=.env scripts/deploy-template.ts airdrop",
+    "deploy-base-token": "tsx --env-file-if-exists=.env scripts/deploy-base-token.ts",
     "grant-metamask-roles": "tsx --env-file-if-exists=.env scripts/grant-metamask-roles.ts",
     "mint-token": "tsx --env-file-if-exists=.env scripts/mint-token.ts",
     "check-transaction": "tsx --env-file-if-exists=.env scripts/check-transaction.ts",
