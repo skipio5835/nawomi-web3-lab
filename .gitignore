@@ -7,3 +7,5 @@ coverage/
 artifacts/
 recovery/
 npm-debug.log*
+server.out.log
+server.err.log

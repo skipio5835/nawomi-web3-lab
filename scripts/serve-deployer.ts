@@ -84,6 +84,22 @@ const server = createServer((req, res) => {
       return;
     }
 
+    if ((req.url ?? "").startsWith("/circle-gateway-testnet/")) {
+      void proxyExternalApi(req, res, "/circle-gateway-testnet", "https://gateway-api-testnet.circle.com").catch((error) => {
+        res.writeHead(502, { "content-type": "application/json; charset=utf-8" });
+        res.end(JSON.stringify({ error: error instanceof Error ? error.message : "Proxy failed" }));
+      });
+      return;
+    }
+
+    if ((req.url ?? "").startsWith("/circle-gateway/")) {
+      void proxyExternalApi(req, res, "/circle-gateway", "https://gateway-api.circle.com").catch((error) => {
+        res.writeHead(502, { "content-type": "application/json; charset=utf-8" });
+        res.end(JSON.stringify({ error: error instanceof Error ? error.message : "Proxy failed" }));
+      });
+      return;
+    }
+
     const filePath = resolvePath(req.url ?? "/");
     if (!existsSync(filePath) || !statSync(filePath).isFile()) {
       res.writeHead(404);
