@@ -4,7 +4,7 @@ import solc from "solc";
 
 const root = process.cwd();
 const contractAddress = "0x724038D2B4c1EbE69DC8B29cc5d591C4caA21918";
-const standardJsonInputPath = path.join(root, "artifacts", "skipio-standard-input.json");
+const standardJsonInputPath = path.join(root, "circle", "arc", "artifacts", "skipio-standard-input.json");
 
 const stdJsonInput = JSON.parse(readFileSync(standardJsonInputPath, "utf8")) as {
   settings: {

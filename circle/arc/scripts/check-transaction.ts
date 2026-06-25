@@ -1,5 +1,5 @@
 import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
-import { circleClientConfig, optionalEnv, printJson, requiredEnv } from "./config.js";
+import { circleClientConfig, optionalEnv, printJson, requiredEnv } from "../../../shared/config.js";
 
 const client = initiateDeveloperControlledWalletsClient(circleClientConfig());
 type GetTransactionInput = Parameters<typeof client.getTransaction>[0];

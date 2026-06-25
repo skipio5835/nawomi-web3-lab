@@ -4,9 +4,9 @@ import solc from "solc";
 
 const root = process.cwd();
 const contractsToCompile = [
-  { file: "contracts/Skipio.sol", name: "Skipio" },
-  { file: "contracts/ProofToken.sol", name: "ProofToken" },
-  { file: "contracts/BaseActivityToken.sol", name: "BaseActivityToken" },
+  { sourceName: "contracts/Skipio.sol", filePath: "circle/arc/contracts/Skipio.sol", name: "Skipio" },
+  { sourceName: "contracts/ProofToken.sol", filePath: "circle/arc/contracts/ProofToken.sol", name: "ProofToken" },
+  { sourceName: "contracts/BaseActivityToken.sol", filePath: "base/contracts/BaseActivityToken.sol", name: "BaseActivityToken" },
 ] as const;
 
 function findImports(importPath: string): { contents?: string; error?: string } {
@@ -27,10 +27,10 @@ function findImports(importPath: string): { contents?: string; error?: string } 
 const input = {
   language: "Solidity",
   sources: Object.fromEntries(
-    contractsToCompile.map(({ file }) => [
-      file,
+    contractsToCompile.map(({ sourceName, filePath }) => [
+      sourceName,
       {
-        content: readFileSync(path.join(root, file), "utf8"),
+        content: readFileSync(path.join(root, filePath), "utf8"),
       },
     ]),
   ),
@@ -64,18 +64,18 @@ if (fatalErrors.length > 0) {
   process.exit(1);
 }
 
-const publicArtifactsDir = path.join(root, "public", "artifacts");
+const publicArtifactsDir = path.join(root, "circle", "arc", "public", "artifacts");
 mkdirSync(publicArtifactsDir, { recursive: true });
 
-for (const { file, name } of contractsToCompile) {
-  const artifact = output.contracts?.[file]?.[name];
+for (const { sourceName, name } of contractsToCompile) {
+  const artifact = output.contracts?.[sourceName]?.[name];
   if (!artifact?.abi || !artifact?.evm?.bytecode?.object) {
     throw new Error(`Missing compiled ${name} artifact.`);
   }
 
   const browserArtifact = {
     contractName: name,
-    sourceName: file,
+    sourceName,
     abi: artifact.abi,
     bytecode: `0x${artifact.evm.bytecode.object}`,
     deployedBytecode: `0x${artifact.evm.deployedBytecode.object}`,
@@ -85,5 +85,5 @@ for (const { file, name } of contractsToCompile) {
   writeFileSync(path.join(publicArtifactsDir, `${name}.json`), `${JSON.stringify(browserArtifact, null, 2)}\n`);
 
   console.log(`Compiled ${name} with ${solc.version()}`);
-  console.log(`Wrote public/artifacts/${name}.json`);
+  console.log(`Wrote circle/arc/public/artifacts/${name}.json`);
 }

@@ -280,7 +280,7 @@
         try {
           els.deploy.disabled = true;
           setStatus("Loading artifact...");
-          const artifact = await fetch("/public/artifacts/ProofToken.json", { cache: "no-store" }).then((res) =>
+          const artifact = await fetch("/circle/arc/public/artifacts/ProofToken.json", { cache: "no-store" }).then((res) =>
             res.json(),
           );
 

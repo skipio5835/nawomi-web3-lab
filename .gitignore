@@ -5,6 +5,9 @@ node_modules/
 dist/
 coverage/
 artifacts/
+circle/arc/artifacts/
+circle/arc/public/artifacts/
+public/artifacts/
 recovery/
 npm-debug.log*
 server.out.log

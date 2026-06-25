@@ -10,7 +10,7 @@ import {
   printJson,
   requiredEnv,
   type ContractTemplate,
-} from "./config.js";
+} from "../../../shared/config.js";
 
 const templateName = process.argv[2] as ContractTemplate | undefined;
 if (!templateName || !(templateName in TEMPLATE_CONFIGS)) {

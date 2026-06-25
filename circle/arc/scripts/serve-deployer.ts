@@ -15,7 +15,11 @@ const mimeTypes: Record<string, string> = {
 
 function resolvePath(urlPath: string): string {
   const safePath = decodeURIComponent(urlPath.split("?")[0] ?? "/").replace(/^\/+/, "");
-  const requested = safePath === "" ? "public/deploy-skipio.html" : safePath;
+  let requested = safePath === "" ? "circle/arc/public/deploy-skipio.html" : safePath;
+  if (requested.startsWith("public/")) {
+    requested = path.join("circle", "arc", requested);
+  }
+
   const resolved = path.resolve(root, requested);
   if (!resolved.startsWith(root)) {
     throw new Error("Invalid path");

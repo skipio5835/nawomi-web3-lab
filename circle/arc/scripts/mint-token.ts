@@ -6,7 +6,7 @@ import {
   optionalEnv,
   printJson,
   requiredEnv,
-} from "./config.js";
+} from "../../../shared/config.js";
 
 function parseUnits(value: string, decimals: number): string {
   const normalized = value.replace(/,/g, "").trim();

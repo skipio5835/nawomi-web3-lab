@@ -3,10 +3,11 @@ import path from "node:path";
 import { ContractFactory, JsonRpcProvider, Wallet, formatEther, formatUnits, getAddress, parseUnits } from "ethers";
 import type { InterfaceAbi } from "ethers";
 import solc from "solc";
-import { optionalEnv, printJson, requiredEnv } from "./config.js";
+import { optionalEnv, printJson, requiredEnv } from "../../shared/config.js";
 
 const root = process.cwd();
 const contractFile = "contracts/BaseActivityToken.sol";
+const contractPath = "base/contracts/BaseActivityToken.sol";
 const contractName = "BaseActivityToken";
 const decimals = 18;
 
@@ -76,7 +77,7 @@ function compileBaseActivityToken(): { abi: InterfaceAbi; bytecode: string; comp
     language: "Solidity",
     sources: {
       [contractFile]: {
-        content: readFileSync(path.join(root, contractFile), "utf8"),
+        content: readFileSync(path.join(root, contractPath), "utf8"),
       },
     },
     settings: {

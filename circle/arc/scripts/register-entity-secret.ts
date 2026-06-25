@@ -1,6 +1,6 @@
 import { registerEntitySecretCiphertext } from "@circle-fin/developer-controlled-wallets";
 import { mkdirSync } from "node:fs";
-import { requiredEnv } from "./config.js";
+import { requiredEnv } from "../../../shared/config.js";
 
 mkdirSync("recovery", { recursive: true });
 

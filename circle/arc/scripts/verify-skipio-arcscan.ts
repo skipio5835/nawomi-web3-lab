@@ -5,6 +5,7 @@ import solc from "solc";
 const root = process.cwd();
 const contractAddress = "0x724038D2B4c1EbE69DC8B29cc5d591C4caA21918";
 const contractFile = "contracts/Skipio.sol";
+const contractPath = "circle/arc/contracts/Skipio.sol";
 const contractName = "contracts/Skipio.sol:Skipio";
 const initialSupply = 20200919n * 10n ** 18n;
 
@@ -32,15 +33,17 @@ function resolveImport(importPath: string, fromFile?: string): string {
   return resolved;
 }
 
-function sourceKey(absolutePath: string): string {
+function sourceKey(absolutePath: string, logicalName?: string): string {
+  if (logicalName) return logicalName;
+
   const relative = path.relative(root, absolutePath).replace(/\\/g, "/");
   return relative.startsWith("node_modules/")
     ? relative.replace(/^node_modules\//, "")
     : relative;
 }
 
-function addSource(absolutePath: string): void {
-  const key = sourceKey(absolutePath);
+function addSource(absolutePath: string, logicalName?: string): void {
+  const key = sourceKey(absolutePath, logicalName);
   if (sources.has(key)) return;
 
   const content = readFileSync(absolutePath, "utf8");
@@ -53,7 +56,7 @@ function addSource(absolutePath: string): void {
   }
 }
 
-addSource(path.join(root, contractFile));
+addSource(path.join(root, contractPath), contractFile);
 
 const standardJsonInput = {
   language: "Solidity",
@@ -73,7 +76,7 @@ const standardJsonInput = {
 
 const compilerVersion = `v${solc.version().replace(/\.Emscripten\.clang$/, "")}`;
 const constructorArgs = initialSupply.toString(16).padStart(64, "0");
-const verificationInputPath = path.join(root, "artifacts", "skipio-standard-input.json");
+const verificationInputPath = path.join(root, "circle", "arc", "artifacts", "skipio-standard-input.json");
 
 await import("node:fs").then(({ mkdirSync }) => mkdirSync(path.dirname(verificationInputPath), { recursive: true }));
 writeFileSync(verificationInputPath, `${JSON.stringify(standardJsonInput, null, 2)}\n`);

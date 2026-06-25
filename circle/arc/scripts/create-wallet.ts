@@ -1,5 +1,5 @@
 import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
-import { ARC_TESTNET, circleClientConfig, idempotencyKey, optionalEnv, printJson } from "./config.js";
+import { ARC_TESTNET, circleClientConfig, idempotencyKey, optionalEnv, printJson } from "../../../shared/config.js";
 
 const client = initiateDeveloperControlledWalletsClient(circleClientConfig());
 

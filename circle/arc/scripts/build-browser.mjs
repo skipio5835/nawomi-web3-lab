@@ -59,11 +59,14 @@ export default https;`,
 ]);
 
 const targets = {
-  "appkit-send": ["src/appkit-send.ts", "public/appkit-send.bundle.js"],
-  "appkit-swap": ["src/appkit-swap.ts", "public/appkit-swap.bundle.js"],
-  "appkit-bridge": ["src/appkit-bridge.ts", "public/appkit-bridge.bundle.js"],
-  "appkit-unified": ["src/appkit-unified-balance.ts", "public/appkit-unified-balance.bundle.js"],
-  "arc-usdc-tools": ["src/arc-usdc-tools.ts", "public/arc-usdc-tools.bundle.js"],
+  "appkit-send": ["circle/arc/src/appkit-send.ts", "circle/arc/public/appkit-send.bundle.js"],
+  "appkit-swap": ["circle/arc/src/appkit-swap.ts", "circle/arc/public/appkit-swap.bundle.js"],
+  "appkit-bridge": ["circle/arc/src/appkit-bridge.ts", "circle/arc/public/appkit-bridge.bundle.js"],
+  "appkit-unified": [
+    "circle/arc/src/appkit-unified-balance.ts",
+    "circle/arc/public/appkit-unified-balance.bundle.js",
+  ],
+  "arc-usdc-tools": ["circle/arc/src/arc-usdc-tools.ts", "circle/arc/public/arc-usdc-tools.bundle.js"],
 };
 
 function readJson(filePath) {
@@ -274,7 +277,7 @@ async function buildTarget(name) {
       js: `var process = globalThis.process || { version: "v20.0.0", env: {}, browser: true };
 var global = globalThis;`,
     },
-    inject: [path.join(root, "scripts/browser-buffer-global.js")],
+    inject: [path.join(root, "circle", "arc", "scripts", "browser-buffer-global.js")],
     outfile,
     plugins: [localFsPlugin],
     logLevel: "info",

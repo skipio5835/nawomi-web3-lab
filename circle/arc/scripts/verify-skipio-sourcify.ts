@@ -7,7 +7,7 @@ const chainId = 5042002;
 const contractAddress = "0x724038D2B4c1EbE69DC8B29cc5d591C4caA21918";
 const contractIdentifier = "contracts/Skipio.sol:Skipio";
 const creationTransactionHash = "0xda1bc354b1a4e4d6656a3a88c6f8a2c4fff36780bfa0dcee02e83318e230e86f";
-const standardJsonInputPath = path.join(root, "artifacts", "skipio-standard-input.json");
+const standardJsonInputPath = path.join(root, "circle", "arc", "artifacts", "skipio-standard-input.json");
 
 const stdJsonInput = JSON.parse(readFileSync(standardJsonInputPath, "utf8"));
 const compilerVersion = solc.version().replace(/\.Emscripten\.clang$/, "");

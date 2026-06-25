@@ -5,7 +5,7 @@ import {
   idempotencyKey,
   printJson,
   requiredEnv,
-} from "./config.js";
+} from "../../../shared/config.js";
 
 const client = initiateDeveloperControlledWalletsClient(circleClientConfig());
 
