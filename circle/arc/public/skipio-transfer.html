@@ -102,6 +102,11 @@
         color: #1e6f5c;
       }
 
+      button.danger {
+        border-color: #9b2c2c;
+        background: #9b2c2c;
+      }
+
       button:disabled {
         cursor: not-allowed;
         opacity: 0.55;
@@ -204,6 +209,14 @@
             <input id="amount" inputmode="decimal" />
           </label>
           <label>
+            Allowance spender
+            <input id="spender" />
+          </label>
+          <label>
+            Approve amount
+            <input id="approvalAmount" inputmode="decimal" />
+          </label>
+          <label>
             Token symbol
             <input id="tokenSymbol" readonly value="-" />
           </label>
@@ -224,12 +237,19 @@
             <span>Native USDC</span>
             <strong id="nativeBalance">-</strong>
           </div>
+          <div class="stat">
+            <span>Current allowance</span>
+            <strong id="allowanceBalance">-</strong>
+          </div>
         </div>
       </section>
 
       <section class="panel">
         <div class="actions">
           <button id="send" type="button" disabled>Send Token</button>
+          <button id="checkAllowance" class="secondary" type="button" disabled>Check Allowance</button>
+          <button id="approveAllowance" type="button" disabled>Approve Allowance</button>
+          <button id="revokeAllowance" class="danger" type="button" disabled>Revoke Allowance</button>
           <button id="refresh" class="secondary" type="button" disabled>Refresh</button>
         </div>
         <p id="status"></p>
@@ -264,6 +284,8 @@
         },
       };
       const ABI = [
+        "function allowance(address owner, address spender) view returns (uint256)",
+        "function approve(address spender, uint256 amount) returns (bool)",
         "function balanceOf(address) view returns (uint256)",
         "function decimals() view returns (uint8)",
         "function name() view returns (string)",
@@ -272,14 +294,20 @@
       ];
 
       const el = {
+        approveAllowance: document.querySelector("#approveAllowance"),
+        allowanceBalance: document.querySelector("#allowanceBalance"),
+        checkAllowance: document.querySelector("#checkAllowance"),
         connect: document.querySelector("#connect"),
         send: document.querySelector("#send"),
+        revokeAllowance: document.querySelector("#revokeAllowance"),
         refresh: document.querySelector("#refresh"),
         tokenPreset: document.querySelector("#tokenPreset"),
         contract: document.querySelector("#contract"),
         sender: document.querySelector("#sender"),
         recipient: document.querySelector("#recipient"),
         amount: document.querySelector("#amount"),
+        spender: document.querySelector("#spender"),
+        approvalAmount: document.querySelector("#approvalAmount"),
         tokenSymbol: document.querySelector("#tokenSymbol"),
         walletBalance: document.querySelector("#walletBalance"),
         circleBalance: document.querySelector("#circleBalance"),
@@ -290,6 +318,7 @@
       const state = {
         provider: null,
         signer: null,
+        injected: null,
         address: null,
         decimals: 18,
         symbol: "TOKEN",
@@ -300,10 +329,12 @@
         if (!preset) return;
         el.contract.value = preset.address;
         el.amount.value = preset.amount;
+        el.approvalAmount.value = preset.amount;
       }
 
       applyPreset();
       el.recipient.value = CIRCLE_WALLET;
+      el.spender.value = CIRCLE_WALLET;
 
       function setStatus(message, link) {
         el.status.innerHTML = link
@@ -319,13 +350,29 @@
         return new Contract(address, ABI, runner);
       }
 
-      async function ensureArc() {
-        await window.ethereum.request({
+      function requireAddress(value, label) {
+        if (!/^0x[a-fA-F0-9]{40}$/.test(value)) {
+          throw new Error(`${label} must be a valid EVM address.`);
+        }
+        return value;
+      }
+
+      function injectedProvider() {
+        const ethereum = window.ethereum;
+        if (!ethereum) return null;
+        if (Array.isArray(ethereum.providers)) {
+          return ethereum.providers.find((provider) => provider.isMetaMask) || ethereum.providers[0];
+        }
+        return ethereum;
+      }
+
+      async function ensureArc(provider) {
+        await provider.request({
           method: "wallet_switchEthereumChain",
           params: [{ chainId: ARC_TESTNET.chainId }],
         }).catch(async (error) => {
           if (error.code !== 4902) throw error;
-          await window.ethereum.request({
+          await provider.request({
             method: "wallet_addEthereumChain",
             params: [ARC_TESTNET],
           });
@@ -343,52 +390,71 @@
         el.tokenSymbol.value = symbol;
       }
 
+      function setControlsEnabled(enabled) {
+        el.send.disabled = !enabled;
+        el.checkAllowance.disabled = !enabled;
+        el.approveAllowance.disabled = !enabled;
+        el.revokeAllowance.disabled = !enabled;
+        el.refresh.disabled = !enabled;
+      }
+
       async function refreshBalances() {
         if (!state.provider || !state.address) return;
         const token = tokenContract(state.provider);
         await tokenMetadata(token);
 
-        const [walletBalance, circleBalance, nativeBalance] = await Promise.all([
+        const allowanceSpender = el.spender.value.trim();
+        const allowancePromise = /^0x[a-fA-F0-9]{40}$/.test(allowanceSpender)
+          ? token.allowance(state.address, allowanceSpender)
+          : Promise.resolve(null);
+
+        const [walletBalance, circleBalance, nativeBalance, allowance] = await Promise.all([
           token.balanceOf(state.address),
           token.balanceOf(CIRCLE_WALLET),
           state.provider.getBalance(state.address),
+          allowancePromise,
         ]);
 
         el.walletBalance.textContent = `${formatUnits(walletBalance, state.decimals)} ${state.symbol}`;
         el.circleBalance.textContent = `${formatUnits(circleBalance, state.decimals)} ${state.symbol}`;
         el.nativeBalance.textContent = `${formatEther(nativeBalance)} USDC`;
+        el.allowanceBalance.textContent = allowance === null
+          ? "Enter valid spender"
+          : `${formatUnits(allowance, state.decimals)} ${state.symbol}`;
       }
 
       async function connect() {
-        if (!window.ethereum) {
+        const provider = injectedProvider();
+        if (!provider) {
           setStatus("MetaMask provider not found.");
           return;
         }
 
         setStatus("Connecting...");
-        await ensureArc();
-        state.provider = new BrowserProvider(window.ethereum);
+        await ensureArc(provider);
+        state.injected = provider;
+        state.provider = new BrowserProvider(provider);
         await state.provider.send("eth_requestAccounts", []);
         state.signer = await state.provider.getSigner();
         state.address = await state.signer.getAddress();
 
         el.sender.value = state.address;
-        el.send.disabled = false;
-        el.refresh.disabled = false;
+        setControlsEnabled(true);
         await refreshBalances();
         setStatus("Ready.");
       }
 
       async function sendToken() {
         if (!state.signer) await connect();
+        if (!state.signer) return;
 
-        const recipient = el.recipient.value.trim();
+        const recipient = requireAddress(el.recipient.value.trim(), "Recipient");
         const amount = el.amount.value.trim();
         const token = tokenContract(state.signer);
         await tokenMetadata(token);
         const value = parseUnits(amount, state.decimals);
 
-        el.send.disabled = true;
+        setControlsEnabled(false);
         setStatus("Waiting for MetaMask signature...");
 
         try {
@@ -401,8 +467,52 @@
         } catch (error) {
           setStatus(error?.shortMessage || error?.message || "Transfer failed.");
         } finally {
-          el.send.disabled = false;
+          setControlsEnabled(true);
         }
+      }
+
+      async function writeAllowance(value, waitingMessage) {
+        if (!state.signer) await connect();
+        if (!state.signer) return;
+
+        const spender = requireAddress(el.spender.value.trim(), "Spender");
+        const token = tokenContract(state.signer);
+        await tokenMetadata(token);
+
+        setControlsEnabled(false);
+        setStatus(waitingMessage);
+
+        try {
+          const tx = await token.approve(spender, value);
+          const explorerUrl = `https://testnet.arcscan.app/tx/${tx.hash}`;
+          setStatus("Submitted:", explorerUrl);
+          await tx.wait();
+          await refreshBalances();
+          setStatus("Confirmed:", explorerUrl);
+        } catch (error) {
+          setStatus(error?.shortMessage || error?.message || "Allowance update failed.");
+        } finally {
+          setControlsEnabled(true);
+        }
+      }
+
+      async function approveAllowance() {
+        if (!state.signer) await connect();
+        if (!state.signer) return;
+        const amount = el.approvalAmount.value.trim();
+        const token = tokenContract(state.signer);
+        await tokenMetadata(token);
+        await writeAllowance(parseUnits(amount, state.decimals), "Waiting for approve signature...");
+      }
+
+      async function revokeAllowance() {
+        await writeAllowance(0n, "Waiting for revoke signature...");
+      }
+
+      async function checkAllowance() {
+        setStatus("Checking allowance...");
+        await refreshBalances();
+        setStatus("Allowance refreshed.");
       }
 
       el.tokenPreset.addEventListener("change", async () => {
@@ -414,6 +524,15 @@
       el.connect.addEventListener("click", connect);
       el.refresh.addEventListener("click", refreshBalances);
       el.send.addEventListener("click", sendToken);
+      el.checkAllowance.addEventListener("click", () => {
+        checkAllowance().catch((error) => setStatus(error?.shortMessage || error?.message || "Allowance check failed."));
+      });
+      el.approveAllowance.addEventListener("click", () => {
+        approveAllowance().catch((error) => setStatus(error?.shortMessage || error?.message || "Approve failed."));
+      });
+      el.revokeAllowance.addEventListener("click", () => {
+        revokeAllowance().catch((error) => setStatus(error?.shortMessage || error?.message || "Revoke failed."));
+      });
     </script>
   </body>
 </html>

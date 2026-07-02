@@ -1,4 +1,4 @@
-﻿var process = globalThis.process || { version: "v20.0.0", env: {}, browser: true };
+var process = globalThis.process || { version: "v20.0.0", env: {}, browser: true };
 var global = globalThis;
 var __create = Object.create;
 var __defProp = Object.defineProperty;
@@ -3987,8 +3987,8 @@ var init_address = __esm({
     init_browser_buffer_global();
     init_base();
     InvalidAddressError = class extends BaseError2 {
-      constructor({ address: address2 }) {
-        super(`Address "${address2}" is invalid.`, {
+      constructor({ address }) {
+        super(`Address "${address}" is invalid.`, {
           metaMessages: [
             "- Address must be a hex value of 20 bytes (40 hex characters).",
             "- Address must match its checksum counterpart."
@@ -4045,23 +4045,23 @@ function checksumAddress(address_, chainId) {
     return checksumAddressCache.get(`${address_}.${chainId}`);
   const hexAddress = chainId ? `${chainId}${address_.toLowerCase()}` : address_.substring(2).toLowerCase();
   const hash3 = keccak256(stringToBytes(hexAddress), "bytes");
-  const address2 = (chainId ? hexAddress.substring(`${chainId}0x`.length) : hexAddress).split("");
+  const address = (chainId ? hexAddress.substring(`${chainId}0x`.length) : hexAddress).split("");
   for (let i = 0; i < 40; i += 2) {
-    if (hash3[i >> 1] >> 4 >= 8 && address2[i]) {
-      address2[i] = address2[i].toUpperCase();
+    if (hash3[i >> 1] >> 4 >= 8 && address[i]) {
+      address[i] = address[i].toUpperCase();
     }
-    if ((hash3[i >> 1] & 15) >= 8 && address2[i + 1]) {
-      address2[i + 1] = address2[i + 1].toUpperCase();
+    if ((hash3[i >> 1] & 15) >= 8 && address[i + 1]) {
+      address[i + 1] = address[i + 1].toUpperCase();
     }
   }
-  const result = `0x${address2.join("")}`;
+  const result = `0x${address.join("")}`;
   checksumAddressCache.set(`${address_}.${chainId}`, result);
   return result;
 }
-function getAddress(address2, chainId) {
-  if (!isAddress(address2, { strict: false }))
-    throw new InvalidAddressError({ address: address2 });
-  return checksumAddress(address2, chainId);
+function getAddress(address, chainId) {
+  if (!isAddress(address, { strict: false }))
+    throw new InvalidAddressError({ address });
+  return checksumAddress(address, chainId);
 }
 var checksumAddressCache;
 var init_getAddress = __esm({
@@ -4077,18 +4077,18 @@ var init_getAddress = __esm({
 });
 
 // node_modules/viem/_esm/utils/address/isAddress.js
-function isAddress(address2, options) {
+function isAddress(address, options) {
   const { strict = true } = options ?? {};
-  const cacheKey2 = `${address2}.${strict}`;
+  const cacheKey2 = `${address}.${strict}`;
   if (isAddressCache.has(cacheKey2))
     return isAddressCache.get(cacheKey2);
   const result = (() => {
-    if (!addressRegex.test(address2))
+    if (!addressRegex.test(address))
       return false;
-    if (address2.toLowerCase() === address2)
+    if (address.toLowerCase() === address)
       return true;
     if (strict)
-      return checksumAddress(address2) === address2;
+      return checksumAddress(address) === address;
     return true;
   })();
   isAddressCache.set(cacheKey2, result);
@@ -4557,10 +4557,10 @@ var init_getAbiItem = __esm({
 });
 
 // node_modules/viem/_esm/accounts/utils/parseAccount.js
-function parseAccount(account) {
-  if (typeof account === "string")
-    return { address: account, type: "json-rpc" };
-  return account;
+function parseAccount(account2) {
+  if (typeof account2 === "string")
+    return { address: account2, type: "json-rpc" };
+  return account2;
 }
 var init_parseAccount = __esm({
   "node_modules/viem/_esm/accounts/utils/parseAccount.js"() {
@@ -5236,8 +5236,8 @@ function prettyStateMapping(stateMapping) {
   }, "");
 }
 function prettyStateOverride(stateOverride) {
-  return stateOverride.reduce((pretty, { address: address2, ...state }) => {
-    let val = `${pretty}    ${address2}:
+  return stateOverride.reduce((pretty, { address, ...state }) => {
+    let val = `${pretty}    ${address}:
 `;
     if (state.nonce)
       val += `      nonce: ${state.nonce}
@@ -5265,8 +5265,8 @@ var init_stateOverride = __esm({
     init_browser_buffer_global();
     init_base();
     AccountStateConflictError = class extends BaseError2 {
-      constructor({ address: address2 }) {
-        super(`State for account "${address2}" is set multiple times.`, {
+      constructor({ address }) {
+        super(`State for account "${address}" is set multiple times.`, {
           name: "AccountStateConflictError"
         });
       }
@@ -5320,10 +5320,10 @@ var init_transaction = __esm({
       }
     };
     TransactionExecutionError = class extends BaseError2 {
-      constructor(cause, { account, docsPath: docsPath8, chain, data, gas, gasPrice, maxFeePerGas, maxPriorityFeePerGas, nonce, to, value }) {
+      constructor(cause, { account: account2, docsPath: docsPath8, chain, data, gas, gasPrice, maxFeePerGas, maxPriorityFeePerGas, nonce, to, value }) {
         const prettyArgs = prettyPrint({
           chain: chain && `${chain?.name} (id: ${chain?.id})`,
-          from: account?.address,
+          from: account2?.address,
           to,
           value: typeof value !== "undefined" && `${formatEther(value)} ${chain?.nativeCurrency?.symbol || "ETH"}`,
           data,
@@ -5421,7 +5421,7 @@ var getContractAddress, getUrl;
 var init_utils3 = __esm({
   "node_modules/viem/_esm/errors/utils.js"() {
     init_browser_buffer_global();
-    getContractAddress = (address2) => address2;
+    getContractAddress = (address) => address;
     getUrl = (url) => {
       try {
         const parsed = new URL(url);
@@ -5457,9 +5457,9 @@ var init_contract = __esm({
     init_utils3();
     CallExecutionError = class extends BaseError2 {
       constructor(cause, { account: account_, docsPath: docsPath8, chain, data, gas, gasPrice, maxFeePerGas, maxPriorityFeePerGas, nonce, to, value, stateOverride }) {
-        const account = account_ ? parseAccount(account_) : void 0;
+        const account2 = account_ ? parseAccount(account_) : void 0;
         let prettyArgs = prettyPrint({
-          from: account?.address,
+          from: account2?.address,
           to,
           value: typeof value !== "undefined" && `${formatEther(value)} ${chain?.nativeCurrency?.symbol || "ETH"}`,
           data,
@@ -5493,7 +5493,7 @@ ${prettyStateOverride(stateOverride)}`;
       }
     };
     ContractFunctionExecutionError = class extends BaseError2 {
-      constructor(cause, { abi: abi2, args, contractAddress, docsPath: docsPath8, functionName, sender }) {
+      constructor(cause, { abi: abi2, args, contractAddress: contractAddress2, docsPath: docsPath8, functionName, sender }) {
         const abiItem = getAbiItem({ abi: abi2, args, name: functionName });
         const formattedArgs = abiItem ? formatAbiItemWithArgs({
           abiItem,
@@ -5503,7 +5503,7 @@ ${prettyStateOverride(stateOverride)}`;
         }) : void 0;
         const functionWithParams = abiItem ? formatAbiItem2(abiItem, { includeName: true }) : void 0;
         const prettyArgs = prettyPrint({
-          address: contractAddress && getContractAddress(contractAddress),
+          address: contractAddress2 && getContractAddress(contractAddress2),
           function: functionWithParams,
           args: formattedArgs && formattedArgs !== "()" && `${[...Array(functionName?.length ?? 0).keys()].map(() => " ").join("")}${formattedArgs}`,
           sender
@@ -5563,7 +5563,7 @@ ${prettyStateOverride(stateOverride)}`;
         this.abi = abi2;
         this.args = args;
         this.cause = cause;
-        this.contractAddress = contractAddress;
+        this.contractAddress = contractAddress2;
         this.functionName = functionName;
         this.sender = sender;
       }
@@ -7183,9 +7183,9 @@ function wNAF(c, bits) {
      * Creates a wNAF precomputation window. Used for caching.
      * Default window size is set by `utils.precompute()` and is equal to 8.
      * Number of precomputed points depends on the curve size:
-     * 2^(?몜??) * (Math.ceil(?몳 / ?몜) + 1), where:
-     * - ?몜 is the window size
-     * - ?몳 is the bitlength of the curve order.
+     * 2^(𝑊−1) * (Math.ceil(𝑛 / 𝑊) + 1), where:
+     * - 𝑊 is the window size
+     * - 𝑛 is the bitlength of the curve order.
      * For a 256-bit curve and window size 8, the number of precomputed points is 128 * 33 = 4224.
      * @param elm Point instance
      * @param W window size
@@ -7747,7 +7747,7 @@ function weierstrassPoints(opts) {
     }
     // Converts Projective point to affine (x, y) coordinates.
     // Can accept precomputed Z^-1 - for example, from invertBatch.
-    // (x, y, z) ??(x=x/z, y=y/z)
+    // (x, y, z) ∋ (x=x/z, y=y/z)
     toAffine(iz) {
       return toAffineMemo(this, iz);
     }
@@ -9142,12 +9142,12 @@ function serializeStateOverride(parameters) {
   if (!parameters)
     return void 0;
   const rpcStateOverride = {};
-  for (const { address: address2, ...accountState } of parameters) {
-    if (!isAddress(address2, { strict: false }))
-      throw new InvalidAddressError({ address: address2 });
-    if (rpcStateOverride[address2])
-      throw new AccountStateConflictError({ address: address2 });
-    rpcStateOverride[address2] = serializeAccountStateOverride(accountState);
+  for (const { address, ...accountState } of parameters) {
+    if (!isAddress(address, { strict: false }))
+      throw new InvalidAddressError({ address });
+    if (rpcStateOverride[address])
+      throw new AccountStateConflictError({ address });
+    rpcStateOverride[address] = serializeAccountStateOverride(accountState);
   }
   return rpcStateOverride;
 }
@@ -9269,9 +9269,9 @@ var init_number = __esm({
 // node_modules/viem/_esm/utils/transaction/assertRequest.js
 function assertRequest(args) {
   const { account: account_, maxFeePerGas, maxPriorityFeePerGas, to } = args;
-  const account = account_ ? parseAccount(account_) : void 0;
-  if (account && !isAddress(account.address))
-    throw new InvalidAddressError({ address: account.address });
+  const account2 = account_ ? parseAccount(account_) : void 0;
+  if (account2 && !isAddress(account2.address))
+    throw new InvalidAddressError({ address: account2.address });
   if (to && !isAddress(to))
     throw new InvalidAddressError({ address: to });
   if (maxFeePerGas && maxFeePerGas > maxUint256)
@@ -11135,13 +11135,13 @@ __export(ccip_exports, {
   offchainLookupAbiItem: () => offchainLookupAbiItem,
   offchainLookupSignature: () => offchainLookupSignature
 });
-async function offchainLookup(client2, { blockNumber, blockTag, data, requestOptions, to }) {
+async function offchainLookup(client, { blockNumber, blockTag, data, requestOptions, to }) {
   const { args } = decodeErrorResult({
     data,
     abi: [offchainLookupAbiItem]
   });
   const [sender, urls, callData, callbackSelector, extraData] = args;
-  const { ccipRead } = client2;
+  const { ccipRead } = client;
   const ccipRequest_ = ccipRead && typeof ccipRead?.request === "function" ? ccipRead.request : ccipRequest;
   try {
     if (!isAddressEqual(to, sender))
@@ -11150,7 +11150,7 @@ async function offchainLookup(client2, { blockNumber, blockTag, data, requestOpt
       data: callData,
       ccipRequest: (parameters) => ccipRequest_({ ...parameters, requestOptions })
     }) : await ccipRequest_({ data: callData, requestOptions, sender, urls });
-    const { data: data_ } = await call(client2, {
+    const { data: data_ } = await call(client, {
       blockNumber,
       blockTag,
       data: concat([
@@ -11276,9 +11276,9 @@ var init_ccip2 = __esm({
 });
 
 // node_modules/viem/_esm/actions/public/call.js
-async function call(client2, args) {
-  const { account: account_ = client2.account, authorizationList, batch = Boolean(client2.batch?.multicall), blockHash, blockNumber, blockTag = client2.experimental_blockTag ?? "latest", requireCanonical, accessList, blobs, blockOverrides, code, data: data_, factory, factoryData, gas, gasPrice, maxFeePerBlobGas, maxFeePerGas, maxPriorityFeePerGas, nonce, requestOptions, to, value, stateOverride, ...rest } = args;
-  const account = account_ ? parseAccount(account_) : void 0;
+async function call(client, args) {
+  const { account: account_ = client.account, authorizationList, batch = Boolean(client.batch?.multicall), blockHash, blockNumber, blockTag = client.experimental_blockTag ?? "latest", requireCanonical, accessList, blobs, blockOverrides, code, data: data_, factory, factoryData, gas, gasPrice, maxFeePerBlobGas, maxFeePerGas, maxPriorityFeePerGas, nonce, requestOptions, to, value, stateOverride, ...rest } = args;
+  const account2 = account_ ? parseAccount(account_) : void 0;
   if (code && (factory || factoryData))
     throw new BaseError2("Cannot provide both `code` & `factory`/`factoryData` as parameters.");
   if (code && to)
@@ -11311,13 +11311,13 @@ async function call(client2, args) {
     });
     const rpcBlockOverrides = blockOverrides ? toRpc2(blockOverrides) : void 0;
     const rpcStateOverride = serializeStateOverride(stateOverride);
-    const chainFormat = client2.chain?.formatters?.transactionRequest?.format;
+    const chainFormat = client.chain?.formatters?.transactionRequest?.format;
     const format = chainFormat || formatTransactionRequest;
     const request = format({
       // Pick out extra data that might exist on the chain's transaction request type.
       ...extract(rest, { format: chainFormat }),
       accessList,
-      account,
+      account: account2,
       authorizationList,
       blobs,
       data,
@@ -11332,13 +11332,13 @@ async function call(client2, args) {
     }, "call");
     if (batch && shouldPerformMulticall({ request }) && !rpcBlockOverrides && blockHash === void 0) {
       try {
-        const { deployless = false } = typeof client2.batch?.multicall === "object" ? client2.batch.multicall : {};
-        const multicallAddress = getMulticallAddress(client2, {
+        const { deployless = false } = typeof client.batch?.multicall === "object" ? client.batch.multicall : {};
+        const multicallAddress = getMulticallAddress(client, {
           blockNumber,
           deployless
         });
         if (!multicallAddress || !hasStateOverrideForAddress(rpcStateOverride, multicallAddress))
-          return await scheduleMulticall(client2, {
+          return await scheduleMulticall(client, {
             ...request,
             blockHash,
             blockNumber,
@@ -11366,7 +11366,7 @@ async function call(client2, args) {
         return [...base, {}, rpcBlockOverrides];
       return base;
     })();
-    const response = await client2.request({
+    const response = await client.request({
       method: "eth_call",
       params
     }, requestOptions);
@@ -11380,16 +11380,16 @@ async function call(client2, args) {
       throw err;
     const data2 = getRevertErrorData(err);
     const { offchainLookup: offchainLookup2, offchainLookupSignature: offchainLookupSignature2 } = await Promise.resolve().then(() => (init_ccip2(), ccip_exports));
-    if (client2.ccipRead !== false && data2?.slice(0, 10) === offchainLookupSignature2 && to)
+    if (client.ccipRead !== false && data2?.slice(0, 10) === offchainLookupSignature2 && to)
       return {
-        data: await offchainLookup2(client2, { data: data2, requestOptions, to })
+        data: await offchainLookup2(client, { data: data2, requestOptions, to })
       };
     if (deploylessCall && data2?.slice(0, 10) === "0x101bb98d")
       throw new CounterfactualDeploymentFailedError({ factory });
     throw getCallError(err, {
       ...args,
-      account,
-      chain: client2.chain
+      account: account2,
+      chain: client.chain
     });
   }
 }
@@ -11415,10 +11415,10 @@ function getRequestOptionsId(requestOptions) {
   requestOptionsIds.set(requestOptions, nextId);
   return nextId;
 }
-async function scheduleMulticall(client2, args) {
-  const { batchSize = 1024, deployless = false, wait: wait2 = 0 } = typeof client2.batch?.multicall === "object" ? client2.batch.multicall : {};
-  const { blockHash, blockNumber, blockTag = client2.experimental_blockTag ?? "latest", requireCanonical, data, multicallAddress: multicallAddress_, requestOptions, rpcStateOverride, to } = args;
-  const multicallAddress = multicallAddress_ !== void 0 ? multicallAddress_ : getMulticallAddress(client2, {
+async function scheduleMulticall(client, args) {
+  const { batchSize = 1024, deployless = false, wait: wait2 = 0 } = typeof client.batch?.multicall === "object" ? client.batch.multicall : {};
+  const { blockHash, blockNumber, blockTag = client.experimental_blockTag ?? "latest", requireCanonical, data, multicallAddress: multicallAddress_, requestOptions, rpcStateOverride, to } = args;
+  const multicallAddress = multicallAddress_ !== void 0 ? multicallAddress_ : getMulticallAddress(client, {
     blockNumber,
     deployless
   });
@@ -11431,7 +11431,7 @@ async function scheduleMulticall(client2, args) {
   const blockId = typeof block === "string" ? block : JSON.stringify(block);
   const stateOverrideKey = rpcStateOverride ? `.${JSON.stringify(rpcStateOverride)}` : "";
   const { schedule } = createBatchScheduler({
-    id: `${client2.uid}.${blockId}.${getRequestOptionsId(requestOptions)}${stateOverrideKey}`,
+    id: `${client.uid}.${blockId}.${getRequestOptionsId(requestOptions)}${stateOverrideKey}`,
     wait: wait2,
     shouldSplitBatch(args2) {
       const size5 = args2.reduce((size6, { data: data2 }) => size6 + (data2.length - 2), 0);
@@ -11456,7 +11456,7 @@ async function scheduleMulticall(client2, args) {
           })
         } : { to: multicallAddress, data: calldata }
       };
-      const data2 = await client2.request({
+      const data2 = await client.request({
         method: "eth_call",
         params: rpcStateOverride ? [multicallRequest, block, rpcStateOverride] : [multicallRequest, block]
       }, requestOptions);
@@ -11475,22 +11475,22 @@ async function scheduleMulticall(client2, args) {
     return { data: void 0 };
   return { data: returnData };
 }
-function getMulticallAddress(client2, parameters) {
+function getMulticallAddress(client, parameters) {
   const { blockNumber, deployless } = parameters;
   if (deployless)
     return null;
-  if (client2.chain)
+  if (client.chain)
     return getChainContractAddress({
       blockNumber,
-      chain: client2.chain,
+      chain: client.chain,
       contract: "multicall3"
     });
   throw new ClientChainNotConfiguredError();
 }
-function hasStateOverrideForAddress(rpcStateOverride, address2) {
+function hasStateOverrideForAddress(rpcStateOverride, address) {
   if (!rpcStateOverride)
     return false;
-  return Object.keys(rpcStateOverride).some((stateOverrideAddress) => isAddressEqual(stateOverrideAddress, address2));
+  return Object.keys(rpcStateOverride).some((stateOverrideAddress) => isAddressEqual(stateOverrideAddress, address));
 }
 function toDeploylessCallViaBytecodeData(parameters) {
   const { code, data } = parameters;
@@ -11545,7 +11545,7 @@ var init_call = __esm({
   }
 });
 
-// circle/arc/src/arc-usdc-tools.ts
+// circle/arc/src/arc-escrow.ts
 init_browser_buffer_global();
 
 // node_modules/viem/_esm/index.js
@@ -11557,14 +11557,14 @@ init_browser_buffer_global();
 
 // node_modules/viem/_esm/utils/getAction.js
 init_browser_buffer_global();
-function getAction(client2, actionFn, name) {
-  const action_implicit = client2[actionFn.name];
+function getAction(client, actionFn, name) {
+  const action_implicit = client[actionFn.name];
   if (typeof action_implicit === "function")
     return action_implicit;
-  const action_explicit = client2[name];
+  const action_explicit = client[name];
   if (typeof action_explicit === "function")
     return action_explicit;
-  return (params) => actionFn(client2, params);
+  return (params) => actionFn(client, params);
 }
 
 // node_modules/viem/_esm/actions/public/createContractEventFilter.js
@@ -11635,20 +11635,20 @@ init_toHex();
 
 // node_modules/viem/_esm/utils/filters/createFilterRequestScope.js
 init_browser_buffer_global();
-function createFilterRequestScope(client2, { method }) {
+function createFilterRequestScope(client, { method }) {
   const requestMap = {};
-  if (client2.transport.type === "fallback")
-    client2.transport.onResponse?.(({ method: method_, response: id, status, transport }) => {
+  if (client.transport.type === "fallback")
+    client.transport.onResponse?.(({ method: method_, response: id, status, transport }) => {
       if (status === "success" && method === method_)
         requestMap[id] = transport.request;
     });
-  return ((id) => requestMap[id] || client2.request);
+  return ((id) => requestMap[id] || client.request);
 }
 
 // node_modules/viem/_esm/actions/public/createContractEventFilter.js
-async function createContractEventFilter(client2, parameters) {
-  const { address: address2, abi: abi2, args, eventName, fromBlock, strict, toBlock } = parameters;
-  const getRequest = createFilterRequestScope(client2, {
+async function createContractEventFilter(client, parameters) {
+  const { address, abi: abi2, args, eventName, fromBlock, strict, toBlock } = parameters;
+  const getRequest = createFilterRequestScope(client, {
     method: "eth_newFilter"
   });
   const topics = eventName ? encodeEventTopics({
@@ -11656,11 +11656,11 @@ async function createContractEventFilter(client2, parameters) {
     args,
     eventName
   }) : void 0;
-  const id = await client2.request({
+  const id = await client.request({
     method: "eth_newFilter",
     params: [
       {
-        address: address2,
+        address,
         fromBlock: typeof fromBlock === "bigint" ? numberToHex(fromBlock) : fromBlock,
         toBlock: typeof toBlock === "bigint" ? numberToHex(toBlock) : toBlock,
         topics
@@ -11691,7 +11691,7 @@ init_contract();
 init_request();
 init_rpc();
 var EXECUTION_REVERTED_ERROR_CODE = 3;
-function getContractError(err, { abi: abi2, address: address2, args, docsPath: docsPath8, functionName, sender }) {
+function getContractError(err, { abi: abi2, address, args, docsPath: docsPath8, functionName, sender }) {
   const error = err instanceof RawContractError ? err : err instanceof BaseError2 ? err.walk((err2) => "data" in err2) || err.walk() : {};
   const { code, data, details, message, shortMessage } = error;
   const cause = (() => {
@@ -11711,7 +11711,7 @@ function getContractError(err, { abi: abi2, address: address2, args, docsPath: d
   return new ContractFunctionExecutionError(cause, {
     abi: abi2,
     args,
-    contractAddress: address2,
+    contractAddress: address,
     docsPath: docsPath8,
     functionName,
     sender
@@ -11734,8 +11734,8 @@ init_browser_buffer_global();
 init_getAddress();
 init_keccak256();
 function publicKeyToAddress(publicKey) {
-  const address2 = keccak256(`0x${publicKey.substring(4)}`).substring(26);
-  return checksumAddress(`0x${address2}`);
+  const address = keccak256(`0x${publicKey.substring(4)}`).substring(26);
+  return checksumAddress(`0x${address}`);
 }
 
 // node_modules/viem/_esm/utils/signature/recoverPublicKey.js
@@ -11883,12 +11883,12 @@ function getSizeOfLength(length) {
 init_keccak256();
 function hashAuthorization(parameters) {
   const { chainId, nonce, to } = parameters;
-  const address2 = parameters.contractAddress ?? parameters.address;
+  const address = parameters.contractAddress ?? parameters.address;
   const hash3 = keccak256(concatHex([
     "0x05",
     toRlp([
       chainId ? numberToHex(chainId) : "0x",
-      address2,
+      address,
       nonce ? numberToHex(nonce) : "0x"
     ])
   ]));
@@ -11919,9 +11919,9 @@ init_formatGwei();
 init_base();
 init_transaction();
 var EstimateGasExecutionError = class extends BaseError2 {
-  constructor(cause, { account, docsPath: docsPath8, chain, data, gas, gasPrice, maxFeePerGas, maxPriorityFeePerGas, nonce, to, value }) {
+  constructor(cause, { account: account2, docsPath: docsPath8, chain, data, gas, gasPrice, maxFeePerGas, maxPriorityFeePerGas, nonce, to, value }) {
     const prettyArgs = prettyPrint({
-      from: account?.address,
+      from: account2?.address,
       to,
       value: typeof value !== "undefined" && `${formatEther(value)} ${chain?.nativeCurrency?.symbol || "ETH"}`,
       data,
@@ -12134,49 +12134,49 @@ function formatBlock(block, _) {
 }
 
 // node_modules/viem/_esm/actions/public/getBlock.js
-async function getBlock(client2, { blockHash, blockNumber, blockTag = client2.experimental_blockTag ?? "latest", includeTransactions: includeTransactions_ } = {}) {
+async function getBlock(client, { blockHash, blockNumber, blockTag = client.experimental_blockTag ?? "latest", includeTransactions: includeTransactions_ } = {}) {
   const includeTransactions = includeTransactions_ ?? false;
   const blockNumberHex = blockNumber !== void 0 ? numberToHex(blockNumber) : void 0;
   let block = null;
   if (blockHash) {
-    block = await client2.request({
+    block = await client.request({
       method: "eth_getBlockByHash",
       params: [blockHash, includeTransactions]
     }, { dedupe: true });
   } else {
-    block = await client2.request({
+    block = await client.request({
       method: "eth_getBlockByNumber",
       params: [blockNumberHex || blockTag, includeTransactions]
     }, { dedupe: Boolean(blockNumberHex) });
   }
   if (!block)
     throw new BlockNotFoundError({ blockHash, blockNumber });
-  const format = client2.chain?.formatters?.block?.format || formatBlock;
+  const format = client.chain?.formatters?.block?.format || formatBlock;
   return format(block, "getBlock");
 }
 
 // node_modules/viem/_esm/actions/public/getGasPrice.js
 init_browser_buffer_global();
-async function getGasPrice(client2) {
-  const gasPrice = await client2.request({
+async function getGasPrice(client) {
+  const gasPrice = await client.request({
     method: "eth_gasPrice"
   });
   return BigInt(gasPrice);
 }
 
 // node_modules/viem/_esm/actions/public/estimateMaxPriorityFeePerGas.js
-async function estimateMaxPriorityFeePerGas(client2, args) {
-  return internal_estimateMaxPriorityFeePerGas(client2, args);
+async function estimateMaxPriorityFeePerGas(client, args) {
+  return internal_estimateMaxPriorityFeePerGas(client, args);
 }
-async function internal_estimateMaxPriorityFeePerGas(client2, args) {
-  const { block: block_, chain = client2.chain, request } = args || {};
+async function internal_estimateMaxPriorityFeePerGas(client, args) {
+  const { block: block_, chain = client.chain, request } = args || {};
   try {
     const maxPriorityFeePerGas = chain?.fees?.maxPriorityFeePerGas ?? chain?.fees?.defaultPriorityFee;
     if (typeof maxPriorityFeePerGas === "function") {
-      const block = block_ || await getAction(client2, getBlock, "getBlock")({});
+      const block = block_ || await getAction(client, getBlock, "getBlock")({});
       const maxPriorityFeePerGas_ = await maxPriorityFeePerGas({
         block,
-        client: client2,
+        client,
         request
       });
       if (maxPriorityFeePerGas_ === null)
@@ -12185,14 +12185,14 @@ async function internal_estimateMaxPriorityFeePerGas(client2, args) {
     }
     if (typeof maxPriorityFeePerGas !== "undefined")
       return maxPriorityFeePerGas;
-    const maxPriorityFeePerGasHex = await client2.request({
+    const maxPriorityFeePerGasHex = await client.request({
       method: "eth_maxPriorityFeePerGas"
     });
     return hexToBigInt(maxPriorityFeePerGasHex);
   } catch {
     const [block, gasPrice] = await Promise.all([
-      block_ ? Promise.resolve(block_) : getAction(client2, getBlock, "getBlock")({}),
-      getAction(client2, getGasPrice, "getGasPrice")({})
+      block_ ? Promise.resolve(block_) : getAction(client, getBlock, "getBlock")({}),
+      getAction(client, getGasPrice, "getGasPrice")({})
     ]);
     if (typeof block.baseFeePerGas !== "bigint")
       throw new Eip1559FeesNotSupportedError();
@@ -12204,16 +12204,16 @@ async function internal_estimateMaxPriorityFeePerGas(client2, args) {
 }
 
 // node_modules/viem/_esm/actions/public/estimateFeesPerGas.js
-async function estimateFeesPerGas(client2, args) {
-  return internal_estimateFeesPerGas(client2, args);
+async function estimateFeesPerGas(client, args) {
+  return internal_estimateFeesPerGas(client, args);
 }
-async function internal_estimateFeesPerGas(client2, args) {
-  const { block: block_, chain = client2.chain, request, type = "eip1559" } = args || {};
+async function internal_estimateFeesPerGas(client, args) {
+  const { block: block_, chain = client.chain, request, type = "eip1559" } = args || {};
   const baseFeeMultiplier = await (async () => {
     if (typeof chain?.fees?.baseFeeMultiplier === "function")
       return chain.fees.baseFeeMultiplier({
         block: block_,
-        client: client2,
+        client,
         request
       });
     return chain?.fees?.baseFeeMultiplier ?? 1.2;
@@ -12223,11 +12223,11 @@ async function internal_estimateFeesPerGas(client2, args) {
   const decimals = baseFeeMultiplier.toString().split(".")[1]?.length ?? 0;
   const denominator = 10 ** decimals;
   const multiply = (base) => base * BigInt(Math.ceil(baseFeeMultiplier * denominator)) / BigInt(denominator);
-  const block = block_ ? block_ : await getAction(client2, getBlock, "getBlock")({});
+  const block = block_ ? block_ : await getAction(client, getBlock, "getBlock")({});
   if (typeof chain?.fees?.estimateFeesPerGas === "function") {
     const fees = await chain.fees.estimateFeesPerGas({
       block: block_,
-      client: client2,
+      client,
       multiply,
       request,
       type
@@ -12238,7 +12238,7 @@ async function internal_estimateFeesPerGas(client2, args) {
   if (type === "eip1559") {
     if (typeof block.baseFeePerGas !== "bigint")
       throw new Eip1559FeesNotSupportedError();
-    const maxPriorityFeePerGas = typeof request?.maxPriorityFeePerGas === "bigint" ? request.maxPriorityFeePerGas : await internal_estimateMaxPriorityFeePerGas(client2, {
+    const maxPriorityFeePerGas = typeof request?.maxPriorityFeePerGas === "bigint" ? request.maxPriorityFeePerGas : await internal_estimateMaxPriorityFeePerGas(client, {
       block,
       chain,
       request
@@ -12250,7 +12250,7 @@ async function internal_estimateFeesPerGas(client2, args) {
       maxPriorityFeePerGas
     };
   }
-  const gasPrice = request?.gasPrice ?? multiply(await getAction(client2, getGasPrice, "getGasPrice")({}));
+  const gasPrice = request?.gasPrice ?? multiply(await getAction(client, getGasPrice, "getGasPrice")({}));
   return {
     gasPrice
   };
@@ -12260,16 +12260,16 @@ async function internal_estimateFeesPerGas(client2, args) {
 init_browser_buffer_global();
 init_formatBlockParameter();
 init_fromHex();
-async function getTransactionCount(client2, { address: address2, blockHash, blockNumber, blockTag = "latest", requireCanonical }) {
+async function getTransactionCount(client, { address, blockHash, blockNumber, blockTag = "latest", requireCanonical }) {
   const block = formatBlockParameter({
     blockHash,
     blockNumber,
     blockTag,
     requireCanonical
   });
-  const count = await client2.request({
+  const count = await client.request({
     method: "eth_getTransactionCount",
-    params: [address2, block]
+    params: [address, block]
   }, {
     dedupe: typeof blockNumber === "bigint" || blockHash !== void 0
   });
@@ -12507,29 +12507,29 @@ init_assertRequest();
 // node_modules/viem/_esm/actions/public/getChainId.js
 init_browser_buffer_global();
 init_fromHex();
-async function getChainId(client2) {
-  const chainIdHex = await client2.request({
+async function getChainId(client) {
+  const chainIdHex = await client.request({
     method: "eth_chainId"
   }, { dedupe: true });
   return hexToNumber(chainIdHex);
 }
 
 // node_modules/viem/_esm/actions/public/fillTransaction.js
-async function fillTransaction(client2, parameters) {
-  const { account = client2.account, accessList, authorizationList, chain = client2.chain, blobVersionedHashes, blobs, data, gas, gasPrice, maxFeePerBlobGas, maxFeePerGas, maxPriorityFeePerGas, nonce: nonce_, nonceManager: nonceManager2, to, type, value, ...rest } = parameters;
+async function fillTransaction(client, parameters) {
+  const { account: account2 = client.account, accessList, authorizationList, chain = client.chain, blobVersionedHashes, blobs, data, gas, gasPrice, maxFeePerBlobGas, maxFeePerGas, maxPriorityFeePerGas, nonce: nonce_, nonceManager: nonceManager2, to, type, value, ...rest } = parameters;
   const nonce = await (async () => {
-    if (!account)
+    if (!account2)
       return nonce_;
     if (!nonceManager2)
       return nonce_;
     if (typeof nonce_ !== "undefined")
       return nonce_;
-    const account_ = parseAccount(account);
-    const chainId = chain ? chain.id : await getAction(client2, getChainId, "getChainId")({});
+    const account_ = parseAccount(account2);
+    const chainId = chain ? chain.id : await getAction(client, getChainId, "getChainId")({});
     return await nonceManager2.consume({
       address: account_.address,
       chainId,
-      client: client2
+      client
     });
   })();
   assertRequest(parameters);
@@ -12538,7 +12538,7 @@ async function fillTransaction(client2, parameters) {
   const request = format({
     // Pick out extra data that might exist on the chain's transaction request type.
     ...extract(rest, { format: chainFormat }),
-    account: account ? parseAccount(account) : void 0,
+    account: account2 ? parseAccount(account2) : void 0,
     accessList,
     authorizationList,
     blobs,
@@ -12555,7 +12555,7 @@ async function fillTransaction(client2, parameters) {
     value
   }, "fillTransaction");
   try {
-    const response = await client2.request({
+    const response = await client.request({
       method: "eth_fillTransaction",
       params: [request]
     });
@@ -12583,10 +12583,10 @@ async function fillTransaction(client2, parameters) {
       transaction.nonce = parameters.nonce ?? transaction.nonce;
     const feeMultiplier = await (async () => {
       if (typeof chain?.fees?.baseFeeMultiplier === "function") {
-        const block = await getAction(client2, getBlock, "getBlock")({});
+        const block = await getAction(client, getBlock, "getBlock")({});
         return chain.fees.baseFeeMultiplier({
           block,
-          client: client2,
+          client,
           request: parameters
         });
       }
@@ -12614,7 +12614,7 @@ async function fillTransaction(client2, parameters) {
   } catch (err) {
     throw getTransactionError(err, {
       ...parameters,
-      chain: client2.chain
+      chain: client.chain
     });
   }
 }
@@ -12630,11 +12630,11 @@ var defaultParameters = [
 ];
 var eip1559NetworkCache = /* @__PURE__ */ new Map();
 var supportsFillTransaction = /* @__PURE__ */ new LruMap(128);
-async function prepareTransactionRequest(client2, args) {
+async function prepareTransactionRequest(client, args) {
   let request = args;
-  request.account ??= client2.account;
+  request.account ??= client.account;
   request.parameters ??= defaultParameters;
-  const { account: account_, chain = client2.chain, nonceManager: nonceManager2, parameters } = request;
+  const { account: account_, chain = client.chain, nonceManager: nonceManager2, parameters } = request;
   const prepareTransactionRequest2 = (() => {
     if (typeof chain?.prepareTransactionRequest === "function")
       return {
@@ -12656,23 +12656,23 @@ async function prepareTransactionRequest(client2, args) {
       return request.chainId;
     if (chain)
       return chain.id;
-    const chainId_ = await getAction(client2, getChainId, "getChainId")({});
+    const chainId_ = await getAction(client, getChainId, "getChainId")({});
     chainId = chainId_;
     return chainId;
   }
-  const account = account_ ? parseAccount(account_) : account_;
+  const account2 = account_ ? parseAccount(account_) : account_;
   let nonce = request.nonce;
-  if (parameters.includes("nonce") && typeof nonce === "undefined" && account && nonceManager2) {
+  if (parameters.includes("nonce") && typeof nonce === "undefined" && account2 && nonceManager2) {
     const chainId2 = await getChainId2();
     nonce = await nonceManager2.consume({
-      address: account.address,
+      address: account2.address,
       chainId: chainId2,
-      client: client2
+      client
     });
   }
   if (prepareTransactionRequest2?.fn && prepareTransactionRequest2.runAt?.includes("beforeFillTransaction")) {
     request = await prepareTransactionRequest2.fn({ ...request, chain }, {
-      client: client2,
+      client,
       phase: "beforeFillTransaction"
     });
     nonce ??= request.nonce;
@@ -12680,7 +12680,7 @@ async function prepareTransactionRequest(client2, args) {
   const attemptFill = (() => {
     if ((parameters.includes("blobVersionedHashes") || parameters.includes("sidecars")) && request.kzg && request.blobs)
       return false;
-    if (supportsFillTransaction.get(client2.uid) === false)
+    if (supportsFillTransaction.get(client.uid) === false)
       return false;
     const shouldAttempt = ["fees", "gas"].some((parameter) => parameters.includes(parameter));
     if (!shouldAttempt)
@@ -12695,9 +12695,9 @@ async function prepareTransactionRequest(client2, args) {
       return true;
     return false;
   })();
-  const fillResult = attemptFill ? await getAction(client2, fillTransaction, "fillTransaction")({ ...request, nonce }).then((result) => {
+  const fillResult = attemptFill ? await getAction(client, fillTransaction, "fillTransaction")({ ...request, nonce }).then((result) => {
     const { chainId: chainId2, from: from14, gas: gas2, gasPrice, nonce: nonce2, maxFeePerBlobGas, maxFeePerGas, maxPriorityFeePerGas, type: type2, ...rest } = result.transaction;
-    supportsFillTransaction.set(client2.uid, true);
+    supportsFillTransaction.set(client.uid, true);
     return {
       ...request,
       ...from14 ? { from: from14 } : {},
@@ -12730,19 +12730,19 @@ async function prepareTransactionRequest(client2, args) {
       return error2.name === "MethodNotFoundRpcError" || error2.name === "MethodNotSupportedRpcError" || error2.message?.includes("eth_fillTransaction is not available");
     });
     if (unsupported)
-      supportsFillTransaction.set(client2.uid, false);
+      supportsFillTransaction.set(client.uid, false);
     return request;
   }) : request;
   nonce ??= fillResult.nonce;
   request = {
     ...fillResult,
-    ...account ? { from: account?.address } : {},
+    ...account2 ? { from: account2?.address } : {},
     ...typeof nonce !== "undefined" ? { nonce } : {}
   };
   const { blobs, gas, kzg, type } = request;
   if (prepareTransactionRequest2?.fn && prepareTransactionRequest2.runAt?.includes("beforeFillParameters")) {
     request = await prepareTransactionRequest2.fn({ ...request, chain }, {
-      client: client2,
+      client,
       phase: "beforeFillParameters"
     });
   }
@@ -12750,12 +12750,12 @@ async function prepareTransactionRequest(client2, args) {
   async function getBlock2() {
     if (block)
       return block;
-    block = await getAction(client2, getBlock, "getBlock")({ blockTag: "latest" });
+    block = await getAction(client, getBlock, "getBlock")({ blockTag: "latest" });
     return block;
   }
-  if (parameters.includes("nonce") && typeof nonce === "undefined" && account && !nonceManager2)
-    request.nonce = await getAction(client2, getTransactionCount, "getTransactionCount")({
-      address: account.address,
+  if (parameters.includes("nonce") && typeof nonce === "undefined" && account2 && !nonceManager2)
+    request.nonce = await getAction(client, getTransactionCount, "getTransactionCount")({
+      address: account2.address,
       blockTag: "pending"
     });
   if ((parameters.includes("blobVersionedHashes") || parameters.includes("sidecars")) && blobs && kzg) {
@@ -12784,11 +12784,11 @@ async function prepareTransactionRequest(client2, args) {
     try {
       request.type = getTransactionType(request);
     } catch {
-      let isEip1559Network = eip1559NetworkCache.get(client2.uid);
+      let isEip1559Network = eip1559NetworkCache.get(client.uid);
       if (typeof isEip1559Network === "undefined") {
         const block2 = await getBlock2();
         isEip1559Network = typeof block2?.baseFeePerGas === "bigint";
-        eip1559NetworkCache.set(client2.uid, isEip1559Network);
+        eip1559NetworkCache.set(client.uid, isEip1559Network);
       }
       request.type = isEip1559Network ? "eip1559" : "legacy";
     }
@@ -12797,7 +12797,7 @@ async function prepareTransactionRequest(client2, args) {
     if (request.type !== "legacy" && request.type !== "eip2930") {
       if (typeof request.maxFeePerGas === "undefined" || typeof request.maxPriorityFeePerGas === "undefined") {
         const block2 = await getBlock2();
-        const { maxFeePerGas, maxPriorityFeePerGas } = await internal_estimateFeesPerGas(client2, {
+        const { maxFeePerGas, maxPriorityFeePerGas } = await internal_estimateFeesPerGas(client, {
           block: block2,
           chain,
           request
@@ -12814,7 +12814,7 @@ async function prepareTransactionRequest(client2, args) {
         throw new Eip1559FeesNotSupportedError();
       if (typeof request.gasPrice === "undefined") {
         const block2 = await getBlock2();
-        const { gasPrice: gasPrice_ } = await internal_estimateFeesPerGas(client2, {
+        const { gasPrice: gasPrice_ } = await internal_estimateFeesPerGas(client, {
           block: block2,
           chain,
           request,
@@ -12825,14 +12825,14 @@ async function prepareTransactionRequest(client2, args) {
     }
   }
   if (parameters.includes("gas") && typeof gas === "undefined")
-    request.gas = await getAction(client2, estimateGas, "estimateGas")({
+    request.gas = await getAction(client, estimateGas, "estimateGas")({
       ...request,
-      account,
-      prepare: account?.type === "local" ? [] : ["blobVersionedHashes"]
+      account: account2,
+      prepare: account2?.type === "local" ? [] : ["blobVersionedHashes"]
     });
   if (prepareTransactionRequest2?.fn && prepareTransactionRequest2.runAt?.includes("afterFillParameters"))
     request = await prepareTransactionRequest2.fn({ ...request, chain }, {
-      client: client2,
+      client,
       phase: "afterFillParameters"
     });
   assertRequest(request);
@@ -12841,13 +12841,13 @@ async function prepareTransactionRequest(client2, args) {
 }
 
 // node_modules/viem/_esm/actions/public/estimateGas.js
-async function estimateGas(client2, args) {
-  const { account: account_ = client2.account, prepare = true } = args;
-  const account = account_ ? parseAccount(account_) : void 0;
+async function estimateGas(client, args) {
+  const { account: account_ = client.account, prepare = true } = args;
+  const account2 = account_ ? parseAccount(account_) : void 0;
   const parameters = (() => {
     if (Array.isArray(prepare))
       return prepare;
-    if (account?.type !== "local")
+    if (account2?.type !== "local")
       return ["blobVersionedHashes"];
     return void 0;
   })();
@@ -12863,7 +12863,7 @@ async function estimateGas(client2, args) {
         });
       return void 0;
     })();
-    const { accessList, authorizationList, blobs, blobVersionedHashes, blockNumber, blockTag, data, gas, gasPrice, maxFeePerBlobGas, maxFeePerGas, maxPriorityFeePerGas, nonce, value, stateOverride, ...rest } = prepare ? await prepareTransactionRequest(client2, {
+    const { accessList, authorizationList, blobs, blobVersionedHashes, blockNumber, blockTag, data, gas, gasPrice, maxFeePerBlobGas, maxFeePerGas, maxPriorityFeePerGas, nonce, value, stateOverride, ...rest } = prepare ? await prepareTransactionRequest(client, {
       ...args,
       parameters,
       to
@@ -12874,12 +12874,12 @@ async function estimateGas(client2, args) {
     const block = blockNumberHex || blockTag;
     const rpcStateOverride = serializeStateOverride(stateOverride);
     assertRequest(args);
-    const chainFormat = client2.chain?.formatters?.transactionRequest?.format;
+    const chainFormat = client.chain?.formatters?.transactionRequest?.format;
     const format = chainFormat || formatTransactionRequest;
     const request = format({
       // Pick out extra data that might exist on the chain's transaction request type.
       ...extract(rest, { format: chainFormat }),
-      account,
+      account: account2,
       accessList,
       authorizationList,
       blobs,
@@ -12893,47 +12893,47 @@ async function estimateGas(client2, args) {
       to,
       value
     }, "estimateGas");
-    return BigInt(await client2.request({
+    return BigInt(await client.request({
       method: "eth_estimateGas",
       params: rpcStateOverride ? [
         request,
-        block ?? client2.experimental_blockTag ?? "latest",
+        block ?? client.experimental_blockTag ?? "latest",
         rpcStateOverride
       ] : block ? [request, block] : [request]
     }));
   } catch (err) {
     throw getEstimateGasError(err, {
       ...args,
-      account,
-      chain: client2.chain
+      account: account2,
+      chain: client.chain
     });
   }
 }
 
 // node_modules/viem/_esm/actions/public/estimateContractGas.js
-async function estimateContractGas(client2, parameters) {
-  const { abi: abi2, address: address2, args, functionName, dataSuffix = typeof client2.dataSuffix === "string" ? client2.dataSuffix : client2.dataSuffix?.value, ...request } = parameters;
+async function estimateContractGas(client, parameters) {
+  const { abi: abi2, address, args, functionName, dataSuffix = typeof client.dataSuffix === "string" ? client.dataSuffix : client.dataSuffix?.value, ...request } = parameters;
   const data = encodeFunctionData({
     abi: abi2,
     args,
     functionName
   });
   try {
-    const gas = await getAction(client2, estimateGas, "estimateGas")({
+    const gas = await getAction(client, estimateGas, "estimateGas")({
       data: `${data}${dataSuffix ? dataSuffix.replace("0x", "") : ""}`,
-      to: address2,
+      to: address,
       ...request
     });
     return gas;
   } catch (error) {
-    const account = request.account ? parseAccount(request.account) : void 0;
+    const account2 = request.account ? parseAccount(request.account) : void 0;
     throw getContractError(error, {
       abi: abi2,
-      address: address2,
+      address,
       args,
       docsPath: "/docs/contract/estimateContractGas",
       functionName,
-      sender: account?.address
+      sender: account2?.address
     });
   }
 }
@@ -13170,7 +13170,7 @@ function includesArgs(parameters) {
 
 // node_modules/viem/_esm/actions/public/getLogs.js
 init_toHex();
-async function getLogs(client2, { address: address2, blockHash, fromBlock, toBlock, event, events: events_, args, strict: strict_ } = {}) {
+async function getLogs(client, { address, blockHash, fromBlock, toBlock, event, events: events_, args, strict: strict_ } = {}) {
   const strict = strict_ ?? false;
   const events = events_ ?? (event ? [event] : void 0);
   let topics = [];
@@ -13186,16 +13186,16 @@ async function getLogs(client2, { address: address2, blockHash, fromBlock, toBlo
   }
   let logs;
   if (blockHash) {
-    logs = await client2.request({
+    logs = await client.request({
       method: "eth_getLogs",
-      params: [{ address: address2, topics, blockHash }]
+      params: [{ address, topics, blockHash }]
     });
   } else {
-    logs = await client2.request({
+    logs = await client.request({
       method: "eth_getLogs",
       params: [
         {
-          address: address2,
+          address,
           topics,
           fromBlock: typeof fromBlock === "bigint" ? numberToHex(fromBlock) : fromBlock,
           toBlock: typeof toBlock === "bigint" ? numberToHex(toBlock) : toBlock
@@ -13215,12 +13215,12 @@ async function getLogs(client2, { address: address2, blockHash, fromBlock, toBlo
 }
 
 // node_modules/viem/_esm/actions/public/getContractEvents.js
-async function getContractEvents(client2, parameters) {
-  const { abi: abi2, address: address2, args, blockHash, eventName, fromBlock, toBlock, strict } = parameters;
+async function getContractEvents(client, parameters) {
+  const { abi: abi2, address, args, blockHash, eventName, fromBlock, toBlock, strict } = parameters;
   const event = eventName ? getAbiItem({ abi: abi2, name: eventName }) : void 0;
   const events = !event ? abi2.filter((x) => x.type === "event") : void 0;
-  return getAction(client2, getLogs, "getLogs")({
-    address: address2,
+  return getAction(client, getLogs, "getLogs")({
+    address,
     args,
     blockHash,
     event,
@@ -13236,18 +13236,18 @@ init_browser_buffer_global();
 init_decodeFunctionResult();
 init_encodeFunctionData();
 init_call();
-async function readContract(client2, parameters) {
-  const { abi: abi2, address: address2, args, functionName, ...rest } = parameters;
+async function readContract(client, parameters) {
+  const { abi: abi2, address, args, functionName, ...rest } = parameters;
   const calldata = encodeFunctionData({
     abi: abi2,
     args,
     functionName
   });
   try {
-    const { data } = await getAction(client2, call, "call")({
+    const { data } = await getAction(client, call, "call")({
       ...rest,
       data: calldata,
-      to: address2
+      to: address
     });
     return decodeFunctionResult({
       abi: abi2,
@@ -13258,7 +13258,7 @@ async function readContract(client2, parameters) {
   } catch (error) {
     throw getContractError(error, {
       abi: abi2,
-      address: address2,
+      address,
       args,
       docsPath: "/docs/contract/readContract",
       functionName
@@ -13272,17 +13272,17 @@ init_parseAccount();
 init_decodeFunctionResult();
 init_encodeFunctionData();
 init_call();
-async function simulateContract(client2, parameters) {
-  const { abi: abi2, address: address2, args, functionName, dataSuffix = typeof client2.dataSuffix === "string" ? client2.dataSuffix : client2.dataSuffix?.value, ...callRequest } = parameters;
-  const account = callRequest.account ? parseAccount(callRequest.account) : client2.account;
+async function simulateContract(client, parameters) {
+  const { abi: abi2, address, args, functionName, dataSuffix = typeof client.dataSuffix === "string" ? client.dataSuffix : client.dataSuffix?.value, ...callRequest } = parameters;
+  const account2 = callRequest.account ? parseAccount(callRequest.account) : client.account;
   const calldata = encodeFunctionData({ abi: abi2, args, functionName });
   try {
-    const { data } = await getAction(client2, call, "call")({
+    const { data } = await getAction(client, call, "call")({
       batch: false,
       data: `${calldata}${dataSuffix ? dataSuffix.replace("0x", "") : ""}`,
-      to: address2,
+      to: address,
       ...callRequest,
-      account
+      account: account2
     });
     const result = decodeFunctionResult({
       abi: abi2,
@@ -13295,22 +13295,22 @@ async function simulateContract(client2, parameters) {
       result,
       request: {
         abi: minimizedAbi,
-        address: address2,
+        address,
         args,
         dataSuffix,
         functionName,
         ...callRequest,
-        account
+        account: account2
       }
     };
   } catch (error) {
     throw getContractError(error, {
       abi: abi2,
-      address: address2,
+      address,
       args,
       docsPath: "/docs/contract/simulateContract",
       functionName,
-      sender: account?.address
+      sender: account2?.address
     });
   }
 }
@@ -13474,10 +13474,10 @@ async function withCache(fn, { cacheKey: cacheKey2, cacheTime = Number.POSITIVE_
 
 // node_modules/viem/_esm/actions/public/getBlockNumber.js
 var cacheKey = (id) => `blockNumber.${id}`;
-async function getBlockNumber(client2, { cacheTime = client2.cacheTime } = {}) {
-  const blockNumberHex = await withCache(() => client2.request({
+async function getBlockNumber(client, { cacheTime = client.cacheTime } = {}) {
+  const blockNumberHex = await withCache(() => client.request({
     method: "eth_blockNumber"
-  }), { cacheKey: cacheKey(client2.uid), cacheTime });
+  }), { cacheKey: cacheKey(client.uid), cacheTime });
   return BigInt(blockNumberHex);
 }
 
@@ -13511,16 +13511,16 @@ async function uninstallFilter(_client, { filter }) {
 }
 
 // node_modules/viem/_esm/actions/public/watchContractEvent.js
-function watchContractEvent(client2, parameters) {
-  const { abi: abi2, address: address2, args, batch = true, eventName, fromBlock, onError, onLogs, poll: poll_, pollingInterval = client2.pollingInterval, strict: strict_ } = parameters;
+function watchContractEvent(client, parameters) {
+  const { abi: abi2, address, args, batch = true, eventName, fromBlock, onError, onLogs, poll: poll_, pollingInterval = client.pollingInterval, strict: strict_ } = parameters;
   const enablePolling = (() => {
     if (typeof poll_ !== "undefined")
       return poll_;
     if (typeof fromBlock === "bigint")
       return true;
-    if (client2.transport.type === "webSocket" || client2.transport.type === "ipc")
+    if (client.transport.type === "webSocket" || client.transport.type === "ipc")
       return false;
-    if (client2.transport.type === "fallback" && (client2.transport.transports[0].config.type === "webSocket" || client2.transport.transports[0].config.type === "ipc"))
+    if (client.transport.type === "fallback" && (client.transport.transports[0].config.type === "webSocket" || client.transport.transports[0].config.type === "ipc"))
       return false;
     return true;
   })();
@@ -13528,10 +13528,10 @@ function watchContractEvent(client2, parameters) {
     const strict = strict_ ?? false;
     const observerId = stringify([
       "watchContractEvent",
-      address2,
+      address,
       args,
       batch,
-      client2.uid,
+      client.uid,
       eventName,
       pollingInterval,
       strict,
@@ -13546,9 +13546,9 @@ function watchContractEvent(client2, parameters) {
       const unwatch = poll(async () => {
         if (!initialized) {
           try {
-            filter = await getAction(client2, createContractEventFilter, "createContractEventFilter")({
+            filter = await getAction(client, createContractEventFilter, "createContractEventFilter")({
               abi: abi2,
-              address: address2,
+              address,
               args,
               eventName,
               strict,
@@ -13562,13 +13562,13 @@ function watchContractEvent(client2, parameters) {
         try {
           let logs;
           if (filter) {
-            logs = await getAction(client2, getFilterChanges, "getFilterChanges")({ filter });
+            logs = await getAction(client, getFilterChanges, "getFilterChanges")({ filter });
           } else {
-            const blockNumber = await getAction(client2, getBlockNumber, "getBlockNumber")({});
+            const blockNumber = await getAction(client, getBlockNumber, "getBlockNumber")({});
             if (previousBlockNumber && previousBlockNumber < blockNumber) {
-              logs = await getAction(client2, getContractEvents, "getContractEvents")({
+              logs = await getAction(client, getContractEvents, "getContractEvents")({
                 abi: abi2,
-                address: address2,
+                address,
                 args,
                 eventName,
                 fromBlock: previousBlockNumber + 1n,
@@ -13598,7 +13598,7 @@ function watchContractEvent(client2, parameters) {
       });
       return async () => {
         if (filter)
-          await getAction(client2, uninstallFilter, "uninstallFilter")({ filter });
+          await getAction(client, uninstallFilter, "uninstallFilter")({ filter });
         unwatch();
       };
     });
@@ -13607,10 +13607,10 @@ function watchContractEvent(client2, parameters) {
     const strict = strict_ ?? false;
     const observerId = stringify([
       "watchContractEvent",
-      address2,
+      address,
       args,
       batch,
-      client2.uid,
+      client.uid,
       eventName,
       pollingInterval,
       strict
@@ -13622,13 +13622,13 @@ function watchContractEvent(client2, parameters) {
       (async () => {
         try {
           const transport = (() => {
-            if (client2.transport.type === "fallback") {
-              const transport2 = client2.transport.transports.find((transport3) => transport3.config.type === "webSocket" || transport3.config.type === "ipc");
+            if (client.transport.type === "fallback") {
+              const transport2 = client.transport.transports.find((transport3) => transport3.config.type === "webSocket" || transport3.config.type === "ipc");
               if (!transport2)
-                return client2.transport;
+                return client.transport;
               return transport2.value;
             }
-            return client2.transport;
+            return client.transport;
           })();
           const topics = eventName ? encodeEventTopics({
             abi: abi2,
@@ -13636,7 +13636,7 @@ function watchContractEvent(client2, parameters) {
             args
           }) : [];
           const { unsubscribe: unsubscribe_ } = await transport.subscribe({
-            params: ["logs", { address: address2, topics }],
+            params: ["logs", { address, topics }],
             onData(data) {
               if (!active)
                 return;
@@ -13742,8 +13742,8 @@ init_assertRequest();
 
 // node_modules/viem/_esm/actions/wallet/sendRawTransaction.js
 init_browser_buffer_global();
-async function sendRawTransaction(client2, { serializedTransaction }) {
-  return client2.request({
+async function sendRawTransaction(client, { serializedTransaction }) {
+  return client.request({
     method: "eth_sendRawTransaction",
     params: [serializedTransaction]
   }, { retryCount: 0 });
@@ -13751,13 +13751,13 @@ async function sendRawTransaction(client2, { serializedTransaction }) {
 
 // node_modules/viem/_esm/actions/wallet/sendTransaction.js
 var supportsWalletNamespace = new LruMap(128);
-async function sendTransaction(client2, parameters) {
-  const { account: account_ = client2.account, assertChainId = true, chain = client2.chain, accessList, authorizationList, blobs, data, dataSuffix = typeof client2.dataSuffix === "string" ? client2.dataSuffix : client2.dataSuffix?.value, gas, gasPrice, maxFeePerBlobGas, maxFeePerGas, maxPriorityFeePerGas, nonce, type, value, ...rest } = parameters;
+async function sendTransaction(client, parameters) {
+  const { account: account_ = client.account, assertChainId = true, chain = client.chain, accessList, authorizationList, blobs, data, dataSuffix = typeof client.dataSuffix === "string" ? client.dataSuffix : client.dataSuffix?.value, gas, gasPrice, maxFeePerBlobGas, maxFeePerGas, maxPriorityFeePerGas, nonce, type, value, ...rest } = parameters;
   if (typeof account_ === "undefined")
     throw new AccountNotFoundError({
       docsPath: "/docs/actions/wallet/sendTransaction"
     });
-  const account = account_ ? parseAccount(account_) : null;
+  const account2 = account_ ? parseAccount(account_) : null;
   let nonceManagerParameters;
   try {
     assertRequest(parameters);
@@ -13774,23 +13774,23 @@ async function sendTransaction(client2, parameters) {
         });
       return void 0;
     })();
-    if (account?.type === "json-rpc" || account === null) {
+    if (account2?.type === "json-rpc" || account2 === null) {
       let chainId;
       if (chain !== null) {
-        chainId = await getAction(client2, getChainId, "getChainId")({});
+        chainId = await getAction(client, getChainId, "getChainId")({});
         if (assertChainId)
           assertCurrentChain({
             currentChainId: chainId,
             chain
           });
       }
-      const chainFormat = client2.chain?.formatters?.transactionRequest?.format;
+      const chainFormat = client.chain?.formatters?.transactionRequest?.format;
       const format = chainFormat || formatTransactionRequest;
       const request = format({
         // Pick out extra data that might exist on the chain's transaction request type.
         ...extract(rest, { format: chainFormat }),
         accessList,
-        account,
+        account: account2,
         authorizationList,
         blobs,
         chainId,
@@ -13805,10 +13805,10 @@ async function sendTransaction(client2, parameters) {
         type,
         value
       }, "sendTransaction");
-      const isWalletNamespaceSupported = supportsWalletNamespace.get(client2.uid);
+      const isWalletNamespaceSupported = supportsWalletNamespace.get(client.uid);
       const method = isWalletNamespaceSupported ? "wallet_sendTransaction" : "eth_sendTransaction";
       try {
-        return await client2.request({
+        return await client.request({
           method,
           params: [request]
         }, { retryCount: 0 });
@@ -13817,16 +13817,16 @@ async function sendTransaction(client2, parameters) {
           throw e;
         const error = e;
         if (error.name === "InvalidInputRpcError" || error.name === "InvalidParamsRpcError" || error.name === "MethodNotFoundRpcError" || error.name === "MethodNotSupportedRpcError") {
-          return await client2.request({
+          return await client.request({
             method: "wallet_sendTransaction",
             params: [request]
           }, { retryCount: 0 }).then((hash3) => {
-            supportsWalletNamespace.set(client2.uid, true);
+            supportsWalletNamespace.set(client.uid, true);
             return hash3;
           }).catch((e2) => {
             const walletNamespaceError = e2;
             if (walletNamespaceError.name === "MethodNotFoundRpcError" || walletNamespaceError.name === "MethodNotSupportedRpcError") {
-              supportsWalletNamespace.set(client2.uid, false);
+              supportsWalletNamespace.set(client.uid, false);
               throw error;
             }
             throw walletNamespaceError;
@@ -13835,20 +13835,20 @@ async function sendTransaction(client2, parameters) {
         throw error;
       }
     }
-    if (account?.type === "local") {
-      if (account.nonceManager && typeof nonce === "undefined") {
+    if (account2?.type === "local") {
+      if (account2.nonceManager && typeof nonce === "undefined") {
         const requestChainId = rest.chainId;
         const chainId = await (async () => {
           if (typeof requestChainId === "number")
             return requestChainId;
           if (chain)
             return chain.id;
-          return getAction(client2, getChainId, "getChainId")({});
+          return getAction(client, getChainId, "getChainId")({});
         })();
-        nonceManagerParameters = { address: account.address, chainId };
+        nonceManagerParameters = { address: account2.address, chainId };
       }
-      const request = await getAction(client2, prepareTransactionRequest, "prepareTransactionRequest")({
-        account,
+      const request = await getAction(client, prepareTransactionRequest, "prepareTransactionRequest")({
+        account: account2,
         accessList,
         authorizationList,
         blobs,
@@ -13860,7 +13860,7 @@ async function sendTransaction(client2, parameters) {
         maxFeePerGas,
         maxPriorityFeePerGas,
         nonce,
-        nonceManager: account.nonceManager,
+        nonceManager: account2.nonceManager,
         parameters: [...defaultParameters, "sidecars"],
         type,
         value,
@@ -13868,14 +13868,14 @@ async function sendTransaction(client2, parameters) {
         to
       });
       const serializer = chain?.serializers?.transaction;
-      const serializedTransaction = await account.signTransaction(request, {
+      const serializedTransaction = await account2.signTransaction(request, {
         serializer
       });
-      return await getAction(client2, sendRawTransaction, "sendRawTransaction")({
+      return await getAction(client, sendRawTransaction, "sendRawTransaction")({
         serializedTransaction
       });
     }
-    if (account?.type === "smart")
+    if (account2?.type === "smart")
       throw new AccountTypeNotSupportedError({
         metaMessages: [
           "Consider using the `sendUserOperation` Action instead."
@@ -13885,53 +13885,53 @@ async function sendTransaction(client2, parameters) {
       });
     throw new AccountTypeNotSupportedError({
       docsPath: "/docs/actions/wallet/sendTransaction",
-      type: account?.type
+      type: account2?.type
     });
   } catch (err) {
     if (err instanceof AccountTypeNotSupportedError)
       throw err;
     if (nonceManagerParameters)
-      account?.nonceManager?.reset(nonceManagerParameters);
+      account2?.nonceManager?.reset(nonceManagerParameters);
     throw getTransactionError(err, {
       ...parameters,
-      account,
+      account: account2,
       chain: parameters.chain || void 0
     });
   }
 }
 
 // node_modules/viem/_esm/actions/wallet/writeContract.js
-async function writeContract(client2, parameters) {
-  return writeContract.internal(client2, sendTransaction, "sendTransaction", parameters);
+async function writeContract(client, parameters) {
+  return writeContract.internal(client, sendTransaction, "sendTransaction", parameters);
 }
 (function(writeContract2) {
-  async function internal(client2, actionFn, name, parameters) {
-    const { abi: abi2, account: account_ = client2.account, address: address2, args, functionName, ...request } = parameters;
+  async function internal(client, actionFn, name, parameters) {
+    const { abi: abi2, account: account_ = client.account, address, args, functionName, ...request } = parameters;
     if (typeof account_ === "undefined")
       throw new AccountNotFoundError({
         docsPath: "/docs/contract/writeContract"
       });
-    const account = account_ ? parseAccount(account_) : null;
+    const account2 = account_ ? parseAccount(account_) : null;
     const data = encodeFunctionData({
       abi: abi2,
       args,
       functionName
     });
     try {
-      return await getAction(client2, actionFn, name)({
+      return await getAction(client, actionFn, name)({
         data,
-        to: address2,
-        account,
+        to: address,
+        account: account2,
         ...request
       });
     } catch (error) {
       throw getContractError(error, {
         abi: abi2,
-        address: address2,
+        address,
         args,
         docsPath: "/docs/contract/writeContract",
         functionName,
-        sender: account?.address
+        sender: account2?.address
       });
     }
   }
@@ -13945,6 +13945,20 @@ init_base();
 // node_modules/viem/_esm/errors/calls.js
 init_browser_buffer_global();
 init_base();
+var BundleFailedError = class extends BaseError2 {
+  constructor(result) {
+    super(`Call bundle failed with status: ${result.statusCode}`, {
+      name: "BundleFailedError"
+    });
+    Object.defineProperty(this, "result", {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: void 0
+    });
+    this.result = result;
+  }
+};
 
 // node_modules/viem/_esm/actions/wallet/waitForCallsStatus.js
 init_withResolvers();
@@ -14039,9 +14053,242 @@ init_encodeFunctionData();
 init_concat();
 init_fromHex();
 init_toHex();
+var fallbackMagicIdentifier = "0x5792579257925792579257925792579257925792579257925792579257925792";
 var fallbackTransactionErrorMagicIdentifier = numberToHex(0, {
   size: 32
 });
+async function sendCalls(client, parameters) {
+  const { account: account_ = client.account, chain = client.chain, experimental_fallback, experimental_fallbackDelay = 32, forceAtomic = false, id, version: version5 = "2.0.0" } = parameters;
+  const account2 = account_ ? parseAccount(account_) : null;
+  let capabilities = parameters.capabilities;
+  if (client.dataSuffix && !parameters.capabilities?.dataSuffix) {
+    if (typeof client.dataSuffix === "string")
+      capabilities = {
+        ...parameters.capabilities,
+        dataSuffix: { value: client.dataSuffix, optional: true }
+      };
+    else
+      capabilities = {
+        ...parameters.capabilities,
+        dataSuffix: {
+          value: client.dataSuffix.value,
+          ...client.dataSuffix.required ? {} : { optional: true }
+        }
+      };
+  }
+  const calls = parameters.calls.map((call_) => {
+    const call2 = call_;
+    const data = call2.abi ? encodeFunctionData({
+      abi: call2.abi,
+      functionName: call2.functionName,
+      args: call2.args
+    }) : call2.data;
+    return {
+      data: call2.dataSuffix && data ? concat([data, call2.dataSuffix]) : data,
+      to: call2.to,
+      value: call2.value ? numberToHex(call2.value) : void 0
+    };
+  });
+  try {
+    const response = await client.request({
+      method: "wallet_sendCalls",
+      params: [
+        {
+          atomicRequired: forceAtomic,
+          calls,
+          capabilities,
+          chainId: numberToHex(chain.id),
+          from: account2?.address,
+          id,
+          version: version5
+        }
+      ]
+    }, { retryCount: 0 });
+    if (typeof response === "string")
+      return { id: response };
+    return response;
+  } catch (err) {
+    const error = err;
+    if (experimental_fallback && (error.name === "MethodNotFoundRpcError" || error.name === "MethodNotSupportedRpcError" || error.name === "UnknownRpcError" || error.details.toLowerCase().includes("does not exist / is not available") || error.details.toLowerCase().includes("missing or invalid. request()") || error.details.toLowerCase().includes("did not match any variant of untagged enum") || error.details.toLowerCase().includes("account upgraded to unsupported contract") || error.details.toLowerCase().includes("eip-7702 not supported") || error.details.toLowerCase().includes("unsupported wc_ method") || // magic.link
+    error.details.toLowerCase().includes("feature toggled misconfigured") || // Trust Wallet
+    error.details.toLowerCase().includes("jsonrpcengine: response has no error or result for request"))) {
+      if (capabilities) {
+        const hasNonOptionalCapability = Object.values(capabilities).some((capability) => !capability.optional);
+        if (hasNonOptionalCapability) {
+          const message = "non-optional `capabilities` are not supported on fallback to `eth_sendTransaction`.";
+          throw new UnsupportedNonOptionalCapabilityError(new BaseError2(message, {
+            details: message
+          }));
+        }
+      }
+      if (forceAtomic && calls.length > 1) {
+        const message = "`forceAtomic` is not supported on fallback to `eth_sendTransaction`.";
+        throw new AtomicityNotSupportedError(new BaseError2(message, {
+          details: message
+        }));
+      }
+      const results = [];
+      for (const call2 of calls) {
+        try {
+          const value = await sendTransaction(client, {
+            account: account2,
+            chain,
+            data: call2.data,
+            to: call2.to,
+            value: call2.value ? hexToBigInt(call2.value) : void 0
+          });
+          results.push({ status: "fulfilled", value });
+        } catch (reason) {
+          results.push({ reason, status: "rejected" });
+        }
+        if (experimental_fallbackDelay > 0)
+          await new Promise((resolve) => setTimeout(resolve, experimental_fallbackDelay));
+      }
+      if (results.every((r) => r.status === "rejected"))
+        throw results[0].reason;
+      const hashes = results.map((result) => {
+        if (result.status === "fulfilled")
+          return result.value;
+        return fallbackTransactionErrorMagicIdentifier;
+      });
+      return {
+        id: concat([
+          ...hashes,
+          numberToHex(chain.id, { size: 32 }),
+          fallbackMagicIdentifier
+        ])
+      };
+    }
+    throw getTransactionError(err, {
+      ...parameters,
+      account: account2,
+      chain: parameters.chain
+    });
+  }
+}
+
+// node_modules/viem/_esm/actions/wallet/getCallsStatus.js
+async function getCallsStatus(client, parameters) {
+  async function getStatus(id) {
+    const isTransactions = id.endsWith(fallbackMagicIdentifier.slice(2));
+    if (isTransactions) {
+      const chainId2 = trim(sliceHex(id, -64, -32));
+      const hashes = sliceHex(id, 0, -64).slice(2).match(/.{1,64}/g);
+      const receipts2 = await Promise.all(hashes.map((hash3) => fallbackTransactionErrorMagicIdentifier.slice(2) !== hash3 ? client.request({
+        method: "eth_getTransactionReceipt",
+        params: [`0x${hash3}`]
+      }, { dedupe: true }) : void 0));
+      const status2 = (() => {
+        if (receipts2.some((r) => r === null))
+          return 100;
+        if (receipts2.every((r) => r?.status === "0x1"))
+          return 200;
+        if (receipts2.every((r) => r?.status === "0x0"))
+          return 500;
+        return 600;
+      })();
+      return {
+        atomic: false,
+        chainId: hexToNumber(chainId2),
+        receipts: receipts2.filter(Boolean),
+        status: status2,
+        version: "2.0.0"
+      };
+    }
+    return client.request({
+      method: "wallet_getCallsStatus",
+      params: [id]
+    });
+  }
+  const { atomic = false, chainId, receipts, version: version5 = "2.0.0", ...response } = await getStatus(parameters.id);
+  const [status, statusCode] = (() => {
+    const statusCode2 = response.status;
+    if (statusCode2 >= 100 && statusCode2 < 200)
+      return ["pending", statusCode2];
+    if (statusCode2 >= 200 && statusCode2 < 300)
+      return ["success", statusCode2];
+    if (statusCode2 >= 300 && statusCode2 < 700)
+      return ["failure", statusCode2];
+    if (statusCode2 === "CONFIRMED")
+      return ["success", 200];
+    if (statusCode2 === "PENDING")
+      return ["pending", 100];
+    return [void 0, statusCode2];
+  })();
+  return {
+    ...response,
+    atomic,
+    // @ts-expect-error: for backwards compatibility
+    chainId: chainId ? hexToNumber(chainId) : void 0,
+    receipts: receipts?.map((receipt) => ({
+      ...receipt,
+      blockNumber: hexToBigInt(receipt.blockNumber),
+      gasUsed: hexToBigInt(receipt.gasUsed),
+      status: receiptStatuses[receipt.status]
+    })) ?? [],
+    statusCode,
+    status,
+    version: version5
+  };
+}
+
+// node_modules/viem/_esm/actions/wallet/waitForCallsStatus.js
+async function waitForCallsStatus(client, parameters) {
+  const {
+    id,
+    pollingInterval = client.pollingInterval,
+    status = ({ statusCode }) => statusCode === 200 || statusCode >= 300,
+    retryCount = 4,
+    retryDelay = ({ count }) => ~~(1 << count) * 200,
+    // exponential backoff
+    timeout = 6e4,
+    throwOnFailure = false
+  } = parameters;
+  const observerId = stringify(["waitForCallsStatus", client.uid, id]);
+  const { promise, resolve, reject } = withResolvers();
+  let timer;
+  const unobserve = observe(observerId, { resolve, reject }, (emit) => {
+    const unpoll = poll(async () => {
+      const done = (fn) => {
+        clearTimeout(timer);
+        unpoll();
+        fn();
+        unobserve();
+      };
+      try {
+        const result = await withRetry(async () => {
+          const result2 = await getAction(client, getCallsStatus, "getCallsStatus")({ id });
+          if (throwOnFailure && result2.status === "failure")
+            throw new BundleFailedError(result2);
+          return result2;
+        }, {
+          retryCount,
+          delay: retryDelay
+        });
+        if (!status(result))
+          return;
+        done(() => emit.resolve(result));
+      } catch (error) {
+        done(() => emit.reject(error));
+      }
+    }, {
+      interval: pollingInterval,
+      emitOnBegin: true
+    });
+    return unpoll;
+  });
+  timer = timeout ? setTimeout(() => {
+    unobserve();
+    clearTimeout(timer);
+    reject(new WaitForCallsStatusTimeoutError({ id }));
+  }, timeout) : void 0;
+  return await promise;
+}
+var WaitForCallsStatusTimeoutError = class extends BaseError2 {
+  constructor({ id }) {
+    super(`Timed out while waiting for call bundle with id "${id}" to be confirmed.`, { name: "WaitForCallsStatusTimeoutError" });
+  }
+};
 
 // node_modules/viem/_esm/clients/createClient.js
 init_browser_buffer_global();
@@ -14071,15 +14318,15 @@ function createClient(parameters) {
   const defaultPollingInterval = Math.min(Math.max(Math.floor(blockTime / 2), 500), 4e3);
   const pollingInterval = parameters.pollingInterval ?? defaultPollingInterval;
   const cacheTime = parameters.cacheTime ?? pollingInterval;
-  const account = parameters.account ? parseAccount(parameters.account) : void 0;
+  const account2 = parameters.account ? parseAccount(parameters.account) : void 0;
   const { config, request, value } = parameters.transport({
-    account,
+    account: account2,
     chain,
     pollingInterval
   });
   const transport = { ...config, ...value };
-  const client2 = {
-    account,
+  const client = {
+    account: account2,
     batch,
     cacheTime,
     ccipRead,
@@ -14097,13 +14344,13 @@ function createClient(parameters) {
   function extend(base) {
     return (extendFn) => {
       const extended = extendFn(base);
-      for (const key2 in client2)
+      for (const key2 in client)
         delete extended[key2];
       const combined = { ...base, ...extended };
       return Object.assign(combined, { extend: extend(combined) });
     };
   }
-  return Object.assign(client2, { extend: extend(client2) });
+  return Object.assign(client, { extend: extend(client) });
 }
 
 // node_modules/viem/_esm/clients/createPublicClient.js
@@ -14232,9 +14479,9 @@ function packetToBytes(packet) {
 }
 
 // node_modules/viem/_esm/actions/ens/getEnsAddress.js
-async function getEnsAddress(client2, parameters) {
+async function getEnsAddress(client, parameters) {
   const { blockNumber, blockTag, coinType, name, gatewayUrls, strict } = parameters;
-  const { chain } = client2;
+  const { chain } = client;
   const universalResolverAddress = (() => {
     if (parameters.universalResolverAddress)
       return parameters.universalResolverAddress;
@@ -14272,16 +14519,16 @@ async function getEnsAddress(client2, parameters) {
       blockNumber,
       blockTag
     };
-    const readContractAction = getAction(client2, readContract, "readContract");
+    const readContractAction = getAction(client, readContract, "readContract");
     const res = await readContractAction(readContractParameters);
     if (res[0] === "0x")
       return null;
-    const address2 = decodeAddress2({ coinType, data: res[0], args });
-    if (address2 === "0x")
+    const address = decodeAddress2({ coinType, data: res[0], args });
+    if (address === "0x")
       return null;
-    if (trim(address2) === "0x00")
+    if (trim(address) === "0x00")
       return null;
-    return address2;
+    return address;
   } catch (err) {
     if (strict)
       throw err;
@@ -14301,9 +14548,9 @@ function decodeAddress2({ coinType, data, args }) {
   } catch (err) {
     if (coinType == null)
       throw err;
-    const address2 = trim(data);
-    if (size(address2) === 20)
-      return getAddress(address2);
+    const address = trim(data);
+    if (size(address) === 20)
+      return getAddress(address);
     throw err;
   }
 }
@@ -14465,12 +14712,12 @@ function parseNftUri(uri_) {
   }
   const [reference, asset_namespace, tokenID] = uri.split("/");
   const [eip_namespace, chainID] = reference.split(":");
-  const [erc_namespace, contractAddress] = asset_namespace.split(":");
+  const [erc_namespace, contractAddress2] = asset_namespace.split(":");
   if (!eip_namespace || eip_namespace.toLowerCase() !== "eip155")
     throw new EnsAvatarInvalidNftUriError({ reason: "Only EIP-155 supported" });
   if (!chainID)
     throw new EnsAvatarInvalidNftUriError({ reason: "Chain ID not found" });
-  if (!contractAddress)
+  if (!contractAddress2)
     throw new EnsAvatarInvalidNftUriError({
       reason: "Contract address not found"
     });
@@ -14481,13 +14728,13 @@ function parseNftUri(uri_) {
   return {
     chainID: Number.parseInt(chainID, 10),
     namespace: erc_namespace.toLowerCase(),
-    contractAddress,
+    contractAddress: contractAddress2,
     tokenID
   };
 }
-async function getNftTokenUri(client2, { nft }) {
+async function getNftTokenUri(client, { nft }) {
   if (nft.namespace === "erc721") {
-    return readContract(client2, {
+    return readContract(client, {
       address: nft.contractAddress,
       abi: [
         {
@@ -14503,7 +14750,7 @@ async function getNftTokenUri(client2, { nft }) {
     });
   }
   if (nft.namespace === "erc1155") {
-    return readContract(client2, {
+    return readContract(client, {
       address: nft.contractAddress,
       abi: [
         {
@@ -14522,14 +14769,14 @@ async function getNftTokenUri(client2, { nft }) {
 }
 
 // node_modules/viem/_esm/utils/ens/avatar/parseAvatarRecord.js
-async function parseAvatarRecord(client2, { gatewayUrls, record }) {
+async function parseAvatarRecord(client, { gatewayUrls, record }) {
   if (/eip155:/i.test(record))
-    return parseNftAvatarUri(client2, { gatewayUrls, record });
+    return parseNftAvatarUri(client, { gatewayUrls, record });
   return parseAvatarUri({ uri: record, gatewayUrls });
 }
-async function parseNftAvatarUri(client2, { gatewayUrls, record }) {
+async function parseNftAvatarUri(client, { gatewayUrls, record }) {
   const nft = parseNftUri(record);
-  const nftUri = await getNftTokenUri(client2, { nft });
+  const nftUri = await getNftTokenUri(client, { nft });
   const { uri: resolvedNftUri, isOnChain, isEncoded } = resolveAvatarUri({ uri: nftUri, gatewayUrls });
   if (isOnChain && (resolvedNftUri.includes("data:application/json;base64,") || resolvedNftUri.startsWith("{"))) {
     const encodedJson = isEncoded ? (
@@ -14559,9 +14806,9 @@ init_encodeFunctionData();
 init_getChainContractAddress();
 init_toHex();
 init_localBatchGatewayRequest();
-async function getEnsText(client2, parameters) {
+async function getEnsText(client, parameters) {
   const { blockNumber, blockTag, key, name, gatewayUrls, strict } = parameters;
-  const { chain } = client2;
+  const { chain } = client;
   const universalResolverAddress = (() => {
     if (parameters.universalResolverAddress)
       return parameters.universalResolverAddress;
@@ -14593,7 +14840,7 @@ async function getEnsText(client2, parameters) {
       blockNumber,
       blockTag
     };
-    const readContractAction = getAction(client2, readContract, "readContract");
+    const readContractAction = getAction(client, readContract, "readContract");
     const res = await readContractAction(readContractParameters);
     if (res[0] === "0x")
       return null;
@@ -14613,8 +14860,8 @@ async function getEnsText(client2, parameters) {
 }
 
 // node_modules/viem/_esm/actions/ens/getEnsAvatar.js
-async function getEnsAvatar(client2, { blockNumber, blockTag, assetGatewayUrls, name, gatewayUrls, strict, universalResolverAddress }) {
-  const record = await getAction(client2, getEnsText, "getEnsText")({
+async function getEnsAvatar(client, { blockNumber, blockTag, assetGatewayUrls, name, gatewayUrls, strict, universalResolverAddress }) {
+  const record = await getAction(client, getEnsText, "getEnsText")({
     blockNumber,
     blockTag,
     key: "avatar",
@@ -14626,7 +14873,7 @@ async function getEnsAvatar(client2, { blockNumber, blockTag, assetGatewayUrls, 
   if (!record)
     return null;
   try {
-    return await parseAvatarRecord(client2, {
+    return await parseAvatarRecord(client, {
       record,
       gatewayUrls: assetGatewayUrls
     });
@@ -14640,9 +14887,9 @@ init_browser_buffer_global();
 init_abis();
 init_getChainContractAddress();
 init_localBatchGatewayRequest();
-async function getEnsName(client2, parameters) {
-  const { address: address2, blockNumber, blockTag, coinType = 60n, gatewayUrls, strict } = parameters;
-  const { chain } = client2;
+async function getEnsName(client, parameters) {
+  const { address, blockNumber, blockTag, coinType = 60n, gatewayUrls, strict } = parameters;
+  const { chain } = client;
   const universalResolverAddress = (() => {
     if (parameters.universalResolverAddress)
       return parameters.universalResolverAddress;
@@ -14658,12 +14905,12 @@ async function getEnsName(client2, parameters) {
     const readContractParameters = {
       address: universalResolverAddress,
       abi: universalResolverReverseAbi,
-      args: [address2, coinType, gatewayUrls ?? [localBatchGatewayUrl]],
+      args: [address, coinType, gatewayUrls ?? [localBatchGatewayUrl]],
       functionName: "reverseWithGateways",
       blockNumber,
       blockTag
     };
-    const readContractAction = getAction(client2, readContract, "readContract");
+    const readContractAction = getAction(client, readContract, "readContract");
     const [name] = await readContractAction(readContractParameters);
     return name || null;
   } catch (err) {
@@ -14679,9 +14926,9 @@ async function getEnsName(client2, parameters) {
 init_browser_buffer_global();
 init_getChainContractAddress();
 init_toHex();
-async function getEnsResolver(client2, parameters) {
+async function getEnsResolver(client, parameters) {
   const { blockNumber, blockTag, name } = parameters;
-  const { chain } = client2;
+  const { chain } = client;
   const universalResolverAddress = (() => {
     if (parameters.universalResolverAddress)
       return parameters.universalResolverAddress;
@@ -14696,7 +14943,7 @@ async function getEnsResolver(client2, parameters) {
   const tlds = chain?.ensTlds;
   if (tlds && !tlds.some((tld) => name.endsWith(tld)))
     throw new Error(`${name} is not a valid ENS TLD (${tlds?.join(", ")}) for chain "${chain.name}" (id: ${chain.id}).`);
-  const [resolverAddress] = await getAction(client2, readContract, "readContract")({
+  const [resolverAddress] = await getAction(client, readContract, "readContract")({
     address: universalResolverAddress,
     abi: [
       {
@@ -14731,19 +14978,19 @@ init_getCallError();
 init_extract();
 init_transactionRequest();
 init_assertRequest();
-async function createAccessList(client2, args) {
-  const { account: account_ = client2.account, blockNumber, blockTag = "latest", blobs, data, gas, gasPrice, maxFeePerBlobGas, maxFeePerGas, maxPriorityFeePerGas, to, value, ...rest } = args;
-  const account = account_ ? parseAccount(account_) : void 0;
+async function createAccessList(client, args) {
+  const { account: account_ = client.account, blockNumber, blockTag = "latest", blobs, data, gas, gasPrice, maxFeePerBlobGas, maxFeePerGas, maxPriorityFeePerGas, to, value, ...rest } = args;
+  const account2 = account_ ? parseAccount(account_) : void 0;
   try {
     assertRequest(args);
     const blockNumberHex = typeof blockNumber === "bigint" ? numberToHex(blockNumber) : void 0;
     const block = blockNumberHex || blockTag;
-    const chainFormat = client2.chain?.formatters?.transactionRequest?.format;
+    const chainFormat = client.chain?.formatters?.transactionRequest?.format;
     const format = chainFormat || formatTransactionRequest;
     const request = format({
       // Pick out extra data that might exist on the chain's transaction request type.
       ...extract(rest, { format: chainFormat }),
-      account,
+      account: account2,
       blobs,
       data,
       gas,
@@ -14754,7 +15001,7 @@ async function createAccessList(client2, args) {
       to,
       value
     }, "createAccessList");
-    const response = await client2.request({
+    const response = await client.request({
       method: "eth_createAccessList",
       params: [request, block]
     });
@@ -14767,19 +15014,19 @@ async function createAccessList(client2, args) {
   } catch (err) {
     throw getCallError(err, {
       ...args,
-      account,
-      chain: client2.chain
+      account: account2,
+      chain: client.chain
     });
   }
 }
 
 // node_modules/viem/_esm/actions/public/createBlockFilter.js
 init_browser_buffer_global();
-async function createBlockFilter(client2) {
-  const getRequest = createFilterRequestScope(client2, {
+async function createBlockFilter(client) {
+  const getRequest = createFilterRequestScope(client, {
     method: "eth_newBlockFilter"
   });
-  const id = await client2.request({
+  const id = await client.request({
     method: "eth_newBlockFilter"
   });
   return { id, request: getRequest(id), type: "block" };
@@ -14788,9 +15035,9 @@ async function createBlockFilter(client2) {
 // node_modules/viem/_esm/actions/public/createEventFilter.js
 init_browser_buffer_global();
 init_toHex();
-async function createEventFilter(client2, { address: address2, args, event, events: events_, fromBlock, strict, toBlock } = {}) {
+async function createEventFilter(client, { address, args, event, events: events_, fromBlock, strict, toBlock } = {}) {
   const events = events_ ?? (event ? [event] : void 0);
-  const getRequest = createFilterRequestScope(client2, {
+  const getRequest = createFilterRequestScope(client, {
     method: "eth_newFilter"
   });
   let topics = [];
@@ -14804,11 +15051,11 @@ async function createEventFilter(client2, { address: address2, args, event, even
     if (event)
       topics = topics[0];
   }
-  const id = await client2.request({
+  const id = await client.request({
     method: "eth_newFilter",
     params: [
       {
-        address: address2,
+        address,
         fromBlock: typeof fromBlock === "bigint" ? numberToHex(fromBlock) : fromBlock,
         toBlock: typeof toBlock === "bigint" ? numberToHex(toBlock) : toBlock,
         ...topics.length ? { topics } : {}
@@ -14830,11 +15077,11 @@ async function createEventFilter(client2, { address: address2, args, event, even
 
 // node_modules/viem/_esm/actions/public/createPendingTransactionFilter.js
 init_browser_buffer_global();
-async function createPendingTransactionFilter(client2) {
-  const getRequest = createFilterRequestScope(client2, {
+async function createPendingTransactionFilter(client) {
+  const getRequest = createFilterRequestScope(client, {
     method: "eth_newPendingTransactionFilter"
   });
-  const id = await client2.request({
+  const id = await client.request({
     method: "eth_newPendingTransactionFilter"
   });
   return { id, request: getRequest(id), type: "transaction" };
@@ -14847,21 +15094,21 @@ init_decodeFunctionResult();
 init_encodeFunctionData();
 init_formatBlockParameter();
 init_call();
-async function getBalance(client2, { address: address2, blockHash, blockNumber, blockTag = client2.experimental_blockTag ?? "latest", requireCanonical }) {
+async function getBalance(client, { address, blockHash, blockNumber, blockTag = client.experimental_blockTag ?? "latest", requireCanonical }) {
   const block = formatBlockParameter({
     blockHash,
     blockNumber,
     blockTag,
     requireCanonical
   });
-  if (client2.batch?.multicall && client2.chain?.contracts?.multicall3) {
-    const multicall3Address = client2.chain.contracts.multicall3.address;
+  if (client.batch?.multicall && client.chain?.contracts?.multicall3) {
+    const multicall3Address = client.chain.contracts.multicall3.address;
     const calldata = encodeFunctionData({
       abi: multicall3Abi,
       functionName: "getEthBalance",
-      args: [address2]
+      args: [address]
     });
-    const { data } = await getAction(client2, call, "call")({
+    const { data } = await getAction(client, call, "call")({
       to: multicall3Address,
       data: calldata,
       blockHash,
@@ -14872,21 +15119,21 @@ async function getBalance(client2, { address: address2, blockHash, blockNumber, 
     return decodeFunctionResult({
       abi: multicall3Abi,
       functionName: "getEthBalance",
-      args: [address2],
+      args: [address],
       data: data || "0x"
     });
   }
-  const balance = await client2.request({
+  const balance = await client.request({
     method: "eth_getBalance",
-    params: [address2, block]
+    params: [address, block]
   });
   return BigInt(balance);
 }
 
 // node_modules/viem/_esm/actions/public/getBlobBaseFee.js
 init_browser_buffer_global();
-async function getBlobBaseFee(client2) {
-  const baseFee = await client2.request({
+async function getBlobBaseFee(client) {
+  const baseFee = await client.request({
     method: "eth_blobBaseFee"
   });
   return BigInt(baseFee);
@@ -14895,15 +15142,15 @@ async function getBlobBaseFee(client2) {
 // node_modules/viem/_esm/actions/public/getBlockReceipts.js
 init_browser_buffer_global();
 init_toHex();
-async function getBlockReceipts(client2, { blockHash, blockNumber, blockTag = client2.experimental_blockTag ?? "latest" } = {}) {
+async function getBlockReceipts(client, { blockHash, blockNumber, blockTag = client.experimental_blockTag ?? "latest" } = {}) {
   const blockNumberHex = blockNumber !== void 0 ? numberToHex(blockNumber) : void 0;
-  const receipts = await client2.request({
+  const receipts = await client.request({
     method: "eth_getBlockReceipts",
     params: [blockHash || blockNumberHex || blockTag]
   }, { dedupe: Boolean(blockHash || blockNumberHex) });
   if (!receipts)
     throw new BlockNotFoundError({ blockHash, blockNumber });
-  const format = client2.chain?.formatters?.transactionReceipt?.format || formatTransactionReceipt;
+  const format = client.chain?.formatters?.transactionReceipt?.format || formatTransactionReceipt;
   return receipts.map((receipt) => format(receipt, "getBlockReceipts"));
 }
 
@@ -14911,16 +15158,16 @@ async function getBlockReceipts(client2, { blockHash, blockNumber, blockTag = cl
 init_browser_buffer_global();
 init_fromHex();
 init_toHex();
-async function getBlockTransactionCount(client2, { blockHash, blockNumber, blockTag = "latest" } = {}) {
+async function getBlockTransactionCount(client, { blockHash, blockNumber, blockTag = "latest" } = {}) {
   const blockNumberHex = blockNumber !== void 0 ? numberToHex(blockNumber) : void 0;
   let count;
   if (blockHash) {
-    count = await client2.request({
+    count = await client.request({
       method: "eth_getBlockTransactionCountByHash",
       params: [blockHash]
     }, { dedupe: true });
   } else {
-    count = await client2.request({
+    count = await client.request({
       method: "eth_getBlockTransactionCountByNumber",
       params: [blockNumberHex || blockTag]
     }, { dedupe: Boolean(blockNumberHex) });
@@ -14931,16 +15178,16 @@ async function getBlockTransactionCount(client2, { blockHash, blockNumber, block
 // node_modules/viem/_esm/actions/public/getCode.js
 init_browser_buffer_global();
 init_formatBlockParameter();
-async function getCode(client2, { address: address2, blockHash, blockNumber, blockTag = "latest", requireCanonical }) {
+async function getCode(client, { address, blockHash, blockNumber, blockTag = "latest", requireCanonical }) {
   const block = formatBlockParameter({
     blockHash,
     blockNumber,
     blockTag,
     requireCanonical
   });
-  const hex = await client2.request({
+  const hex = await client.request({
     method: "eth_getCode",
-    params: [address2, block]
+    params: [address, block]
   }, {
     dedupe: typeof blockNumber === "bigint" || blockHash !== void 0
   });
@@ -14954,9 +15201,9 @@ init_browser_buffer_global();
 init_getAddress();
 init_size();
 init_slice();
-async function getDelegation(client2, { address: address2, blockNumber, blockTag = "latest" }) {
-  const code = await getCode(client2, {
-    address: address2,
+async function getDelegation(client, { address, blockNumber, blockTag = "latest" }) {
+  const code = await getCode(client, {
+    address,
     ...blockNumber !== void 0 ? { blockNumber } : { blockTag }
   });
   if (!code)
@@ -14975,11 +15222,11 @@ init_browser_buffer_global();
 init_browser_buffer_global();
 init_base();
 var Eip712DomainNotFoundError = class extends BaseError2 {
-  constructor({ address: address2 }) {
-    super(`No EIP-712 domain found on contract "${address2}".`, {
+  constructor({ address }) {
+    super(`No EIP-712 domain found on contract "${address}".`, {
       metaMessages: [
         "Ensure that:",
-        `- The contract is deployed at the address "${address2}".`,
+        `- The contract is deployed at the address "${address}".`,
         "- `eip712Domain()` function exists on the contract.",
         "- `eip712Domain()` function matches signature to ERC-5267 specification."
       ],
@@ -14989,12 +15236,12 @@ var Eip712DomainNotFoundError = class extends BaseError2 {
 };
 
 // node_modules/viem/_esm/actions/public/getEip712Domain.js
-async function getEip712Domain(client2, parameters) {
-  const { address: address2, factory, factoryData } = parameters;
+async function getEip712Domain(client, parameters) {
+  const { address, factory, factoryData } = parameters;
   try {
-    const [fields, name, version5, chainId, verifyingContract, salt, extensions] = await getAction(client2, readContract, "readContract")({
+    const [fields, name, version5, chainId, verifyingContract, salt, extensions] = await getAction(client, readContract, "readContract")({
       abi,
-      address: address2,
+      address,
       functionName: "eip712Domain",
       factory,
       factoryData
@@ -15013,7 +15260,7 @@ async function getEip712Domain(client2, parameters) {
   } catch (e) {
     const error = e;
     if (error.name === "ContractFunctionExecutionError" && error.cause.name === "ContractFunctionZeroDataError") {
-      throw new Eip712DomainNotFoundError({ address: address2 });
+      throw new Eip712DomainNotFoundError({ address });
     }
     throw error;
   }
@@ -15052,9 +15299,9 @@ function formatFeeHistory(feeHistory) {
 }
 
 // node_modules/viem/_esm/actions/public/getFeeHistory.js
-async function getFeeHistory(client2, { blockCount, blockNumber, blockTag = "latest", rewardPercentiles }) {
+async function getFeeHistory(client, { blockCount, blockNumber, blockTag = "latest", rewardPercentiles }) {
   const blockNumberHex = typeof blockNumber === "bigint" ? numberToHex(blockNumber) : void 0;
-  const feeHistory = await client2.request({
+  const feeHistory = await client.request({
     method: "eth_feeHistory",
     params: [
       numberToHex(blockCount),
@@ -15171,8 +15418,8 @@ init_isAddress();
 init_browser_buffer_global();
 init_getAddress();
 init_isAddressEqual();
-async function verifyAuthorization({ address: address2, authorization, signature }) {
-  return isAddressEqual(getAddress(address2), await recoverAuthorizationAddress({
+async function verifyAuthorization({ address, authorization, signature }) {
+  return isAddressEqual(getAddress(address), await recoverAuthorizationAddress({
     authorization,
     signature
   }));
@@ -15487,33 +15734,33 @@ function createNonceManager(parameters) {
   const deltaMap = /* @__PURE__ */ new Map();
   const nonceMap = new LruMap(8192);
   const promiseMap = /* @__PURE__ */ new Map();
-  const getKey = ({ address: address2, chainId }) => `${address2}.${chainId}`;
+  const getKey = ({ address, chainId }) => `${address}.${chainId}`;
   const resetCache = (key) => {
     deltaMap.delete(key);
     promiseMap.delete(key);
   };
   return {
-    async consume({ address: address2, chainId, client: client2 }) {
-      const key = getKey({ address: address2, chainId });
-      const promise = this.get({ address: address2, chainId, client: client2 });
-      this.increment({ address: address2, chainId });
+    async consume({ address, chainId, client }) {
+      const key = getKey({ address, chainId });
+      const promise = this.get({ address, chainId, client });
+      this.increment({ address, chainId });
       const nonce = await promise;
-      await source.set({ address: address2, chainId }, nonce);
+      await source.set({ address, chainId }, nonce);
       nonceMap.set(key, nonce);
       return nonce;
     },
-    async increment({ address: address2, chainId }) {
-      const key = getKey({ address: address2, chainId });
+    async increment({ address, chainId }) {
+      const key = getKey({ address, chainId });
       const delta = deltaMap.get(key) ?? 0;
       deltaMap.set(key, delta + 1);
     },
-    async get({ address: address2, chainId, client: client2 }) {
-      const key = getKey({ address: address2, chainId });
+    async get({ address, chainId, client }) {
+      const key = getKey({ address, chainId });
       let promise = promiseMap.get(key);
       if (!promise) {
         promise = (async () => {
           try {
-            const nonce = await source.get({ address: address2, chainId, client: client2 });
+            const nonce = await source.get({ address, chainId, client });
             const previousNonce = nonceMap.get(key) ?? 0;
             if (previousNonce > 0 && nonce <= previousNonce)
               return previousNonce + 1;
@@ -15528,8 +15775,8 @@ function createNonceManager(parameters) {
       const delta = deltaMap.get(key) ?? 0;
       return delta + await promise;
     },
-    reset({ address: address2, chainId }) {
-      const key = getKey({ address: address2, chainId });
+    reset({ address, chainId }) {
+      const key = getKey({ address, chainId });
       nonceMap.delete(key);
       resetCache(key);
     }
@@ -15538,9 +15785,9 @@ function createNonceManager(parameters) {
 function jsonRpc() {
   return {
     async get(parameters) {
-      const { address: address2, client: client2 } = parameters;
-      return getTransactionCount(client2, {
-        address: address2,
+      const { address, client } = parameters;
+      return getTransactionCount(client, {
+        address,
         blockTag: "pending"
       });
     },
@@ -15808,6 +16055,31 @@ init_size();
 init_toHex();
 init_regex2();
 init_stringify();
+function serializeTypedData(parameters) {
+  const { domain: domain_, message: message_, primaryType, types } = parameters;
+  const normalizeData = (struct, data_) => {
+    const data = { ...data_ };
+    for (const param of struct) {
+      const { name, type } = param;
+      if (type === "address")
+        data[name] = data[name].toLowerCase();
+    }
+    return data;
+  };
+  const domain = (() => {
+    if (!types.EIP712Domain)
+      return {};
+    if (!domain_)
+      return {};
+    return normalizeData(types.EIP712Domain, domain_);
+  })();
+  const message = (() => {
+    if (primaryType === "EIP712Domain")
+      return void 0;
+    return normalizeData(types[primaryType], message_);
+  })();
+  return stringify({ domain, message, primaryType, types });
+}
 function validateTypedData(parameters) {
   const { domain, message, primaryType, types } = parameters;
   const validateData = (struct, data) => {
@@ -17735,11 +18007,11 @@ function assert4(value, options = {}) {
       });
   }
 }
-function checksum2(address2) {
-  if (checksum.has(address2))
-    return checksum.get(address2);
-  assert4(address2, { strict: false });
-  const hexAddress = address2.substring(2).toLowerCase();
+function checksum2(address) {
+  if (checksum.has(address))
+    return checksum.get(address);
+  assert4(address, { strict: false });
+  const hexAddress = address.substring(2).toLowerCase();
   const hash3 = keccak2562(fromString(hexAddress), { as: "Bytes" });
   const characters = hexAddress.split("");
   for (let i = 0; i < 40; i += 2) {
@@ -17751,32 +18023,32 @@ function checksum2(address2) {
     }
   }
   const result = `0x${characters.join("")}`;
-  checksum.set(address2, result);
+  checksum.set(address, result);
   return result;
 }
-function from4(address2, options = {}) {
+function from4(address, options = {}) {
   const { checksum: checksumVal = false } = options;
-  assert4(address2);
+  assert4(address);
   if (checksumVal)
-    return checksum2(address2);
-  return address2;
+    return checksum2(address);
+  return address;
 }
 function fromPublicKey(publicKey, options = {}) {
-  const address2 = keccak2562(`0x${toHex2(publicKey).slice(4)}`).substring(26);
-  return from4(`0x${address2}`, options);
+  const address = keccak2562(`0x${toHex2(publicKey).slice(4)}`).substring(26);
+  return from4(`0x${address}`, options);
 }
-function validate3(address2, options = {}) {
+function validate3(address, options = {}) {
   const { strict = true } = options ?? {};
   try {
-    assert4(address2, { strict });
+    assert4(address, { strict });
     return true;
   } catch {
     return false;
   }
 }
 var InvalidAddressError2 = class extends BaseError3 {
-  constructor({ address: address2, cause }) {
-    super(`Address "${address2}" is invalid.`, {
+  constructor({ address, cause }) {
+    super(`Address "${address}" is invalid.`, {
       cause
     });
     Object.defineProperty(this, "name", {
@@ -17953,7 +18225,7 @@ var sizeOfOffset2 = 32;
 function decodeAddress3(cursor, options = {}) {
   const { checksum: checksum3 = false } = options;
   const value = cursor.readBytes(32);
-  const wrap3 = (address2) => checksum3 ? checksum2(address2) : address2;
+  const wrap3 = (address) => checksum3 ? checksum2(address) : address;
   return [wrap3(fromBytes(slice2(value, -20))), 32];
 }
 function decodeArray2(cursor, param, options) {
@@ -18580,9 +18852,9 @@ function encodePacked(types, values) {
 (function(encodePacked3) {
   function encode4(type, value, isArray = false) {
     if (type === "address") {
-      const address2 = value;
-      assert4(address2);
-      return padLeft(address2.toLowerCase(), isArray ? 32 : 0);
+      const address = value;
+      assert4(address);
+      return padLeft(address.toLowerCase(), isArray ? 32 : 0);
     }
     if (type === "string")
       return fromString2(value);
@@ -19190,9 +19462,9 @@ function wNAF2(c, bits) {
      * Creates a wNAF precomputation window. Used for caching.
      * Default window size is set by `utils.precompute()` and is equal to 8.
      * Number of precomputed points depends on the curve size:
-     * 2^(?몜??) * (Math.ceil(?몳 / ?몜) + 1), where:
-     * - ?몜 is the window size
-     * - ?몳 is the bitlength of the curve order.
+     * 2^(𝑊−1) * (Math.ceil(𝑛 / 𝑊) + 1), where:
+     * - 𝑊 is the window size
+     * - 𝑛 is the bitlength of the curve order.
      * For a 256-bit curve and window size 8, the number of precomputed points is 128 * 33 = 4224.
      * @param elm Point instance
      * @param W window size
@@ -19853,7 +20125,7 @@ function weierstrassPoints2(opts) {
     }
     // Converts Projective point to affine (x, y) coordinates.
     // Can accept precomputed Z^-1 - for example, from invertBatch.
-    // (x, y, z) ??(x=x/z, y=y/z)
+    // (x, y, z) ∋ (x=x/z, y=y/z)
     toAffine(iz) {
       return toAffineMemo(this, iz);
     }
@@ -20513,10 +20785,10 @@ function from8(authorization, options = {}) {
   return { ...authorization, ...options.signature };
 }
 function fromRpc3(authorization) {
-  const { address: address2, chainId, nonce } = authorization;
+  const { address, chainId, nonce } = authorization;
   const signature = extract2(authorization);
   return {
-    address: address2,
+    address,
     chainId: Number(chainId),
     nonce: BigInt(nonce),
     ...signature
@@ -20534,11 +20806,11 @@ function hash2(authorization, options = {}) {
   } : authorization))));
 }
 function toTuple2(authorization) {
-  const { address: address2, chainId, nonce } = authorization;
+  const { address, chainId, nonce } = authorization;
   const signature = extract2(authorization);
   return [
     chainId ? fromNumber(chainId) : "0x",
-    address2,
+    address,
     nonce ? fromNumber(nonce) : "0x",
     ...signature ? toTuple(signature) : []
   ];
@@ -20759,6 +21031,11 @@ function parseUnits(value, decimals) {
   return BigInt(`${negative ? "-" : ""}${integer}${fraction}`);
 }
 
+// node_modules/viem/_esm/utils/unit/parseEther.js
+function parseEther(ether, unit = "wei") {
+  return parseUnits(ether, etherUnits[unit]);
+}
+
 // node_modules/viem/_esm/utils/unit/parseGwei.js
 init_browser_buffer_global();
 init_unit();
@@ -20780,16 +21057,16 @@ function formatProof(proof) {
 }
 
 // node_modules/viem/_esm/actions/public/getProof.js
-async function getProof(client2, { address: address2, blockHash, blockNumber, blockTag = "latest", requireCanonical, storageKeys }) {
+async function getProof(client, { address, blockHash, blockNumber, blockTag = "latest", requireCanonical, storageKeys }) {
   const block = formatBlockParameter({
     blockHash,
     blockNumber,
     blockTag,
     requireCanonical
   });
-  const proof = await client2.request({
+  const proof = await client.request({
     method: "eth_getProof",
-    params: [address2, storageKeys, block]
+    params: [address, storageKeys, block]
   });
   return formatProof(proof);
 }
@@ -20797,16 +21074,16 @@ async function getProof(client2, { address: address2, blockHash, blockNumber, bl
 // node_modules/viem/_esm/actions/public/getStorageAt.js
 init_browser_buffer_global();
 init_formatBlockParameter();
-async function getStorageAt(client2, { address: address2, blockHash, blockNumber, blockTag = "latest", requireCanonical, slot }) {
+async function getStorageAt(client, { address, blockHash, blockNumber, blockTag = "latest", requireCanonical, slot }) {
   const block = formatBlockParameter({
     blockHash,
     blockNumber,
     blockTag,
     requireCanonical
   });
-  const data = await client2.request({
+  const data = await client.request({
     method: "eth_getStorageAt",
-    params: [address2, slot, block]
+    params: [address, slot, block]
   });
   return data;
 }
@@ -20815,27 +21092,27 @@ async function getStorageAt(client2, { address: address2, blockHash, blockNumber
 init_browser_buffer_global();
 init_transaction();
 init_toHex();
-async function getTransaction(client2, { blockHash, blockNumber, blockTag: blockTag_, hash: hash3, index: index2, sender, nonce }) {
+async function getTransaction(client, { blockHash, blockNumber, blockTag: blockTag_, hash: hash3, index: index2, sender, nonce }) {
   const blockTag = blockTag_ || "latest";
   const blockNumberHex = blockNumber !== void 0 ? numberToHex(blockNumber) : void 0;
   let transaction = null;
   if (hash3) {
-    transaction = await client2.request({
+    transaction = await client.request({
       method: "eth_getTransactionByHash",
       params: [hash3]
     }, { dedupe: true });
   } else if (blockHash) {
-    transaction = await client2.request({
+    transaction = await client.request({
       method: "eth_getTransactionByBlockHashAndIndex",
       params: [blockHash, numberToHex(index2)]
     }, { dedupe: true });
   } else if ((blockNumberHex || blockTag) && typeof index2 === "number") {
-    transaction = await client2.request({
+    transaction = await client.request({
       method: "eth_getTransactionByBlockNumberAndIndex",
       params: [blockNumberHex || blockTag, numberToHex(index2)]
     }, { dedupe: Boolean(blockNumberHex) });
   } else if (sender && typeof nonce === "number") {
-    transaction = await client2.request({
+    transaction = await client.request({
       method: "eth_getTransactionBySenderAndNonce",
       params: [sender, numberToHex(nonce)]
     }, { dedupe: true });
@@ -20848,16 +21125,16 @@ async function getTransaction(client2, { blockHash, blockNumber, blockTag: block
       hash: hash3,
       index: index2
     });
-  const format = client2.chain?.formatters?.transaction?.format || formatTransaction;
+  const format = client.chain?.formatters?.transaction?.format || formatTransaction;
   return format(transaction, "getTransaction");
 }
 
 // node_modules/viem/_esm/actions/public/getTransactionConfirmations.js
 init_browser_buffer_global();
-async function getTransactionConfirmations(client2, { hash: hash3, transactionReceipt }) {
+async function getTransactionConfirmations(client, { hash: hash3, transactionReceipt }) {
   const [blockNumber, transaction] = await Promise.all([
-    getAction(client2, getBlockNumber, "getBlockNumber")({}),
-    hash3 ? getAction(client2, getTransaction, "getTransaction")({ hash: hash3 }) : void 0
+    getAction(client, getBlockNumber, "getBlockNumber")({}),
+    hash3 ? getAction(client, getTransaction, "getTransaction")({ hash: hash3 }) : void 0
   ]);
   const transactionBlockNumber = transactionReceipt?.blockNumber || transaction?.blockNumber;
   if (!transactionBlockNumber)
@@ -20868,14 +21145,14 @@ async function getTransactionConfirmations(client2, { hash: hash3, transactionRe
 // node_modules/viem/_esm/actions/public/getTransactionReceipt.js
 init_browser_buffer_global();
 init_transaction();
-async function getTransactionReceipt(client2, { hash: hash3 }) {
-  const receipt = await client2.request({
+async function getTransactionReceipt(client, { hash: hash3 }) {
+  const receipt = await client.request({
     method: "eth_getTransactionReceipt",
     params: [hash3]
   }, { dedupe: true });
   if (!receipt)
     throw new TransactionReceiptNotFoundError({ hash: hash3 });
-  const format = client2.chain?.formatters?.transactionReceipt?.format || formatTransactionReceipt;
+  const format = client.chain?.formatters?.transactionReceipt?.format || formatTransactionReceipt;
   return format(receipt, "getTransactionReceipt");
 }
 
@@ -20889,19 +21166,19 @@ init_contract();
 init_decodeFunctionResult();
 init_encodeFunctionData();
 init_getChainContractAddress();
-async function multicall(client2, parameters) {
-  const { account, authorizationList, allowFailure = true, blockHash, blockNumber, blockOverrides, blockTag, requireCanonical, stateOverride } = parameters;
+async function multicall(client, parameters) {
+  const { account: account2, authorizationList, allowFailure = true, blockHash, blockNumber, blockOverrides, blockTag, requireCanonical, stateOverride } = parameters;
   const contracts = parameters.contracts;
-  const { batchSize = parameters.batchSize ?? 1024, deployless = parameters.deployless ?? false } = typeof client2.batch?.multicall === "object" ? client2.batch.multicall : {};
+  const { batchSize = parameters.batchSize ?? 1024, deployless = parameters.deployless ?? false } = typeof client.batch?.multicall === "object" ? client.batch.multicall : {};
   const multicallAddress = (() => {
     if (parameters.multicallAddress)
       return parameters.multicallAddress;
     if (deployless)
       return null;
-    if (client2.chain) {
+    if (client.chain) {
       return getChainContractAddress({
         blockNumber,
-        chain: client2.chain,
+        chain: client.chain,
         contract: "multicall3"
       });
     }
@@ -20911,7 +21188,7 @@ async function multicall(client2, parameters) {
   let currentChunk = 0;
   let currentChunkSize = 0;
   for (let i = 0; i < contracts.length; i++) {
-    const { abi: abi2, address: address2, args, functionName } = contracts[i];
+    const { abi: abi2, address, args, functionName } = contracts[i];
     try {
       const callData = encodeFunctionData({ abi: abi2, args, functionName });
       currentChunkSize += (callData.length - 2) / 2;
@@ -20930,17 +21207,17 @@ async function multicall(client2, parameters) {
         {
           allowFailure: true,
           callData,
-          target: address2
+          target: address
         }
       ];
     } catch (err) {
       const error = getContractError(err, {
         abi: abi2,
-        address: address2,
+        address,
         args,
         docsPath: "/docs/contract/multicall",
         functionName,
-        sender: account
+        sender: account2
       });
       if (!allowFailure)
         throw error;
@@ -20949,15 +21226,15 @@ async function multicall(client2, parameters) {
         {
           allowFailure: true,
           callData: "0x",
-          target: address2
+          target: address
         }
       ];
     }
   }
-  const aggregate3Results = await Promise.allSettled(chunkedCalls.map((calls) => getAction(client2, readContract, "readContract")({
+  const aggregate3Results = await Promise.allSettled(chunkedCalls.map((calls) => getAction(client, readContract, "readContract")({
     ...multicallAddress === null ? { code: multicall3Bytecode } : { address: multicallAddress },
     abi: multicall3Abi,
-    account,
+    account: account2,
     args: [calls],
     authorizationList,
     blockHash,
@@ -20987,7 +21264,7 @@ async function multicall(client2, parameters) {
     for (let j = 0; j < aggregate3Result.length; j++) {
       const { returnData, success } = aggregate3Result[j];
       const { callData } = chunkedCalls[i][j];
-      const { abi: abi2, address: address2, functionName, args } = contracts[results.length];
+      const { abi: abi2, address, functionName, args } = contracts[results.length];
       try {
         if (callData === "0x")
           throw new AbiDecodingZeroDataError();
@@ -21003,7 +21280,7 @@ async function multicall(client2, parameters) {
       } catch (err) {
         const error = getContractError(err, {
           abi: abi2,
-          address: address2,
+          address,
           args,
           docsPath: "/docs/contract/multicall",
           functionName
@@ -21034,21 +21311,21 @@ init_getNodeError();
 init_transactionRequest();
 init_stateOverride2();
 init_assertRequest();
-async function simulateBlocks(client2, parameters) {
-  const { blockNumber, blockTag = client2.experimental_blockTag ?? "latest", blocks, returnFullTransactions, traceTransfers, validation } = parameters;
+async function simulateBlocks(client, parameters) {
+  const { blockNumber, blockTag = client.experimental_blockTag ?? "latest", blocks, returnFullTransactions, traceTransfers, validation } = parameters;
   try {
     const blockStateCalls = [];
     for (const block2 of blocks) {
       const blockOverrides = block2.blockOverrides ? toRpc2(block2.blockOverrides) : void 0;
       const calls = block2.calls.map((call_) => {
         const call2 = call_;
-        const account = call2.account ? parseAccount(call2.account) : void 0;
+        const account2 = call2.account ? parseAccount(call2.account) : void 0;
         const data = call2.abi ? encodeFunctionData(call2) : call2.data;
         const request = {
           ...call2,
-          account,
+          account: account2,
           data: call2.dataSuffix ? concat([data || "0x", call2.dataSuffix]) : data,
-          from: call2.from ?? account?.address
+          from: call2.from ?? account2?.address
         };
         assertRequest(request);
         return formatTransactionRequest(request);
@@ -21062,7 +21339,7 @@ async function simulateBlocks(client2, parameters) {
     }
     const blockNumberHex = typeof blockNumber === "bigint" ? numberToHex(blockNumber) : void 0;
     const block = blockNumberHex || blockTag;
-    const result = await client2.request({
+    const result = await client.request({
       method: "eth_simulateV1",
       params: [
         { blockStateCalls, returnFullTransactions, traceTransfers, validation },
@@ -21467,29 +21744,29 @@ init_contracts();
 init_base();
 init_encodeFunctionData();
 var getBalanceCode = "0x6080604052348015600e575f80fd5b5061016d8061001c5f395ff3fe608060405234801561000f575f80fd5b5060043610610029575f3560e01c8063f8b2cb4f1461002d575b5f80fd5b610047600480360381019061004291906100db565b61005d565b604051610054919061011e565b60405180910390f35b5f8173ffffffffffffffffffffffffffffffffffffffff16319050919050565b5f80fd5b5f73ffffffffffffffffffffffffffffffffffffffff82169050919050565b5f6100aa82610081565b9050919050565b6100ba816100a0565b81146100c4575f80fd5b50565b5f813590506100d5816100b1565b92915050565b5f602082840312156100f0576100ef61007d565b5b5f6100fd848285016100c7565b91505092915050565b5f819050919050565b61011881610106565b82525050565b5f6020820190506101315f83018461010f565b9291505056fea26469706673582212203b9fe929fe995c7cf9887f0bdba8a36dd78e8b73f149b17d2d9ad7cd09d2dc6264736f6c634300081a0033";
-async function simulateCalls(client2, parameters) {
+async function simulateCalls(client, parameters) {
   const { blockNumber, blockTag, calls, stateOverrides, traceAssetChanges, traceTransfers, validation } = parameters;
-  const account = parameters.account ? parseAccount(parameters.account) : void 0;
-  if (traceAssetChanges && !account)
+  const account2 = parameters.account ? parseAccount(parameters.account) : void 0;
+  if (traceAssetChanges && !account2)
     throw new BaseError2("`account` is required when `traceAssetChanges` is true");
-  const getBalanceData = account ? encode3(from11("constructor(bytes, bytes)"), {
+  const getBalanceData = account2 ? encode3(from11("constructor(bytes, bytes)"), {
     bytecode: deploylessCallViaBytecodeBytecode,
     args: [
       getBalanceCode,
-      encodeData2(from12("function getBalance(address)"), [account.address])
+      encodeData2(from12("function getBalance(address)"), [account2.address])
     ]
   }) : void 0;
   const assetAddresses = traceAssetChanges ? await Promise.all(parameters.calls.map(async (call2) => {
     if (!call2.data && !call2.abi)
       return;
-    const { accessList } = await createAccessList(client2, {
-      account: account.address,
+    const { accessList } = await createAccessList(client, {
+      account: account2.address,
       ...call2,
       data: call2.abi ? encodeFunctionData(call2) : call2.data
     });
-    return accessList.map(({ address: address2, storageKeys }) => storageKeys.length > 0 ? address2 : null);
+    return accessList.map(({ address, storageKeys }) => storageKeys.length > 0 ? address : null);
   })).then((x) => x.flat().filter(Boolean)) : [];
-  const blocks = await simulateBlocks(client2, {
+  const blocks = await simulateBlocks(client, {
     blockNumber,
     blockTag,
     blocks: [
@@ -21501,13 +21778,13 @@ async function simulateCalls(client2, parameters) {
         },
         // Asset pre balances
         {
-          calls: assetAddresses.map((address2, i) => ({
+          calls: assetAddresses.map((address, i) => ({
             abi: [
               from12("function balanceOf(address) returns (uint256)")
             ],
             functionName: "balanceOf",
-            args: [account.address],
-            to: address2,
+            args: [account2.address],
+            to: address,
             from: zeroAddress,
             nonce: i
           })),
@@ -21522,7 +21799,7 @@ async function simulateCalls(client2, parameters) {
       {
         calls: [...calls, { to: zeroAddress }].map((call2) => ({
           ...call2,
-          from: account?.address
+          from: account2?.address
         })),
         stateOverrides
       },
@@ -21533,13 +21810,13 @@ async function simulateCalls(client2, parameters) {
         },
         // Asset post balances
         {
-          calls: assetAddresses.map((address2, i) => ({
+          calls: assetAddresses.map((address, i) => ({
             abi: [
               from12("function balanceOf(address) returns (uint256)")
             ],
             functionName: "balanceOf",
-            args: [account.address],
-            to: address2,
+            args: [account2.address],
+            to: address,
             from: zeroAddress,
             nonce: i
           })),
@@ -21552,8 +21829,8 @@ async function simulateCalls(client2, parameters) {
         },
         // Decimals
         {
-          calls: assetAddresses.map((address2, i) => ({
-            to: address2,
+          calls: assetAddresses.map((address, i) => ({
+            to: address,
             abi: [
               from12("function decimals() returns (uint256)")
             ],
@@ -21570,8 +21847,8 @@ async function simulateCalls(client2, parameters) {
         },
         // Token URI
         {
-          calls: assetAddresses.map((address2, i) => ({
-            to: address2,
+          calls: assetAddresses.map((address, i) => ({
+            to: address,
             abi: [
               from12("function tokenURI(uint256) returns (string)")
             ],
@@ -21589,8 +21866,8 @@ async function simulateCalls(client2, parameters) {
         },
         // Symbols
         {
-          calls: assetAddresses.map((address2, i) => ({
-            to: address2,
+          calls: assetAddresses.map((address, i) => ({
+            to: address,
             abi: [from12("function symbol() returns (string)")],
             functionName: "symbol",
             from: zeroAddress,
@@ -21806,10 +22083,10 @@ function serializeSignature({ r, s, to = "hex", v, yParity }) {
 
 // node_modules/viem/_esm/actions/public/verifyHash.js
 init_call();
-async function verifyHash2(client2, parameters) {
-  const { address: address2, chain = client2.chain, hash: hash3, erc6492VerifierAddress: verifierAddress = parameters.universalSignatureVerifierAddress ?? chain?.contracts?.erc6492Verifier?.address, multicallAddress = parameters.multicallAddress ?? chain?.contracts?.multicall3?.address, mode = "auto" } = parameters;
+async function verifyHash2(client, parameters) {
+  const { address, chain = client.chain, hash: hash3, erc6492VerifierAddress: verifierAddress = parameters.universalSignatureVerifierAddress ?? chain?.contracts?.erc6492Verifier?.address, multicallAddress = parameters.multicallAddress ?? chain?.contracts?.multicall3?.address, mode = "auto" } = parameters;
   if (chain?.verifyHash)
-    return await chain.verifyHash(client2, parameters);
+    return await chain.verifyHash(client, parameters);
   const signature = (() => {
     const signature2 = parameters.signature;
     if (isHex(signature2))
@@ -21821,19 +22098,19 @@ async function verifyHash2(client2, parameters) {
   try {
     if (mode === "eoa") {
       try {
-        const verified = isAddressEqual(getAddress(address2), await recoverAddress({ hash: hash3, signature }));
+        const verified = isAddressEqual(getAddress(address), await recoverAddress({ hash: hash3, signature }));
         if (verified)
           return true;
       } catch {
       }
     }
     if (SignatureErc8010_exports.validate(signature))
-      return await verifyErc8010(client2, {
+      return await verifyErc8010(client, {
         ...parameters,
         multicallAddress,
         signature
       });
-    return await verifyErc6492(client2, {
+    return await verifyErc6492(client, {
       ...parameters,
       verifierAddress,
       signature
@@ -21841,7 +22118,7 @@ async function verifyHash2(client2, parameters) {
   } catch (error) {
     if (mode !== "eoa") {
       try {
-        const verified = isAddressEqual(getAddress(address2), await recoverAddress({ hash: hash3, signature }));
+        const verified = isAddressEqual(getAddress(address), await recoverAddress({ hash: hash3, signature }));
         if (verified)
           return true;
       } catch {
@@ -21853,17 +22130,17 @@ async function verifyHash2(client2, parameters) {
     throw error;
   }
 }
-async function verifyErc8010(client2, parameters) {
-  const { address: address2, blockNumber, blockTag, hash: hash3, multicallAddress } = parameters;
+async function verifyErc8010(client, parameters) {
+  const { address, blockNumber, blockTag, hash: hash3, multicallAddress } = parameters;
   const { authorization: authorization_ox, data: initData, signature, to } = SignatureErc8010_exports.unwrap(parameters.signature);
-  const code = await getCode(client2, {
-    address: address2,
+  const code = await getCode(client, {
+    address,
     blockNumber,
     blockTag
   });
   if (code === concatHex(["0xef0100", authorization_ox.address]))
-    return await verifyErc1271(client2, {
-      address: address2,
+    return await verifyErc1271(client, {
+      address,
       blockNumber,
       blockTag,
       hash: hash3,
@@ -21878,12 +22155,12 @@ async function verifyErc8010(client2, parameters) {
     yParity: authorization_ox.yParity
   };
   const valid = await verifyAuthorization({
-    address: address2,
+    address,
     authorization
   });
   if (!valid)
     throw new VerificationError();
-  const results = await getAction(client2, readContract, "readContract")({
+  const results = await getAction(client, readContract, "readContract")({
     ...multicallAddress ? { address: multicallAddress } : { code: multicall3Bytecode },
     authorizationList: [authorization],
     abi: multicall3Abi,
@@ -21895,13 +22172,13 @@ async function verifyErc8010(client2, parameters) {
         ...initData ? [
           {
             allowFailure: true,
-            target: to ?? address2,
+            target: to ?? address,
             callData: initData
           }
         ] : [],
         {
           allowFailure: true,
-          target: address2,
+          target: address,
           callData: encodeFunctionData({
             abi: erc1271Abi,
             functionName: "isValidSignature",
@@ -21916,8 +22193,8 @@ async function verifyErc8010(client2, parameters) {
     return true;
   throw new VerificationError();
 }
-async function verifyErc6492(client2, parameters) {
-  const { address: address2, factory, factoryData, hash: hash3, signature, verifierAddress, ...rest } = parameters;
+async function verifyErc6492(client, parameters) {
+  const { address, factory, factoryData, hash: hash3, signature, verifierAddress, ...rest } = parameters;
   const wrappedSignature = await (async () => {
     if (!factory && !factoryData)
       return signature;
@@ -21934,18 +22211,18 @@ async function verifyErc6492(client2, parameters) {
     data: encodeFunctionData({
       abi: erc6492SignatureValidatorAbi,
       functionName: "isValidSig",
-      args: [address2, hash3, wrappedSignature]
+      args: [address, hash3, wrappedSignature]
     }),
     ...rest
   } : {
     data: encodeDeployData({
       abi: erc6492SignatureValidatorAbi,
-      args: [address2, hash3, wrappedSignature],
+      args: [address, hash3, wrappedSignature],
       bytecode: erc6492SignatureValidatorByteCode
     }),
     ...rest
   };
-  const { data } = await getAction(client2, call, "call")(args).catch((error) => {
+  const { data } = await getAction(client, call, "call")(args).catch((error) => {
     if (error instanceof CallExecutionError)
       throw new VerificationError();
     throw error;
@@ -21954,10 +22231,10 @@ async function verifyErc6492(client2, parameters) {
     return true;
   throw new VerificationError();
 }
-async function verifyErc1271(client2, parameters) {
-  const { address: address2, blockNumber, blockTag, hash: hash3, signature } = parameters;
-  const result = await getAction(client2, readContract, "readContract")({
-    address: address2,
+async function verifyErc1271(client, parameters) {
+  const { address, blockNumber, blockTag, hash: hash3, signature } = parameters;
+  const result = await getAction(client, readContract, "readContract")({
+    address,
     abi: erc1271Abi,
     args: [hash3, signature],
     blockNumber,
@@ -21977,10 +22254,10 @@ var VerificationError = class extends Error {
 
 // node_modules/viem/_esm/actions/public/verifyMessage.js
 init_browser_buffer_global();
-async function verifyMessage2(client2, { address: address2, message, factory, factoryData, signature, ...callRequest }) {
+async function verifyMessage2(client, { address, message, factory, factoryData, signature, ...callRequest }) {
   const hash3 = hashMessage(message);
-  return getAction(client2, verifyHash2, "verifyHash")({
-    address: address2,
+  return getAction(client, verifyHash2, "verifyHash")({
+    address,
     factory,
     factoryData,
     hash: hash3,
@@ -21991,11 +22268,11 @@ async function verifyMessage2(client2, { address: address2, message, factory, fa
 
 // node_modules/viem/_esm/actions/public/verifyTypedData.js
 init_browser_buffer_global();
-async function verifyTypedData2(client2, parameters) {
-  const { address: address2, factory, factoryData, signature, message, primaryType, types, domain, ...callRequest } = parameters;
+async function verifyTypedData2(client, parameters) {
+  const { address, factory, factoryData, signature, message, primaryType, types, domain, ...callRequest } = parameters;
   const hash3 = hashTypedData({ message, primaryType, types, domain });
-  return getAction(client2, verifyHash2, "verifyHash")({
-    address: address2,
+  return getAction(client, verifyHash2, "verifyHash")({
+    address,
     factory,
     factoryData,
     hash: hash3,
@@ -22014,13 +22291,13 @@ init_stringify();
 init_browser_buffer_global();
 init_fromHex();
 init_stringify();
-function watchBlockNumber(client2, { emitOnBegin = false, emitMissed = false, onBlockNumber, onError, poll: poll_, pollingInterval = client2.pollingInterval }) {
+function watchBlockNumber(client, { emitOnBegin = false, emitMissed = false, onBlockNumber, onError, poll: poll_, pollingInterval = client.pollingInterval }) {
   const enablePolling = (() => {
     if (typeof poll_ !== "undefined")
       return poll_;
-    if (client2.transport.type === "webSocket" || client2.transport.type === "ipc")
+    if (client.transport.type === "webSocket" || client.transport.type === "ipc")
       return false;
-    if (client2.transport.type === "fallback" && (client2.transport.transports[0].config.type === "webSocket" || client2.transport.transports[0].config.type === "ipc"))
+    if (client.transport.type === "fallback" && (client.transport.transports[0].config.type === "webSocket" || client.transport.transports[0].config.type === "ipc"))
       return false;
     return true;
   })();
@@ -22028,14 +22305,14 @@ function watchBlockNumber(client2, { emitOnBegin = false, emitMissed = false, on
   const pollBlockNumber = () => {
     const observerId = stringify([
       "watchBlockNumber",
-      client2.uid,
+      client.uid,
       emitOnBegin,
       emitMissed,
       pollingInterval
     ]);
     return observe(observerId, { onBlockNumber, onError }, (emit) => poll(async () => {
       try {
-        const blockNumber = await getAction(client2, getBlockNumber, "getBlockNumber")({ cacheTime: 0 });
+        const blockNumber = await getAction(client, getBlockNumber, "getBlockNumber")({ cacheTime: 0 });
         if (prevBlockNumber !== void 0) {
           if (blockNumber === prevBlockNumber)
             return;
@@ -22061,7 +22338,7 @@ function watchBlockNumber(client2, { emitOnBegin = false, emitMissed = false, on
   const subscribeBlockNumber = () => {
     const observerId = stringify([
       "watchBlockNumber",
-      client2.uid,
+      client.uid,
       emitOnBegin,
       emitMissed
     ]);
@@ -22071,13 +22348,13 @@ function watchBlockNumber(client2, { emitOnBegin = false, emitMissed = false, on
       (async () => {
         try {
           const transport = (() => {
-            if (client2.transport.type === "fallback") {
-              const transport2 = client2.transport.transports.find((transport3) => transport3.config.type === "webSocket" || transport3.config.type === "ipc");
+            if (client.transport.type === "fallback") {
+              const transport2 = client.transport.transports.find((transport3) => transport3.config.type === "webSocket" || transport3.config.type === "ipc");
               if (!transport2)
-                return client2.transport;
+                return client.transport;
               return transport2.value;
             }
-            return client2.transport;
+            return client.transport;
           })();
           const { unsubscribe: unsubscribe_ } = await transport.subscribe({
             params: ["newHeads"],
@@ -22106,7 +22383,7 @@ function watchBlockNumber(client2, { emitOnBegin = false, emitMissed = false, on
 }
 
 // node_modules/viem/_esm/actions/public/waitForTransactionReceipt.js
-async function waitForTransactionReceipt(client2, parameters) {
+async function waitForTransactionReceipt(client, parameters) {
   const {
     checkReplacement = true,
     confirmations = 1,
@@ -22117,13 +22394,13 @@ async function waitForTransactionReceipt(client2, parameters) {
     // exponential backoff
     timeout = 18e4
   } = parameters;
-  const observerId = stringify(["waitForTransactionReceipt", client2.uid, hash3]);
+  const observerId = stringify(["waitForTransactionReceipt", client.uid, hash3]);
   const pollingInterval = (() => {
     if (parameters.pollingInterval)
       return parameters.pollingInterval;
-    if (client2.chain?.experimental_preconfirmationTime)
-      return client2.chain.experimental_preconfirmationTime;
-    return client2.pollingInterval;
+    if (client.chain?.experimental_preconfirmationTime)
+      return client.chain.experimental_preconfirmationTime;
+    return client.pollingInterval;
   })();
   let transaction;
   let replacedTransaction;
@@ -22138,14 +22415,14 @@ async function waitForTransactionReceipt(client2, parameters) {
     reject(new WaitForTransactionReceiptTimeoutError({ hash: hash3 }));
   }, timeout) : void 0;
   _unobserve = observe(observerId, { onReplaced, resolve, reject }, async (emit) => {
-    receipt = await getAction(client2, getTransactionReceipt, "getTransactionReceipt")({ hash: hash3 }).catch(() => void 0);
+    receipt = await getAction(client, getTransactionReceipt, "getTransactionReceipt")({ hash: hash3 }).catch(() => void 0);
     if (receipt && confirmations <= 1) {
       clearTimeout(timer);
       emit.resolve(receipt);
       _unobserve?.();
       return;
     }
-    _unwatch = getAction(client2, watchBlockNumber, "watchBlockNumber")({
+    _unwatch = getAction(client, watchBlockNumber, "watchBlockNumber")({
       emitMissed: true,
       emitOnBegin: true,
       poll: true,
@@ -22170,7 +22447,7 @@ async function waitForTransactionReceipt(client2, parameters) {
           if (checkReplacement && !transaction) {
             retrying = true;
             await withRetry(async () => {
-              transaction = await getAction(client2, getTransaction, "getTransaction")({ hash: hash3 });
+              transaction = await getAction(client, getTransaction, "getTransaction")({ hash: hash3 });
               if (transaction.blockNumber)
                 blockNumber = transaction.blockNumber;
             }, {
@@ -22179,7 +22456,7 @@ async function waitForTransactionReceipt(client2, parameters) {
             });
             retrying = false;
           }
-          receipt = await getAction(client2, getTransactionReceipt, "getTransactionReceipt")({ hash: hash3 });
+          receipt = await getAction(client, getTransactionReceipt, "getTransactionReceipt")({ hash: hash3 });
           if (confirmations > 1 && (!receipt.blockNumber || blockNumber - receipt.blockNumber + 1n < confirmations))
             return;
           done(() => emit.resolve(receipt));
@@ -22192,7 +22469,7 @@ async function waitForTransactionReceipt(client2, parameters) {
             try {
               replacedTransaction = transaction;
               retrying = true;
-              const block = await withRetry(() => getAction(client2, getBlock, "getBlock")({
+              const block = await withRetry(() => getAction(client, getBlock, "getBlock")({
                 blockNumber,
                 includeTransactions: true
               }), {
@@ -22204,7 +22481,7 @@ async function waitForTransactionReceipt(client2, parameters) {
               const replacementTransaction = block.transactions.find(({ from: from14, nonce }) => from14 === replacedTransaction.from && nonce === replacedTransaction.nonce);
               if (!replacementTransaction)
                 return;
-              receipt = await getAction(client2, getTransactionReceipt, "getTransactionReceipt")({
+              receipt = await getAction(client, getTransactionReceipt, "getTransactionReceipt")({
                 hash: replacementTransaction.hash
               });
               if (confirmations > 1 && (!receipt.blockNumber || blockNumber - receipt.blockNumber + 1n < confirmations))
@@ -22240,13 +22517,13 @@ async function waitForTransactionReceipt(client2, parameters) {
 // node_modules/viem/_esm/actions/public/watchBlocks.js
 init_browser_buffer_global();
 init_stringify();
-function watchBlocks(client2, { blockTag = client2.experimental_blockTag ?? "latest", emitMissed = false, emitOnBegin = false, onBlock, onError, includeTransactions: includeTransactions_, poll: poll_, pollingInterval = client2.pollingInterval }) {
+function watchBlocks(client, { blockTag = client.experimental_blockTag ?? "latest", emitMissed = false, emitOnBegin = false, onBlock, onError, includeTransactions: includeTransactions_, poll: poll_, pollingInterval = client.pollingInterval }) {
   const enablePolling = (() => {
     if (typeof poll_ !== "undefined")
       return poll_;
-    if (client2.transport.type === "webSocket" || client2.transport.type === "ipc")
+    if (client.transport.type === "webSocket" || client.transport.type === "ipc")
       return false;
-    if (client2.transport.type === "fallback" && (client2.transport.transports[0].config.type === "webSocket" || client2.transport.transports[0].config.type === "ipc"))
+    if (client.transport.type === "fallback" && (client.transport.transports[0].config.type === "webSocket" || client.transport.transports[0].config.type === "ipc"))
       return false;
     return true;
   })();
@@ -22255,7 +22532,7 @@ function watchBlocks(client2, { blockTag = client2.experimental_blockTag ?? "lat
   const pollBlocks = () => {
     const observerId = stringify([
       "watchBlocks",
-      client2.uid,
+      client.uid,
       blockTag,
       emitMissed,
       emitOnBegin,
@@ -22264,7 +22541,7 @@ function watchBlocks(client2, { blockTag = client2.experimental_blockTag ?? "lat
     ]);
     return observe(observerId, { onBlock, onError }, (emit) => poll(async () => {
       try {
-        const block = await getAction(client2, getBlock, "getBlock")({
+        const block = await getAction(client, getBlock, "getBlock")({
           blockTag,
           includeTransactions
         });
@@ -22273,7 +22550,7 @@ function watchBlocks(client2, { blockTag = client2.experimental_blockTag ?? "lat
             return;
           if (block.number - prevBlock.number > 1 && emitMissed) {
             for (let i = prevBlock?.number + 1n; i < block.number; i++) {
-              const block2 = await getAction(client2, getBlock, "getBlock")({
+              const block2 = await getAction(client, getBlock, "getBlock")({
                 blockNumber: i,
                 includeTransactions
               });
@@ -22307,7 +22584,7 @@ function watchBlocks(client2, { blockTag = client2.experimental_blockTag ?? "lat
     (async () => {
       try {
         if (emitOnBegin) {
-          getAction(client2, getBlock, "getBlock")({
+          getAction(client, getBlock, "getBlock")({
             blockTag,
             includeTransactions
           }).then((block) => {
@@ -22320,20 +22597,20 @@ function watchBlocks(client2, { blockTag = client2.experimental_blockTag ?? "lat
           }).catch(onError);
         }
         const transport = (() => {
-          if (client2.transport.type === "fallback") {
-            const transport2 = client2.transport.transports.find((transport3) => transport3.config.type === "webSocket" || transport3.config.type === "ipc");
+          if (client.transport.type === "fallback") {
+            const transport2 = client.transport.transports.find((transport3) => transport3.config.type === "webSocket" || transport3.config.type === "ipc");
             if (!transport2)
-              return client2.transport;
+              return client.transport;
             return transport2.value;
           }
-          return client2.transport;
+          return client.transport;
         })();
         const { unsubscribe: unsubscribe_ } = await transport.subscribe({
           params: ["newHeads"],
           async onData(data) {
             if (!active)
               return;
-            const block = await getAction(client2, getBlock, "getBlock")({
+            const block = await getAction(client, getBlock, "getBlock")({
               blockNumber: data.result?.number,
               includeTransactions
             }).catch(() => {
@@ -22365,15 +22642,15 @@ init_browser_buffer_global();
 init_abi();
 init_rpc();
 init_stringify();
-function watchEvent(client2, { address: address2, args, batch = true, event, events, fromBlock, onError, onLogs, poll: poll_, pollingInterval = client2.pollingInterval, strict: strict_ }) {
+function watchEvent(client, { address, args, batch = true, event, events, fromBlock, onError, onLogs, poll: poll_, pollingInterval = client.pollingInterval, strict: strict_ }) {
   const enablePolling = (() => {
     if (typeof poll_ !== "undefined")
       return poll_;
     if (typeof fromBlock === "bigint")
       return true;
-    if (client2.transport.type === "webSocket" || client2.transport.type === "ipc")
+    if (client.transport.type === "webSocket" || client.transport.type === "ipc")
       return false;
-    if (client2.transport.type === "fallback" && (client2.transport.transports[0].config.type === "webSocket" || client2.transport.transports[0].config.type === "ipc"))
+    if (client.transport.type === "fallback" && (client.transport.transports[0].config.type === "webSocket" || client.transport.transports[0].config.type === "ipc"))
       return false;
     return true;
   })();
@@ -22381,10 +22658,10 @@ function watchEvent(client2, { address: address2, args, batch = true, event, eve
   const pollEvent = () => {
     const observerId = stringify([
       "watchEvent",
-      address2,
+      address,
       args,
       batch,
-      client2.uid,
+      client.uid,
       event,
       pollingInterval,
       fromBlock
@@ -22398,8 +22675,8 @@ function watchEvent(client2, { address: address2, args, batch = true, event, eve
       const unwatch = poll(async () => {
         if (!initialized) {
           try {
-            filter = await getAction(client2, createEventFilter, "createEventFilter")({
-              address: address2,
+            filter = await getAction(client, createEventFilter, "createEventFilter")({
+              address,
               args,
               event,
               events,
@@ -22414,12 +22691,12 @@ function watchEvent(client2, { address: address2, args, batch = true, event, eve
         try {
           let logs;
           if (filter) {
-            logs = await getAction(client2, getFilterChanges, "getFilterChanges")({ filter });
+            logs = await getAction(client, getFilterChanges, "getFilterChanges")({ filter });
           } else {
-            const blockNumber = await getAction(client2, getBlockNumber, "getBlockNumber")({});
+            const blockNumber = await getAction(client, getBlockNumber, "getBlockNumber")({});
             if (previousBlockNumber && previousBlockNumber !== blockNumber) {
-              logs = await getAction(client2, getLogs, "getLogs")({
-                address: address2,
+              logs = await getAction(client, getLogs, "getLogs")({
+                address,
                 args,
                 event,
                 events,
@@ -22449,7 +22726,7 @@ function watchEvent(client2, { address: address2, args, batch = true, event, eve
       });
       return async () => {
         if (filter)
-          await getAction(client2, uninstallFilter, "uninstallFilter")({ filter });
+          await getAction(client, uninstallFilter, "uninstallFilter")({ filter });
         unwatch();
       };
     });
@@ -22460,13 +22737,13 @@ function watchEvent(client2, { address: address2, args, batch = true, event, eve
     (async () => {
       try {
         const transport = (() => {
-          if (client2.transport.type === "fallback") {
-            const transport2 = client2.transport.transports.find((transport3) => transport3.config.type === "webSocket" || transport3.config.type === "ipc");
+          if (client.transport.type === "fallback") {
+            const transport2 = client.transport.transports.find((transport3) => transport3.config.type === "webSocket" || transport3.config.type === "ipc");
             if (!transport2)
-              return client2.transport;
+              return client.transport;
             return transport2.value;
           }
-          return client2.transport;
+          return client.transport;
         })();
         const events_ = events ?? (event ? [event] : void 0);
         let topics = [];
@@ -22481,7 +22758,7 @@ function watchEvent(client2, { address: address2, args, batch = true, event, eve
             topics = topics[0];
         }
         const { unsubscribe: unsubscribe_ } = await transport.subscribe({
-          params: ["logs", { address: address2, topics }],
+          params: ["logs", { address, topics }],
           onData(data) {
             if (!active)
               return;
@@ -22530,12 +22807,12 @@ function watchEvent(client2, { address: address2, args, batch = true, event, eve
 // node_modules/viem/_esm/actions/public/watchPendingTransactions.js
 init_browser_buffer_global();
 init_stringify();
-function watchPendingTransactions(client2, { batch = true, onError, onTransactions, poll: poll_, pollingInterval = client2.pollingInterval }) {
-  const enablePolling = typeof poll_ !== "undefined" ? poll_ : client2.transport.type !== "webSocket" && client2.transport.type !== "ipc";
+function watchPendingTransactions(client, { batch = true, onError, onTransactions, poll: poll_, pollingInterval = client.pollingInterval }) {
+  const enablePolling = typeof poll_ !== "undefined" ? poll_ : client.transport.type !== "webSocket" && client.transport.type !== "ipc";
   const pollPendingTransactions = () => {
     const observerId = stringify([
       "watchPendingTransactions",
-      client2.uid,
+      client.uid,
       batch,
       pollingInterval
     ]);
@@ -22545,14 +22822,14 @@ function watchPendingTransactions(client2, { batch = true, onError, onTransactio
         try {
           if (!filter) {
             try {
-              filter = await getAction(client2, createPendingTransactionFilter, "createPendingTransactionFilter")({});
+              filter = await getAction(client, createPendingTransactionFilter, "createPendingTransactionFilter")({});
               return;
             } catch (err) {
               unwatch();
               throw err;
             }
           }
-          const hashes = await getAction(client2, getFilterChanges, "getFilterChanges")({ filter });
+          const hashes = await getAction(client, getFilterChanges, "getFilterChanges")({ filter });
           if (hashes.length === 0)
             return;
           if (batch)
@@ -22569,7 +22846,7 @@ function watchPendingTransactions(client2, { batch = true, onError, onTransactio
       });
       return async () => {
         if (filter)
-          await getAction(client2, uninstallFilter, "uninstallFilter")({ filter });
+          await getAction(client, uninstallFilter, "uninstallFilter")({ filter });
         unwatch();
       };
     });
@@ -22579,7 +22856,7 @@ function watchPendingTransactions(client2, { batch = true, onError, onTransactio
     let unsubscribe = () => active = false;
     (async () => {
       try {
-        const { unsubscribe: unsubscribe_ } = await client2.transport.subscribe({
+        const { unsubscribe: unsubscribe_ } = await client.transport.subscribe({
           params: ["newPendingTransactions"],
           onData(data) {
             if (!active)
@@ -22633,7 +22910,7 @@ init_browser_buffer_global();
 init_isAddress();
 init_isAddressEqual();
 function validateSiweMessage(parameters) {
-  const { address: address2, domain, message, nonce, scheme, time = /* @__PURE__ */ new Date() } = parameters;
+  const { address, domain, message, nonce, scheme, time = /* @__PURE__ */ new Date() } = parameters;
   if (domain && message.domain !== domain)
     return false;
   if (nonce && message.nonce !== nonce)
@@ -22649,7 +22926,7 @@ function validateSiweMessage(parameters) {
       return false;
     if (!isAddress(message.address, { strict: false }))
       return false;
-    if (address2 && !isAddressEqual(message.address, address2))
+    if (address && !isAddressEqual(message.address, address))
       return false;
   } catch {
     return false;
@@ -22658,13 +22935,13 @@ function validateSiweMessage(parameters) {
 }
 
 // node_modules/viem/_esm/actions/siwe/verifySiweMessage.js
-async function verifySiweMessage(client2, parameters) {
-  const { address: address2, domain, message, nonce, scheme, signature, time = /* @__PURE__ */ new Date(), ...callRequest } = parameters;
+async function verifySiweMessage(client, parameters) {
+  const { address, domain, message, nonce, scheme, signature, time = /* @__PURE__ */ new Date(), ...callRequest } = parameters;
   const parsed = parseSiweMessage(message);
   if (!parsed.address)
     return false;
   const isValid = validateSiweMessage({
-    address: address2,
+    address,
     domain,
     message: parsed,
     nonce,
@@ -22674,7 +22951,7 @@ async function verifySiweMessage(client2, parameters) {
   if (!isValid)
     return false;
   const hash3 = hashMessage(message);
-  return verifyHash2(client2, {
+  return verifyHash2(client, {
     address: parsed.address,
     hash: hash3,
     signature,
@@ -22685,12 +22962,12 @@ async function verifySiweMessage(client2, parameters) {
 // node_modules/viem/_esm/actions/wallet/sendRawTransactionSync.js
 init_browser_buffer_global();
 init_transaction();
-async function sendRawTransactionSync(client2, { serializedTransaction, throwOnReceiptRevert, timeout }) {
-  const receipt = await client2.request({
+async function sendRawTransactionSync(client, { serializedTransaction, throwOnReceiptRevert, timeout }) {
+  const receipt = await client.request({
     method: "eth_sendRawTransactionSync",
     params: timeout ? [serializedTransaction, timeout] : [serializedTransaction]
   }, { retryCount: 0 });
-  const format = client2.chain?.formatters?.transactionReceipt?.format || formatTransactionReceipt;
+  const format = client.chain?.formatters?.transactionReceipt?.format || formatTransactionReceipt;
   const formatted = format(receipt);
   if (formatted.status === "reverted" && throwOnReceiptRevert)
     throw new TransactionReceiptRevertedError({ receipt: formatted });
@@ -22698,80 +22975,80 @@ async function sendRawTransactionSync(client2, { serializedTransaction, throwOnR
 }
 
 // node_modules/viem/_esm/clients/decorators/public.js
-function publicActions(client2) {
+function publicActions(client) {
   return {
-    call: (args) => call(client2, args),
-    createAccessList: (args) => createAccessList(client2, args),
-    createBlockFilter: () => createBlockFilter(client2),
-    createContractEventFilter: (args) => createContractEventFilter(client2, args),
-    createEventFilter: (args) => createEventFilter(client2, args),
-    createPendingTransactionFilter: () => createPendingTransactionFilter(client2),
-    estimateContractGas: (args) => estimateContractGas(client2, args),
-    estimateGas: (args) => estimateGas(client2, args),
-    getBalance: (args) => getBalance(client2, args),
-    getBlobBaseFee: () => getBlobBaseFee(client2),
-    getBlock: (args) => getBlock(client2, args),
-    getBlockNumber: (args) => getBlockNumber(client2, args),
-    getBlockReceipts: (args) => getBlockReceipts(client2, args),
-    getBlockTransactionCount: (args) => getBlockTransactionCount(client2, args),
-    getBytecode: (args) => getCode(client2, args),
-    getChainId: () => getChainId(client2),
-    getCode: (args) => getCode(client2, args),
-    getContractEvents: (args) => getContractEvents(client2, args),
-    getDelegation: (args) => getDelegation(client2, args),
-    getEip712Domain: (args) => getEip712Domain(client2, args),
-    getEnsAddress: (args) => getEnsAddress(client2, args),
-    getEnsAvatar: (args) => getEnsAvatar(client2, args),
-    getEnsName: (args) => getEnsName(client2, args),
-    getEnsResolver: (args) => getEnsResolver(client2, args),
-    getEnsText: (args) => getEnsText(client2, args),
-    getFeeHistory: (args) => getFeeHistory(client2, args),
-    estimateFeesPerGas: (args) => estimateFeesPerGas(client2, args),
-    getFilterChanges: (args) => getFilterChanges(client2, args),
-    getFilterLogs: (args) => getFilterLogs(client2, args),
-    getGasPrice: () => getGasPrice(client2),
-    getLogs: (args) => getLogs(client2, args),
-    getProof: (args) => getProof(client2, args),
-    estimateMaxPriorityFeePerGas: (args) => estimateMaxPriorityFeePerGas(client2, args),
-    fillTransaction: (args) => fillTransaction(client2, args),
-    getStorageAt: (args) => getStorageAt(client2, args),
-    getTransaction: (args) => getTransaction(client2, args),
-    getTransactionConfirmations: (args) => getTransactionConfirmations(client2, args),
-    getTransactionCount: (args) => getTransactionCount(client2, args),
-    getTransactionReceipt: (args) => getTransactionReceipt(client2, args),
-    multicall: (args) => multicall(client2, args),
-    prepareTransactionRequest: (args) => prepareTransactionRequest(client2, args),
-    readContract: (args) => readContract(client2, args),
-    sendRawTransaction: (args) => sendRawTransaction(client2, args),
-    sendRawTransactionSync: (args) => sendRawTransactionSync(client2, args),
-    simulate: (args) => simulateBlocks(client2, args),
-    simulateBlocks: (args) => simulateBlocks(client2, args),
-    simulateCalls: (args) => simulateCalls(client2, args),
-    simulateContract: (args) => simulateContract(client2, args),
-    verifyHash: (args) => verifyHash2(client2, args),
-    verifyMessage: (args) => verifyMessage2(client2, args),
-    verifySiweMessage: (args) => verifySiweMessage(client2, args),
-    verifyTypedData: (args) => verifyTypedData2(client2, args),
-    uninstallFilter: (args) => uninstallFilter(client2, args),
-    waitForTransactionReceipt: (args) => waitForTransactionReceipt(client2, args),
-    watchBlocks: (args) => watchBlocks(client2, args),
-    watchBlockNumber: (args) => watchBlockNumber(client2, args),
-    watchContractEvent: (args) => watchContractEvent(client2, args),
-    watchEvent: (args) => watchEvent(client2, args),
-    watchPendingTransactions: (args) => watchPendingTransactions(client2, args)
+    call: (args) => call(client, args),
+    createAccessList: (args) => createAccessList(client, args),
+    createBlockFilter: () => createBlockFilter(client),
+    createContractEventFilter: (args) => createContractEventFilter(client, args),
+    createEventFilter: (args) => createEventFilter(client, args),
+    createPendingTransactionFilter: () => createPendingTransactionFilter(client),
+    estimateContractGas: (args) => estimateContractGas(client, args),
+    estimateGas: (args) => estimateGas(client, args),
+    getBalance: (args) => getBalance(client, args),
+    getBlobBaseFee: () => getBlobBaseFee(client),
+    getBlock: (args) => getBlock(client, args),
+    getBlockNumber: (args) => getBlockNumber(client, args),
+    getBlockReceipts: (args) => getBlockReceipts(client, args),
+    getBlockTransactionCount: (args) => getBlockTransactionCount(client, args),
+    getBytecode: (args) => getCode(client, args),
+    getChainId: () => getChainId(client),
+    getCode: (args) => getCode(client, args),
+    getContractEvents: (args) => getContractEvents(client, args),
+    getDelegation: (args) => getDelegation(client, args),
+    getEip712Domain: (args) => getEip712Domain(client, args),
+    getEnsAddress: (args) => getEnsAddress(client, args),
+    getEnsAvatar: (args) => getEnsAvatar(client, args),
+    getEnsName: (args) => getEnsName(client, args),
+    getEnsResolver: (args) => getEnsResolver(client, args),
+    getEnsText: (args) => getEnsText(client, args),
+    getFeeHistory: (args) => getFeeHistory(client, args),
+    estimateFeesPerGas: (args) => estimateFeesPerGas(client, args),
+    getFilterChanges: (args) => getFilterChanges(client, args),
+    getFilterLogs: (args) => getFilterLogs(client, args),
+    getGasPrice: () => getGasPrice(client),
+    getLogs: (args) => getLogs(client, args),
+    getProof: (args) => getProof(client, args),
+    estimateMaxPriorityFeePerGas: (args) => estimateMaxPriorityFeePerGas(client, args),
+    fillTransaction: (args) => fillTransaction(client, args),
+    getStorageAt: (args) => getStorageAt(client, args),
+    getTransaction: (args) => getTransaction(client, args),
+    getTransactionConfirmations: (args) => getTransactionConfirmations(client, args),
+    getTransactionCount: (args) => getTransactionCount(client, args),
+    getTransactionReceipt: (args) => getTransactionReceipt(client, args),
+    multicall: (args) => multicall(client, args),
+    prepareTransactionRequest: (args) => prepareTransactionRequest(client, args),
+    readContract: (args) => readContract(client, args),
+    sendRawTransaction: (args) => sendRawTransaction(client, args),
+    sendRawTransactionSync: (args) => sendRawTransactionSync(client, args),
+    simulate: (args) => simulateBlocks(client, args),
+    simulateBlocks: (args) => simulateBlocks(client, args),
+    simulateCalls: (args) => simulateCalls(client, args),
+    simulateContract: (args) => simulateContract(client, args),
+    verifyHash: (args) => verifyHash2(client, args),
+    verifyMessage: (args) => verifyMessage2(client, args),
+    verifySiweMessage: (args) => verifySiweMessage(client, args),
+    verifyTypedData: (args) => verifyTypedData2(client, args),
+    uninstallFilter: (args) => uninstallFilter(client, args),
+    waitForTransactionReceipt: (args) => waitForTransactionReceipt(client, args),
+    watchBlocks: (args) => watchBlocks(client, args),
+    watchBlockNumber: (args) => watchBlockNumber(client, args),
+    watchContractEvent: (args) => watchContractEvent(client, args),
+    watchEvent: (args) => watchEvent(client, args),
+    watchPendingTransactions: (args) => watchPendingTransactions(client, args)
   };
 }
 
 // node_modules/viem/_esm/clients/createPublicClient.js
 function createPublicClient(parameters) {
   const { key = "public", name = "Public Client" } = parameters;
-  const client2 = createClient({
+  const client = createClient({
     ...parameters,
     key,
     name,
     type: "publicClient"
   });
-  return client2.extend(publicActions);
+  return client.extend(publicActions);
 }
 
 // node_modules/viem/_esm/clients/createTestClient.js
@@ -22891,37 +23168,142 @@ init_browser_buffer_global();
 // node_modules/viem/_esm/actions/wallet/addChain.js
 init_browser_buffer_global();
 init_toHex();
+async function addChain(client, { chain }) {
+  const { id, name, nativeCurrency, rpcUrls, blockExplorers } = chain;
+  await client.request({
+    method: "wallet_addEthereumChain",
+    params: [
+      {
+        chainId: numberToHex(id),
+        chainName: name,
+        nativeCurrency,
+        rpcUrls: rpcUrls.default.http,
+        blockExplorerUrls: blockExplorers ? Object.values(blockExplorers).map(({ url }) => url) : void 0
+      }
+    ]
+  }, { dedupe: true, retryCount: 0 });
+}
 
 // node_modules/viem/_esm/actions/wallet/deployContract.js
 init_browser_buffer_global();
 init_encodeDeployData();
+function deployContract(walletClient2, parameters) {
+  const { abi: abi2, args, bytecode, ...request } = parameters;
+  const calldata = encodeDeployData({ abi: abi2, args, bytecode });
+  return sendTransaction(walletClient2, {
+    ...request,
+    ...request.authorizationList ? { to: null } : {},
+    data: calldata
+  });
+}
 
 // node_modules/viem/_esm/actions/wallet/getAddresses.js
 init_browser_buffer_global();
 init_getAddress();
+async function getAddresses(client) {
+  if (client.account?.type === "local")
+    return [client.account.address];
+  const addresses = await client.request({ method: "eth_accounts" }, { dedupe: true });
+  return addresses.map((address) => checksumAddress(address));
+}
 
 // node_modules/viem/_esm/actions/wallet/getCapabilities.js
 init_browser_buffer_global();
 init_parseAccount();
 init_toHex();
+async function getCapabilities(client, parameters = {}) {
+  const { account: account2 = client.account, chainId } = parameters;
+  const account_ = account2 ? parseAccount(account2) : void 0;
+  const params = chainId ? [account_?.address, [numberToHex(chainId)]] : [account_?.address];
+  const capabilities_raw = await client.request({
+    method: "wallet_getCapabilities",
+    params
+  });
+  const capabilities = {};
+  for (const [chainId2, capabilities_] of Object.entries(capabilities_raw)) {
+    capabilities[Number(chainId2)] = {};
+    for (let [key, value] of Object.entries(capabilities_)) {
+      if (key === "addSubAccount")
+        key = "unstable_addSubAccount";
+      capabilities[Number(chainId2)][key] = value;
+    }
+  }
+  return typeof chainId === "number" ? capabilities[chainId] : capabilities;
+}
 
 // node_modules/viem/_esm/actions/wallet/getPermissions.js
 init_browser_buffer_global();
+async function getPermissions(client) {
+  const permissions = await client.request({ method: "wallet_getPermissions" }, { dedupe: true });
+  return permissions;
+}
 
 // node_modules/viem/_esm/actions/wallet/prepareAuthorization.js
 init_browser_buffer_global();
 init_parseAccount();
 init_isAddressEqual();
+async function prepareAuthorization(client, parameters) {
+  const { account: account_ = client.account, chainId, nonce } = parameters;
+  if (!account_)
+    throw new AccountNotFoundError({
+      docsPath: "/docs/eip7702/prepareAuthorization"
+    });
+  const account2 = parseAccount(account_);
+  const executor = (() => {
+    if (!parameters.executor)
+      return void 0;
+    if (parameters.executor === "self")
+      return parameters.executor;
+    return parseAccount(parameters.executor);
+  })();
+  const authorization = {
+    address: parameters.contractAddress ?? parameters.address,
+    chainId,
+    nonce
+  };
+  if (typeof authorization.chainId === "undefined")
+    authorization.chainId = client.chain?.id ?? await getAction(client, getChainId, "getChainId")({});
+  if (typeof authorization.nonce === "undefined") {
+    authorization.nonce = await getAction(client, getTransactionCount, "getTransactionCount")({
+      address: account2.address,
+      blockTag: "pending"
+    });
+    if (executor === "self" || executor?.address && isAddressEqual(executor.address, account2.address))
+      authorization.nonce += 1;
+  }
+  return authorization;
+}
 
 // node_modules/viem/_esm/actions/wallet/requestAddresses.js
 init_browser_buffer_global();
 init_getAddress();
+async function requestAddresses(client) {
+  const addresses = await client.request({ method: "eth_requestAccounts" }, { dedupe: true, retryCount: 0 });
+  return addresses.map((address) => getAddress(address));
+}
 
 // node_modules/viem/_esm/actions/wallet/requestPermissions.js
 init_browser_buffer_global();
+async function requestPermissions(client, permissions) {
+  return client.request({
+    method: "wallet_requestPermissions",
+    params: [permissions]
+  }, { retryCount: 0 });
+}
 
 // node_modules/viem/_esm/actions/wallet/sendCallsSync.js
 init_browser_buffer_global();
+async function sendCallsSync(client, parameters) {
+  const { chain = client.chain } = parameters;
+  const timeout = parameters.timeout ?? Math.max((chain?.blockTime ?? 0) * 3, 5e3);
+  const result = await getAction(client, sendCalls, "sendCalls")(parameters);
+  const status = await getAction(client, waitForCallsStatus, "waitForCallsStatus")({
+    ...parameters,
+    id: result.id,
+    timeout
+  });
+  return status;
+}
 
 // node_modules/viem/_esm/actions/wallet/sendTransactionSync.js
 init_browser_buffer_global();
@@ -22934,18 +23316,226 @@ init_transactionRequest();
 init_lru();
 init_assertRequest();
 var supportsWalletNamespace2 = new LruMap(128);
+async function sendTransactionSync(client, parameters) {
+  const { account: account_ = client.account, assertChainId = true, chain = client.chain, accessList, authorizationList, blobs, data, dataSuffix = typeof client.dataSuffix === "string" ? client.dataSuffix : client.dataSuffix?.value, gas, gasPrice, maxFeePerBlobGas, maxFeePerGas, maxPriorityFeePerGas, nonce, pollingInterval, throwOnReceiptRevert, type, value, ...rest } = parameters;
+  const timeout = parameters.timeout ?? Math.max((chain?.blockTime ?? 0) * 3, 5e3);
+  if (typeof account_ === "undefined")
+    throw new AccountNotFoundError({
+      docsPath: "/docs/actions/wallet/sendTransactionSync"
+    });
+  const account2 = account_ ? parseAccount(account_) : null;
+  let nonceManagerParameters;
+  try {
+    assertRequest(parameters);
+    const to = await (async () => {
+      if (parameters.to)
+        return parameters.to;
+      if (parameters.to === null)
+        return void 0;
+      if (authorizationList && authorizationList.length > 0)
+        return await recoverAuthorizationAddress({
+          authorization: authorizationList[0]
+        }).catch(() => {
+          throw new BaseError2("`to` is required. Could not infer from `authorizationList`.");
+        });
+      return void 0;
+    })();
+    if (account2?.type === "json-rpc" || account2 === null) {
+      let chainId;
+      if (chain !== null) {
+        chainId = await getAction(client, getChainId, "getChainId")({});
+        if (assertChainId)
+          assertCurrentChain({
+            currentChainId: chainId,
+            chain
+          });
+      }
+      const chainFormat = client.chain?.formatters?.transactionRequest?.format;
+      const format = chainFormat || formatTransactionRequest;
+      const request = format({
+        // Pick out extra data that might exist on the chain's transaction request type.
+        ...extract(rest, { format: chainFormat }),
+        accessList,
+        account: account2,
+        authorizationList,
+        blobs,
+        chainId,
+        data: dataSuffix ? concat([data ?? "0x", dataSuffix]) : data,
+        gas,
+        gasPrice,
+        maxFeePerBlobGas,
+        maxFeePerGas,
+        maxPriorityFeePerGas,
+        nonce,
+        to,
+        type,
+        value
+      }, "sendTransaction");
+      const isWalletNamespaceSupported = supportsWalletNamespace2.get(client.uid);
+      const method = isWalletNamespaceSupported ? "wallet_sendTransaction" : "eth_sendTransaction";
+      const hash3 = await (async () => {
+        try {
+          return await client.request({
+            method,
+            params: [request]
+          }, { retryCount: 0 });
+        } catch (e) {
+          if (isWalletNamespaceSupported === false)
+            throw e;
+          const error = e;
+          if (error.name === "InvalidInputRpcError" || error.name === "InvalidParamsRpcError" || error.name === "MethodNotFoundRpcError" || error.name === "MethodNotSupportedRpcError") {
+            return await client.request({
+              method: "wallet_sendTransaction",
+              params: [request]
+            }, { retryCount: 0 }).then((hash4) => {
+              supportsWalletNamespace2.set(client.uid, true);
+              return hash4;
+            }).catch((e2) => {
+              const walletNamespaceError = e2;
+              if (walletNamespaceError.name === "MethodNotFoundRpcError" || walletNamespaceError.name === "MethodNotSupportedRpcError") {
+                supportsWalletNamespace2.set(client.uid, false);
+                throw error;
+              }
+              throw walletNamespaceError;
+            });
+          }
+          throw error;
+        }
+      })();
+      const receipt = await getAction(client, waitForTransactionReceipt, "waitForTransactionReceipt")({
+        checkReplacement: false,
+        hash: hash3,
+        pollingInterval,
+        timeout
+      });
+      if (throwOnReceiptRevert && receipt.status === "reverted")
+        throw new TransactionReceiptRevertedError({ receipt });
+      return receipt;
+    }
+    if (account2?.type === "local") {
+      if (account2.nonceManager && typeof nonce === "undefined") {
+        const requestChainId = rest.chainId;
+        const chainId = await (async () => {
+          if (typeof requestChainId === "number")
+            return requestChainId;
+          if (chain)
+            return chain.id;
+          return getAction(client, getChainId, "getChainId")({});
+        })();
+        nonceManagerParameters = { address: account2.address, chainId };
+      }
+      const request = await getAction(client, prepareTransactionRequest, "prepareTransactionRequest")({
+        account: account2,
+        accessList,
+        authorizationList,
+        blobs,
+        chain,
+        data: dataSuffix ? concat([data ?? "0x", dataSuffix]) : data,
+        gas,
+        gasPrice,
+        maxFeePerBlobGas,
+        maxFeePerGas,
+        maxPriorityFeePerGas,
+        nonce,
+        nonceManager: account2.nonceManager,
+        parameters: [...defaultParameters, "sidecars"],
+        type,
+        value,
+        ...rest,
+        to
+      });
+      const serializer = chain?.serializers?.transaction;
+      const serializedTransaction = await account2.signTransaction(request, {
+        serializer
+      });
+      return await getAction(client, sendRawTransactionSync, "sendRawTransactionSync")({
+        serializedTransaction,
+        throwOnReceiptRevert,
+        timeout: parameters.timeout
+      });
+    }
+    if (account2?.type === "smart")
+      throw new AccountTypeNotSupportedError({
+        metaMessages: [
+          "Consider using the `sendUserOperation` Action instead."
+        ],
+        docsPath: "/docs/actions/bundler/sendUserOperation",
+        type: "smart"
+      });
+    throw new AccountTypeNotSupportedError({
+      docsPath: "/docs/actions/wallet/sendTransactionSync",
+      type: account2?.type
+    });
+  } catch (err) {
+    if (err instanceof AccountTypeNotSupportedError)
+      throw err;
+    if (nonceManagerParameters && !(err instanceof TransactionReceiptRevertedError))
+      account2?.nonceManager?.reset(nonceManagerParameters);
+    throw getTransactionError(err, {
+      ...parameters,
+      account: account2,
+      chain: parameters.chain || void 0
+    });
+  }
+}
 
 // node_modules/viem/_esm/actions/wallet/showCallsStatus.js
 init_browser_buffer_global();
+async function showCallsStatus(client, parameters) {
+  const { id } = parameters;
+  await client.request({
+    method: "wallet_showCallsStatus",
+    params: [id]
+  });
+  return;
+}
 
 // node_modules/viem/_esm/actions/wallet/signAuthorization.js
 init_browser_buffer_global();
 init_parseAccount();
+async function signAuthorization(client, parameters) {
+  const { account: account_ = client.account } = parameters;
+  if (!account_)
+    throw new AccountNotFoundError({
+      docsPath: "/docs/eip7702/signAuthorization"
+    });
+  const account2 = parseAccount(account_);
+  if (!account2.signAuthorization)
+    throw new AccountTypeNotSupportedError({
+      docsPath: "/docs/eip7702/signAuthorization",
+      metaMessages: [
+        "The `signAuthorization` Action does not support JSON-RPC Accounts."
+      ],
+      type: account2.type
+    });
+  const authorization = await prepareAuthorization(client, parameters);
+  return account2.signAuthorization(authorization);
+}
 
 // node_modules/viem/_esm/actions/wallet/signMessage.js
 init_browser_buffer_global();
 init_parseAccount();
 init_toHex();
+async function signMessage(client, { account: account_ = client.account, message }) {
+  if (!account_)
+    throw new AccountNotFoundError({
+      docsPath: "/docs/actions/wallet/signMessage"
+    });
+  const account2 = parseAccount(account_);
+  if (account2.signMessage)
+    return account2.signMessage({ message });
+  const message_ = (() => {
+    if (typeof message === "string")
+      return stringToHex(message);
+    if (message.raw instanceof Uint8Array)
+      return toHex(message.raw);
+    return message.raw;
+  })();
+  return client.request({
+    method: "personal_sign",
+    params: [message_, account2.address]
+  }, { retryCount: 0 });
+}
 
 // node_modules/viem/_esm/actions/wallet/signTransaction.js
 init_browser_buffer_global();
@@ -22953,20 +23543,146 @@ init_parseAccount();
 init_toHex();
 init_transactionRequest();
 init_assertRequest();
+async function signTransaction(client, parameters) {
+  const { account: account_ = client.account, chain = client.chain, ...transaction } = parameters;
+  if (!account_)
+    throw new AccountNotFoundError({
+      docsPath: "/docs/actions/wallet/signTransaction"
+    });
+  const account2 = parseAccount(account_);
+  assertRequest({
+    account: account2,
+    ...parameters
+  });
+  const chainId = await getAction(client, getChainId, "getChainId")({});
+  if (chain !== null)
+    assertCurrentChain({
+      currentChainId: chainId,
+      chain
+    });
+  const formatters = chain?.formatters || client.chain?.formatters;
+  const format = formatters?.transactionRequest?.format || formatTransactionRequest;
+  if (account2.signTransaction)
+    return account2.signTransaction({
+      ...transaction,
+      account: account2,
+      chainId
+    }, { serializer: client.chain?.serializers?.transaction });
+  return await client.request({
+    method: "eth_signTransaction",
+    params: [
+      {
+        ...format({
+          ...transaction,
+          account: account2
+        }, "signTransaction"),
+        chainId: numberToHex(chainId),
+        from: account2.address
+      }
+    ]
+  }, { retryCount: 0 });
+}
 
 // node_modules/viem/_esm/actions/wallet/signTypedData.js
 init_browser_buffer_global();
 init_parseAccount();
+async function signTypedData(client, parameters) {
+  const { account: account_ = client.account, domain, message, primaryType } = parameters;
+  if (!account_)
+    throw new AccountNotFoundError({
+      docsPath: "/docs/actions/wallet/signTypedData"
+    });
+  const account2 = parseAccount(account_);
+  const types = {
+    EIP712Domain: getTypesForEIP712Domain({ domain }),
+    ...parameters.types
+  };
+  validateTypedData({ domain, message, primaryType, types });
+  if (account2.signTypedData)
+    return account2.signTypedData({ domain, message, primaryType, types });
+  const typedData = serializeTypedData({ domain, message, primaryType, types });
+  return client.request({
+    method: "eth_signTypedData_v4",
+    params: [account2.address, typedData]
+  }, { retryCount: 0 });
+}
 
 // node_modules/viem/_esm/actions/wallet/switchChain.js
 init_browser_buffer_global();
 init_toHex();
+async function switchChain(client, { id }) {
+  await client.request({
+    method: "wallet_switchEthereumChain",
+    params: [
+      {
+        chainId: numberToHex(id)
+      }
+    ]
+  }, { retryCount: 0 });
+}
 
 // node_modules/viem/_esm/actions/wallet/watchAsset.js
 init_browser_buffer_global();
+async function watchAsset(client, params) {
+  const added = await client.request({
+    method: "wallet_watchAsset",
+    params
+  }, { retryCount: 0 });
+  return added;
+}
 
 // node_modules/viem/_esm/actions/wallet/writeContractSync.js
 init_browser_buffer_global();
+async function writeContractSync(client, parameters) {
+  return writeContract.internal(client, sendTransactionSync, "sendTransactionSync", parameters);
+}
+
+// node_modules/viem/_esm/clients/decorators/wallet.js
+function walletActions(client) {
+  return {
+    addChain: (args) => addChain(client, args),
+    deployContract: (args) => deployContract(client, args),
+    fillTransaction: (args) => fillTransaction(client, args),
+    getAddresses: () => getAddresses(client),
+    getCallsStatus: (args) => getCallsStatus(client, args),
+    getCapabilities: (args) => getCapabilities(client, args),
+    getChainId: () => getChainId(client),
+    getPermissions: () => getPermissions(client),
+    prepareAuthorization: (args) => prepareAuthorization(client, args),
+    prepareTransactionRequest: (args) => prepareTransactionRequest(client, args),
+    requestAddresses: () => requestAddresses(client),
+    requestPermissions: (args) => requestPermissions(client, args),
+    sendCalls: (args) => sendCalls(client, args),
+    sendCallsSync: (args) => sendCallsSync(client, args),
+    sendRawTransaction: (args) => sendRawTransaction(client, args),
+    sendRawTransactionSync: (args) => sendRawTransactionSync(client, args),
+    sendTransaction: (args) => sendTransaction(client, args),
+    sendTransactionSync: (args) => sendTransactionSync(client, args),
+    showCallsStatus: (args) => showCallsStatus(client, args),
+    signAuthorization: (args) => signAuthorization(client, args),
+    signMessage: (args) => signMessage(client, args),
+    signTransaction: (args) => signTransaction(client, args),
+    signTypedData: (args) => signTypedData(client, args),
+    switchChain: (args) => switchChain(client, args),
+    waitForCallsStatus: (args) => waitForCallsStatus(client, args),
+    watchAsset: (args) => watchAsset(client, args),
+    writeContract: (args) => writeContract(client, args),
+    writeContractSync: (args) => writeContractSync(client, args)
+  };
+}
+
+// node_modules/viem/_esm/clients/createWalletClient.js
+function createWalletClient(parameters) {
+  const { key = "wallet", name = "Wallet Client", transport } = parameters;
+  const client = createClient({
+    ...parameters,
+    key,
+    name,
+    transport,
+    type: "walletClient"
+  });
+  return client.extend(walletActions);
+}
 
 // node_modules/viem/_esm/clients/transports/createTransport.js
 init_browser_buffer_global();
@@ -22990,6 +23706,18 @@ function createTransport({ key, methods, name, request, retryCount = 3, retryDel
 
 // node_modules/viem/_esm/clients/transports/custom.js
 init_browser_buffer_global();
+function custom(provider, config = {}) {
+  const { key = "custom", methods, name = "Custom Provider", retryDelay } = config;
+  return ({ retryCount: defaultRetryCount }) => createTransport({
+    key,
+    methods,
+    name,
+    request: provider.request.bind(provider),
+    retryCount: config.retryCount ?? defaultRetryCount,
+    retryDelay,
+    type: "custom"
+  });
+}
 
 // node_modules/viem/_esm/clients/transports/fallback.js
 init_browser_buffer_global();
@@ -23211,7 +23939,7 @@ init_formatEther();
 init_formatGwei();
 init_formatUnits();
 
-// circle/arc/src/arc-usdc-tools.ts
+// circle/arc/src/arc-escrow.ts
 var ARC_TESTNET = {
   chainId: "0x4cef52",
   chainName: "Arc Testnet",
@@ -23226,334 +23954,474 @@ var arcTestnet = {
   rpcUrls: { default: { http: ["https://rpc.testnet.arc.network"] } },
   blockExplorers: { default: { name: "ArcScan", url: "https://testnet.arcscan.app" } }
 };
-var USDC_ADDRESS = "0x3600000000000000000000000000000000000000";
-var MEMO_ADDRESS = "0x5294E9927c3306DcBaDb03fe70b92e01cCede505";
-var MULTICALL3FROM_ADDRESS = "0x522fAf9A91c41c443c66765030741e4AaCe147D0";
 var CIRCLE_WALLET = "0x78131700be4a8f2d16eeb0cba3498d2e717f2cd3";
-var METAMASK_WALLET = "0x0000000000000000000000000000000000000000";
-var erc20Abi2 = [
+var DEFAULT_CONTRACT_ADDRESS = "0x679b3456100a3102e81ba60b54a400443fe20558";
+var STORAGE_KEY = "arcEscrow.records";
+var CONTRACT_KEY = "arcEscrow.contractAddress";
+var arcEscrowAbi = [
   {
     inputs: [
-      { internalType: "address", name: "to", type: "address" },
-      { internalType: "uint256", name: "value", type: "uint256" }
+      { internalType: "bytes32", name: "escrowId", type: "bytes32" },
+      { internalType: "address", name: "seller", type: "address" },
+      { internalType: "string", name: "metadataURI", type: "string" }
     ],
-    name: "transfer",
-    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    name: "createEscrow",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "bytes32", name: "escrowId", type: "bytes32" }],
+    name: "releaseEscrow",
+    outputs: [],
     stateMutability: "nonpayable",
     type: "function"
   },
   {
-    inputs: [{ internalType: "address", name: "account", type: "address" }],
-    name: "balanceOf",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    inputs: [{ internalType: "bytes32", name: "escrowId", type: "bytes32" }],
+    name: "refundEscrow",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "bytes32", name: "escrowId", type: "bytes32" }],
+    name: "getEscrow",
+    outputs: [
+      {
+        components: [
+          { internalType: "address", name: "buyer", type: "address" },
+          { internalType: "address", name: "seller", type: "address" },
+          { internalType: "uint256", name: "amount", type: "uint256" },
+          { internalType: "enum ArcEscrow.Status", name: "status", type: "uint8" },
+          { internalType: "string", name: "metadataURI", type: "string" }
+        ],
+        internalType: "struct ArcEscrow.Escrow",
+        name: "",
+        type: "tuple"
+      }
+    ],
     stateMutability: "view",
     type: "function"
   }
 ];
-var memoAbi = [
-  {
-    type: "function",
-    name: "memo",
-    stateMutability: "nonpayable",
-    inputs: [
-      { name: "target", type: "address" },
-      { name: "data", type: "bytes" },
-      { name: "memoId", type: "bytes32" },
-      { name: "memoData", type: "bytes" }
-    ],
-    outputs: []
-  }
-];
-var multicall3FromAbi = [
-  {
-    type: "function",
-    name: "aggregate3",
-    stateMutability: "nonpayable",
-    inputs: [
-      {
-        name: "calls",
-        type: "tuple[]",
-        components: [
-          { name: "target", type: "address" },
-          { name: "allowFailure", type: "bool" },
-          { name: "callData", type: "bytes" }
-        ]
-      }
-    ],
-    outputs: [
-      {
-        name: "returnData",
-        type: "tuple[]",
-        components: [
-          { name: "success", type: "bool" },
-          { name: "returnData", type: "bytes" }
-        ]
-      }
-    ]
-  }
-];
-var client = createPublicClient({
+var publicClient = createPublicClient({
   chain: arcTestnet,
   transport: http("https://rpc.testnet.arc.network")
 });
-var address = "";
+var walletClient = null;
+var selectedProvider = null;
+var account = null;
+var records = loadRecords();
+var selectedId = records[0]?.id ?? "";
+var contractAddress = localStorage.getItem(CONTRACT_KEY) ?? DEFAULT_CONTRACT_ADDRESS;
 var el = {
   connect: document.querySelector("#connect"),
-  refresh: document.querySelector("#refresh"),
-  memoSend: document.querySelector("#memoSend"),
-  batchSend: document.querySelector("#batchSend"),
-  sender: document.querySelector("#sender"),
-  memoContract: document.querySelector("#memoContract"),
-  batchContract: document.querySelector("#batchContract"),
-  memoRecipient: document.querySelector("#memoRecipient"),
-  memoAmount: document.querySelector("#memoAmount"),
-  memoReference: document.querySelector("#memoReference"),
-  memoText: document.querySelector("#memoText"),
-  batchRows: document.querySelector("#batchRows"),
+  walletAddress: document.querySelector("#walletAddress"),
   nativeBalance: document.querySelector("#nativeBalance"),
-  usdcBalance: document.querySelector("#usdcBalance"),
-  status: document.querySelector("#status"),
-  memoResult: document.querySelector("#memoResult"),
-  batchResult: document.querySelector("#batchResult")
+  contractAddress: document.querySelector("#contractAddress"),
+  deployContract: document.querySelector("#deployContract"),
+  saveContract: document.querySelector("#saveContract"),
+  seller: document.querySelector("#seller"),
+  amount: document.querySelector("#amount"),
+  reference: document.querySelector("#reference"),
+  outcome: document.querySelector("#outcome"),
+  createDraft: document.querySelector("#createDraft"),
+  fundEscrow: document.querySelector("#fundEscrow"),
+  releaseEscrow: document.querySelector("#releaseEscrow"),
+  refundEscrow: document.querySelector("#refundEscrow"),
+  refreshSelected: document.querySelector("#refreshSelected"),
+  escrowRows: document.querySelector("#escrowRows"),
+  selectedStatus: document.querySelector("#selectedStatus"),
+  receipt: document.querySelector("#receipt"),
+  statusLine: document.querySelector("#statusLine")
 };
-var stamp = (/* @__PURE__ */ new Date()).toISOString().replace(/[-:T.Z]/g, "").slice(0, 14);
-el.memoContract.value = MEMO_ADDRESS;
-el.batchContract.value = MULTICALL3FROM_ADDRESS;
-el.memoRecipient.value = CIRCLE_WALLET;
-el.memoAmount.value = "0.003";
-el.memoReference.value = `arc-receipt-${stamp}`;
-el.memoText.value = `circle-arc-payment ${stamp}`;
-el.batchRows.value = `${CIRCLE_WALLET},0.002
-${METAMASK_WALLET},0.001`;
-function setStatus(message) {
-  el.status.textContent = message;
+el.contractAddress.value = contractAddress;
+el.seller.value = CIRCLE_WALLET;
+el.amount.value = "0.004";
+el.reference.value = `arc-escrow-${(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)}`;
+function loadRecords() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
 }
-function errorMessage(error) {
-  console.error(error);
-  return error instanceof Error ? error.message : "Unknown error.";
+function saveRecords() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
 }
-function txUrl(hash3) {
-  return `https://testnet.arcscan.app/tx/${hash3}`;
+function selectedRecord() {
+  return records.find((record) => record.id === selectedId);
 }
 function escapeHtml(value) {
   return value.replace(/[&<>"']/g, (char) => {
-    const replacements = {
+    const entities = {
       "&": "&amp;",
       "<": "&lt;",
       ">": "&gt;",
       '"': "&quot;",
       "'": "&#39;"
     };
-    return replacements[char] ?? char;
+    return entities[char] ?? char;
   });
 }
-function renderTxLink(hash3) {
-  const url = txUrl(hash3);
-  return `<a href="${url}" target="_blank" rel="noreferrer">${url}</a>`;
+function shortHash(value) {
+  if (!value) return "-";
+  return `${value.slice(0, 6)}...${value.slice(-4)}`;
+}
+function txUrl(hash3) {
+  return `https://testnet.arcscan.app/tx/${hash3}`;
+}
+function addressUrl(address) {
+  return `https://testnet.arcscan.app/address/${address}`;
+}
+function setStatus(message) {
+  el.statusLine.textContent = message;
+}
+function errorMessage(error) {
+  console.error(error);
+  return error instanceof Error ? error.message : "Unknown error.";
+}
+async function getEthereumProvider() {
+  const injected = window.ethereum;
+  const legacyMetaMask = injected?.providers?.find((provider) => provider.isMetaMask);
+  if (legacyMetaMask) return legacyMetaMask;
+  if (injected?.isMetaMask) return injected;
+  const announced = [];
+  const onAnnounce = (event) => {
+    const detail = event.detail;
+    if (detail?.provider) {
+      announced.push({
+        provider: detail.provider,
+        name: detail.info?.name,
+        rdns: detail.info?.rdns
+      });
+    }
+  };
+  window.addEventListener("eip6963:announceProvider", onAnnounce);
+  window.dispatchEvent(new Event("eip6963:requestProvider"));
+  await new Promise((resolve) => setTimeout(resolve, 250));
+  window.removeEventListener("eip6963:announceProvider", onAnnounce);
+  const metaMask = announced.find((item) => {
+    const label = `${item.name ?? ""} ${item.rdns ?? ""}`.toLowerCase();
+    return label.includes("metamask");
+  });
+  if (metaMask) return metaMask.provider;
+  if (injected) return injected;
+  throw new Error("MetaMask provider not found.");
 }
 async function ensureArc() {
-  if (!window.ethereum) {
-    throw new Error("MetaMask provider not found.");
-  }
+  const provider = selectedProvider ?? await getEthereumProvider();
+  selectedProvider = provider;
   try {
-    await window.ethereum.request({
+    await provider.request({
       method: "wallet_switchEthereumChain",
       params: [{ chainId: ARC_TESTNET.chainId }]
     });
   } catch (error) {
     if (error.code !== 4902) throw error;
-    await window.ethereum.request({
+    await provider.request({
       method: "wallet_addEthereumChain",
       params: [ARC_TESTNET]
     });
   }
 }
-async function assertContract(addressToCheck, label) {
-  const code = await client.getCode({ address: addressToCheck });
-  if (!code || code === "0x") {
-    throw new Error(`${label} contract is not deployed at ${addressToCheck}.`);
-  }
-}
-async function refreshBalances() {
-  if (!address) return;
-  const [nativeBalance, tokenBalance] = await Promise.all([
-    client.getBalance({ address }),
-    client.readContract({
-      address: USDC_ADDRESS,
-      abi: erc20Abi2,
-      functionName: "balanceOf",
-      args: [address]
-    })
-  ]);
-  el.nativeBalance.textContent = `${formatEther(nativeBalance)} native USDC`;
-  el.usdcBalance.textContent = `${formatUnits(tokenBalance, 6)} ERC-20 USDC`;
+async function refreshBalance() {
+  if (!account) return;
+  const balance = await publicClient.getBalance({ address: account });
+  el.nativeBalance.textContent = `${formatEther(balance)} USDC`;
 }
 async function connect() {
-  if (!window.ethereum) {
-    setStatus("MetaMask provider not found.");
-    return;
-  }
   try {
-    setStatus("Connecting MetaMask...");
+    setStatus("Connecting wallet...");
+    const provider = await getEthereumProvider();
+    selectedProvider = provider;
     await ensureArc();
-    const accounts = await window.ethereum.request({
-      method: "eth_requestAccounts"
+    const accounts = await provider.request({ method: "eth_requestAccounts" });
+    account = accounts[0] ?? null;
+    if (!account) throw new Error("No wallet account returned.");
+    walletClient = createWalletClient({
+      account,
+      chain: arcTestnet,
+      transport: custom(provider)
     });
-    address = accounts[0] ?? "";
-    el.sender.value = address || "Not connected";
-    el.refresh.disabled = !address;
-    el.memoSend.disabled = !address;
-    el.batchSend.disabled = !address;
-    await refreshBalances();
-    setStatus("Ready.");
+    el.walletAddress.textContent = account;
+    el.connect.textContent = "Connected";
+    await refreshBalance();
+    updateActions();
+    setStatus("Wallet ready.");
   } catch (error) {
     setStatus(errorMessage(error));
   }
 }
-async function waitForHash(hash3) {
-  const receipt = await client.waitForTransactionReceipt({ hash: hash3 });
-  if (receipt.status !== "success") {
-    throw new Error(`Transaction reverted: ${hash3}`);
-  }
-  return receipt;
+function randomEscrowId(reference) {
+  const random2 = new Uint32Array(4);
+  crypto.getRandomValues(random2);
+  return keccak256(toBytes(`${reference}:${Date.now()}:${Array.from(random2).join(":")}`));
 }
-async function requestWallet(args) {
-  if (!window.ethereum) {
-    throw new Error("MetaMask provider not found.");
-  }
-  return window.ethereum.request(args);
+function statusLabel(status) {
+  return status;
 }
-async function ensureConnectedAddress() {
-  if (!address) {
+function statusClass(status) {
+  return `status ${status}`;
+}
+function receiptField(label, value) {
+  return `<div><dt>${escapeHtml(label)}</dt><dd>${value}</dd></div>`;
+}
+function renderRows() {
+  el.escrowRows.innerHTML = records.map((record) => {
+    const selected = record.id === selectedId ? "true" : "false";
+    return `
+        <tr data-selected="${selected}">
+          <td>${escapeHtml(record.id)}</td>
+          <td>${escapeHtml(record.amount)} USDC</td>
+          <td><span class="${statusClass(record.status)}">${statusLabel(record.status)}</span></td>
+          <td>${escapeHtml(record.outcome)}</td>
+          <td><button class="select-row secondary" data-id="${escapeHtml(record.id)}" type="button">Select</button></td>
+        </tr>
+      `;
+  }).join("");
+  document.querySelectorAll(".select-row").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedId = button.dataset.id ?? "";
+      render();
+    });
+  });
+}
+function renderReceipt() {
+  const record = selectedRecord();
+  if (!record) {
+    el.selectedStatus.className = "status draft";
+    el.selectedStatus.textContent = "draft";
+    el.receipt.innerHTML = receiptField("Escrow", "-") + receiptField("Amount", "-");
+    return;
+  }
+  const contract = record.contractAddress ?? contractAddress;
+  const funding = record.fundingTxHash ? `<a href="${txUrl(record.fundingTxHash)}" target="_blank" rel="noreferrer">${shortHash(record.fundingTxHash)}</a>` : "-";
+  const settlement = record.settlementTxHash ? `<a href="${txUrl(record.settlementTxHash)}" target="_blank" rel="noreferrer">${shortHash(record.settlementTxHash)}</a>` : "-";
+  const contractLink = contract ? `<a href="${addressUrl(contract)}" target="_blank" rel="noreferrer">${shortHash(contract)}</a>` : "-";
+  el.selectedStatus.className = statusClass(record.status);
+  el.selectedStatus.textContent = statusLabel(record.status);
+  el.receipt.innerHTML = [
+    receiptField("Escrow ID", `<code>${record.escrowId}</code>`),
+    receiptField("Contract", contractLink),
+    receiptField("Seller", `<code>${record.seller}</code>`),
+    receiptField("Amount", `${escapeHtml(record.amount)} USDC`),
+    receiptField("Outcome", escapeHtml(record.outcome)),
+    receiptField("Fund tx", funding),
+    receiptField("Settle tx", settlement),
+    receiptField("Metadata", escapeHtml(record.metadataURI))
+  ].join("");
+}
+function updateActions() {
+  const record = selectedRecord();
+  const hasWallet = Boolean(walletClient && account);
+  const hasContract = Boolean(contractAddress && isAddress(contractAddress));
+  el.deployContract.disabled = !hasWallet;
+  el.saveContract.disabled = false;
+  el.createDraft.disabled = !hasWallet;
+  el.fundEscrow.disabled = !hasWallet || !hasContract || !record || record.status !== "draft";
+  el.releaseEscrow.disabled = !hasWallet || !hasContract || !record || record.status !== "funded";
+  el.refundEscrow.disabled = !hasWallet || !hasContract || !record || record.status !== "funded";
+  el.refreshSelected.disabled = !hasContract || !record;
+}
+function render() {
+  renderRows();
+  renderReceipt();
+  updateActions();
+}
+function createDraft() {
+  if (!account) {
+    setStatus("Connect MetaMask first.");
+    return;
+  }
+  const seller = el.seller.value.trim();
+  const amount = el.amount.value.trim();
+  const reference = el.reference.value.trim();
+  const outcome = el.outcome.value;
+  if (!isAddress(seller)) {
+    setStatus("Seller must be a valid EVM address.");
+    return;
+  }
+  if (!/^\d+(\.\d+)?$/.test(amount) || Number(amount) <= 0) {
+    setStatus("Amount must be a positive number.");
+    return;
+  }
+  if (!reference) {
+    setStatus("Reference is required.");
+    return;
+  }
+  const now = (/* @__PURE__ */ new Date()).toISOString();
+  const record = {
+    id: reference,
+    escrowId: randomEscrowId(reference),
+    seller,
+    amount,
+    metadataURI: `local:${reference}`,
+    outcome,
+    status: "draft",
+    contractAddress: contractAddress || void 0,
+    createdAt: now,
+    updatedAt: now
+  };
+  records = [record, ...records.filter((item) => item.id !== reference)];
+  selectedId = record.id;
+  saveRecords();
+  render();
+  setStatus("Escrow draft created.");
+}
+async function deployContract2() {
+  if (!walletClient || !account) {
     await connect();
   }
-  if (!address || !isAddress(address)) {
-    throw new Error("MetaMask account is not connected.");
-  }
-  return address;
-}
-function parsePositiveAmount(raw, label) {
-  const amount = raw.trim();
-  if (!amount || Number(amount) <= 0) {
-    throw new Error(`${label} amount must be greater than zero.`);
-  }
-  return parseUnits(amount, 6);
-}
-async function sendMemo() {
-  el.memoSend.disabled = true;
+  if (!walletClient || !account) return;
   try {
-    await ensureArc();
-    const from14 = await ensureConnectedAddress();
-    const recipientRaw = el.memoRecipient.value.trim();
-    if (!isAddress(recipientRaw)) {
-      throw new Error("Memo recipient is not a valid address.");
+    el.deployContract.disabled = true;
+    setStatus("Deploying ArcEscrow contract...");
+    const artifact = await fetch("/public/artifacts/ArcEscrow.json").then((response) => response.json());
+    const hash3 = await walletClient.deployContract({
+      abi: artifact.abi,
+      bytecode: artifact.bytecode,
+      account,
+      chain: arcTestnet
+    });
+    setStatus(`Deploy submitted: ${hash3}`);
+    const receipt = await publicClient.waitForTransactionReceipt({ hash: hash3 });
+    if (!receipt.contractAddress) {
+      throw new Error("Deployment receipt did not include a contract address.");
     }
-    const amount = parsePositiveAmount(el.memoAmount.value, "Memo");
-    const reference = el.memoReference.value.trim() || `arc-receipt-${Date.now()}`;
-    const memoText = el.memoText.value.trim() || reference;
-    const transferData = encodeFunctionData({
-      abi: erc20Abi2,
-      functionName: "transfer",
-      args: [recipientRaw, amount]
-    });
-    const memoId = keccak256(stringToHex(reference));
-    const memoData = stringToHex(memoText);
-    const data = encodeFunctionData({
-      abi: memoAbi,
-      functionName: "memo",
-      args: [USDC_ADDRESS, transferData, memoId, memoData]
-    });
-    await assertContract(MEMO_ADDRESS, "Memo");
-    setStatus("Waiting for MetaMask signature: Memo.memo -> USDC transfer...");
-    const hash3 = await requestWallet({
-      method: "eth_sendTransaction",
-      params: [{ from: from14, to: MEMO_ADDRESS, data }]
-    });
-    const receipt = await waitForHash(hash3);
-    el.memoResult.innerHTML = `
-      <div><strong>mode</strong><span>Memo.memo -> USDC.transfer</span></div>
-      <div><strong>txHash</strong><span>${escapeHtml(hash3)}</span></div>
-      <div><strong>explorer</strong><span>${renderTxLink(hash3)}</span></div>
-      <div><strong>memoId</strong><span>${escapeHtml(memoId)}</span></div>
-      <div><strong>reference</strong><span>${escapeHtml(reference)}</span></div>
-      <div><strong>block</strong><span>${receipt.blockNumber.toString()}</span></div>
-    `;
-    await refreshBalances();
-    setStatus("Memo receipt confirmed.");
+    contractAddress = receipt.contractAddress;
+    el.contractAddress.value = contractAddress;
+    localStorage.setItem(CONTRACT_KEY, contractAddress);
+    updateActions();
+    setStatus(`ArcEscrow deployed at ${contractAddress}.`);
   } catch (error) {
-    setStatus(`Memo receipt failed: ${errorMessage(error)}`);
+    setStatus(errorMessage(error));
   } finally {
-    el.memoSend.disabled = false;
+    el.deployContract.disabled = false;
   }
 }
-function parseBatchRows() {
-  const rows = el.batchRows.value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line, index2) => {
-    const [recipientRaw, amountRaw] = line.split(",").map((part) => part.trim());
-    if (!recipientRaw || !isAddress(recipientRaw)) {
-      throw new Error(`Line ${index2 + 1}: invalid recipient.`);
-    }
-    parsePositiveAmount(amountRaw ?? "", `Line ${index2 + 1}`);
-    return { recipient: recipientRaw, amount: amountRaw };
-  });
-  if (rows.length === 0) {
-    throw new Error("Add at least one batch row.");
+function saveContract() {
+  const value = el.contractAddress.value.trim();
+  if (!value) {
+    contractAddress = "";
+    localStorage.removeItem(CONTRACT_KEY);
+    updateActions();
+    setStatus("Contract address cleared.");
+    return;
   }
-  return rows;
+  if (!isAddress(value)) {
+    setStatus("Contract address must be valid.");
+    return;
+  }
+  contractAddress = value;
+  localStorage.setItem(CONTRACT_KEY, contractAddress);
+  updateActions();
+  setStatus("Contract address saved.");
 }
-function buildMulticallInputs(rows) {
-  return rows.map((row) => ({
-    target: USDC_ADDRESS,
-    allowFailure: false,
-    callData: encodeFunctionData({
-      abi: erc20Abi2,
-      functionName: "transfer",
-      args: [row.recipient, parseUnits(row.amount, 6)]
-    })
-  }));
+function statusFromChain(value) {
+  if (value === 1) return "funded";
+  if (value === 2) return "released";
+  if (value === 3) return "refunded";
+  return "draft";
 }
-function batchTotal(rows) {
-  const total = rows.reduce((sum, row) => sum + parseUnits(row.amount, 6), 0n);
-  return formatUnits(total, 6);
-}
-async function sendBatch() {
-  el.batchSend.disabled = true;
+async function refreshSelected() {
+  const record = selectedRecord();
+  if (!record || !contractAddress) return;
   try {
-    await ensureArc();
-    const from14 = await ensureConnectedAddress();
-    const rows = parseBatchRows();
-    const calls = buildMulticallInputs(rows);
-    const data = encodeFunctionData({
-      abi: multicall3FromAbi,
-      functionName: "aggregate3",
-      args: [calls]
+    setStatus("Reading escrow state...");
+    const chainRecord = await publicClient.readContract({
+      address: contractAddress,
+      abi: arcEscrowAbi,
+      functionName: "getEscrow",
+      args: [record.escrowId]
     });
-    await assertContract(MULTICALL3FROM_ADDRESS, "Multicall3From");
-    setStatus(`Waiting for MetaMask signature: ${rows.length} transfers via Multicall3From...`);
-    const hash3 = await requestWallet({
-      method: "eth_sendTransaction",
-      params: [{ from: from14, to: MULTICALL3FROM_ADDRESS, data }]
-    });
-    const receipt = await waitForHash(hash3);
-    el.batchResult.innerHTML = `
-      <div><strong>mode</strong><span>Multicall3From.aggregate3</span></div>
-      <div><strong>txHash</strong><span>${escapeHtml(hash3)}</span></div>
-      <div><strong>explorer</strong><span>${renderTxLink(hash3)}</span></div>
-      <div><strong>rows</strong><span>${rows.length.toString()}</span></div>
-      <div><strong>total</strong><span>${batchTotal(rows)} USDC</span></div>
-      <div><strong>block</strong><span>${receipt.blockNumber.toString()}</span></div>
-    `;
-    await refreshBalances();
-    setStatus("Batch payout confirmed.");
+    const chainValue = chainRecord;
+    const rawStatus = Array.isArray(chainValue) ? chainValue[3] : chainValue.status;
+    const status = statusFromChain(Number(rawStatus ?? 0));
+    record.status = status;
+    record.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+    saveRecords();
+    render();
+    setStatus("Escrow state refreshed.");
   } catch (error) {
-    setStatus(`Batch payout failed: ${errorMessage(error)}`);
+    setStatus(errorMessage(error));
+  }
+}
+async function fundEscrow() {
+  const record = selectedRecord();
+  if (!record || !walletClient || !account || !contractAddress) return;
+  try {
+    el.fundEscrow.disabled = true;
+    setStatus("Funding escrow...");
+    const hash3 = await walletClient.writeContract({
+      address: contractAddress,
+      abi: arcEscrowAbi,
+      functionName: "createEscrow",
+      args: [record.escrowId, record.seller, record.metadataURI],
+      account,
+      chain: arcTestnet,
+      value: parseEther(record.amount)
+    });
+    setStatus(`Fund submitted: ${hash3}`);
+    await publicClient.waitForTransactionReceipt({ hash: hash3 });
+    record.status = "funded";
+    record.contractAddress = contractAddress;
+    record.fundingTxHash = hash3;
+    record.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+    saveRecords();
+    await refreshBalance();
+    render();
+    setStatus(`Escrow funded: ${hash3}`);
+  } catch (error) {
+    setStatus(errorMessage(error));
   } finally {
-    el.batchSend.disabled = false;
+    updateActions();
+  }
+}
+async function settleEscrow(outcome) {
+  const record = selectedRecord();
+  if (!record || !walletClient || !account || !contractAddress) return;
+  try {
+    el.releaseEscrow.disabled = true;
+    el.refundEscrow.disabled = true;
+    const functionName = outcome === "release" ? "releaseEscrow" : "refundEscrow";
+    setStatus(`${outcome === "release" ? "Releasing" : "Refunding"} escrow...`);
+    const hash3 = await walletClient.writeContract({
+      address: contractAddress,
+      abi: arcEscrowAbi,
+      functionName,
+      args: [record.escrowId],
+      account,
+      chain: arcTestnet
+    });
+    setStatus(`Settlement submitted: ${hash3}`);
+    await publicClient.waitForTransactionReceipt({ hash: hash3 });
+    record.status = outcome === "release" ? "released" : "refunded";
+    record.settlementTxHash = hash3;
+    record.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+    saveRecords();
+    await refreshBalance();
+    render();
+    setStatus(`Escrow ${record.status}: ${hash3}`);
+  } catch (error) {
+    setStatus(errorMessage(error));
+  } finally {
+    updateActions();
   }
 }
 el.connect.addEventListener("click", () => void connect());
-el.refresh.addEventListener("click", () => void refreshBalances());
-el.memoSend.addEventListener("click", () => void sendMemo());
-el.batchSend.addEventListener("click", () => void sendBatch());
+el.deployContract.addEventListener("click", () => void deployContract2());
+el.saveContract.addEventListener("click", saveContract);
+el.createDraft.addEventListener("click", createDraft);
+el.fundEscrow.addEventListener("click", () => void fundEscrow());
+el.releaseEscrow.addEventListener("click", () => void settleEscrow("release"));
+el.refundEscrow.addEventListener("click", () => void settleEscrow("refund"));
+el.refreshSelected.addEventListener("click", () => void refreshSelected());
+el.contractAddress.addEventListener("input", updateActions);
+render();
 /*! Bundled license information:
 
 ieee754/index.js:

@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Arc USDC Tools</title>
+    <title>Arc Payment Ops</title>
     <style>
       :root {
         color-scheme: light;
         font-family:
           Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background: #f5f7fa;
-        color: #18202a;
+        background: #f6f8f7;
+        color: #17211f;
       }
 
       * {
@@ -26,9 +26,9 @@
       }
 
       main {
-        width: min(900px, 100%);
+        width: min(980px, 100%);
         display: grid;
-        gap: 18px;
+        gap: 16px;
       }
 
       header {
@@ -48,12 +48,16 @@
         line-height: 1.1;
       }
 
+      p {
+        color: #52625e;
+      }
+
       .panel {
         background: #ffffff;
-        border: 1px solid #d9e0e7;
+        border: 1px solid #d7dfdc;
         border-radius: 8px;
         padding: 18px;
-        box-shadow: 0 14px 32px rgba(24, 32, 42, 0.08);
+        box-shadow: 0 14px 30px rgba(23, 33, 31, 0.07);
       }
 
       .grid {
@@ -62,53 +66,44 @@
         gap: 12px;
       }
 
+      .grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
       label {
         display: grid;
         gap: 6px;
         font-size: 13px;
-        color: #586575;
+        color: #52625e;
       }
 
       input,
       textarea {
         min-height: 42px;
         width: 100%;
-        border: 1px solid #c9d2dc;
+        border: 1px solid #c8d2cf;
         border-radius: 6px;
         padding: 9px 10px;
         font: inherit;
-        color: #18202a;
+        color: #17211f;
         background: #ffffff;
       }
 
       textarea {
-        min-height: 112px;
+        min-height: 104px;
         resize: vertical;
       }
 
       input[readonly] {
-        background: #f4f7fa;
-      }
-
-      input[type="checkbox"] {
-        width: 18px;
-        min-height: 18px;
-      }
-
-      .check {
-        display: flex;
-        min-height: 42px;
-        align-items: center;
-        gap: 10px;
-        color: #18202a;
+        background: #f3f6f5;
       }
 
       button {
         min-height: 42px;
-        border: 1px solid #5a3b68;
+        border: 1px solid #24706b;
         border-radius: 6px;
         padding: 0 14px;
-        background: #5a3b68;
+        background: #24706b;
         color: #ffffff;
         font: inherit;
         font-weight: 700;
@@ -117,7 +112,7 @@
 
       button.secondary {
         background: #ffffff;
-        color: #5a3b68;
+        color: #24706b;
       }
 
       button:disabled {
@@ -134,10 +129,10 @@
 
       .stat,
       .result div {
-        min-height: 72px;
-        border: 1px solid #d9e0e7;
+        min-height: 70px;
+        border: 1px solid #d7dfdc;
         border-radius: 6px;
-        background: #f4f7fa;
+        background: #f3f6f5;
         padding: 12px;
       }
 
@@ -145,7 +140,7 @@
       .result strong {
         display: block;
         margin-bottom: 6px;
-        color: #5b6877;
+        color: #60706d;
         font-size: 12px;
       }
 
@@ -165,12 +160,12 @@
 
       #status {
         min-height: 22px;
-        color: #334155;
+        color: #33413e;
         overflow-wrap: anywhere;
       }
 
       a {
-        color: #5a3b68;
+        color: #24706b;
         font-weight: 700;
       }
 
@@ -181,6 +176,7 @@
 
         header,
         .grid,
+        .grid.three,
         .stats,
         .result {
           display: grid;
@@ -194,8 +190,8 @@
     <main>
       <header>
         <div>
-          <h1>Arc USDC Tools</h1>
-          <p>Memo send and batch ERC-20 transfers</p>
+          <h1>Arc Payment Ops</h1>
+          <p>Memo receipts and aggregate payouts</p>
         </div>
         <button id="connect" class="secondary" type="button">Connect MetaMask</button>
       </header>
@@ -229,15 +225,32 @@
       <section class="panel">
         <div class="grid">
           <label>
-            Memo recipient
+            Memo contract
+            <input id="memoContract" readonly />
+          </label>
+          <label>
+            Multicall3From contract
+            <input id="batchContract" readonly />
+          </label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="grid">
+          <label>
+            Receipt recipient
             <input id="memoRecipient" />
           </label>
           <label>
-            Native USDC amount
+            ERC-20 USDC amount
             <input id="memoAmount" inputmode="decimal" />
           </label>
           <label>
-            Memo text
+            Memo reference
+            <input id="memoReference" />
+          </label>
+          <label>
+            Memo data
             <input id="memoText" />
           </label>
         </div>
@@ -245,19 +258,15 @@
 
       <section class="panel">
         <label>
-          Batch rows
+          Payout rows
           <textarea id="batchRows" spellcheck="false"></textarea>
-        </label>
-        <label>
-          Atomic batch
-          <span class="check"><input id="tryAtomic" type="checkbox" checked /> try wallet_sendCalls first</span>
         </label>
       </section>
 
       <section class="panel">
         <div class="actions">
-          <button id="memoSend" type="button" disabled>Send Memo</button>
-          <button id="batchSend" type="button" disabled>Batch USDC</button>
+          <button id="memoSend" type="button" disabled>Send Receipt</button>
+          <button id="batchSend" type="button" disabled>Send Batch</button>
           <button id="refresh" class="secondary" type="button" disabled>Refresh</button>
         </div>
         <p id="status"></p>

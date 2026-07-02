@@ -68,6 +68,9 @@ const targets = {
   ],
   "arc-usdc-tools": ["circle/arc/src/arc-usdc-tools.ts", "circle/arc/public/arc-usdc-tools.bundle.js"],
   "arc-invoice": ["circle/arc/src/arc-invoice.ts", "circle/arc/public/arc-invoice.bundle.js"],
+  "arc-escrow": ["circle/arc/src/arc-escrow.ts", "circle/arc/public/arc-escrow.bundle.js"],
+  "arc-subscription": ["circle/arc/src/arc-subscription.ts", "circle/arc/public/arc-subscription.bundle.js"],
+  "raw-cctp": ["circle/arc/src/raw-cctp.ts", "circle/arc/public/raw-cctp.bundle.js"],
 };
 
 function readJson(filePath) {

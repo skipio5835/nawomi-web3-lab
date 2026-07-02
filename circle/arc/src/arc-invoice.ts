@@ -15,6 +15,11 @@ declare global {
   }
 }
 
+type InjectedProvider = EIP1193Provider & {
+  isMetaMask?: boolean;
+  providers?: Array<EIP1193Provider & { isMetaMask?: boolean }>;
+};
+
 type InvoiceStatus = "draft" | "registered" | "paid" | "cancelled";
 
 type Invoice = {
@@ -32,6 +37,7 @@ type Invoice = {
   contractAddress?: Address;
   registrationTxHash?: Hash;
   paymentTxHash?: Hash;
+  cancellationTxHash?: Hash;
   payer?: Address;
   createdAt: string;
   updatedAt: string;
@@ -61,6 +67,8 @@ const arcTestnet = {
   blockExplorers: { default: { name: "ArcScan", url: "https://testnet.arcscan.app" } },
 } as const;
 
+const DEFAULT_CONTRACT_ADDRESS = "0xda11c8b98f17164180eed93c4b62bc60407692d1" as Address;
+
 const arcInvoiceAbi = [
   {
     inputs: [
@@ -69,6 +77,13 @@ const arcInvoiceAbi = [
       { internalType: "string", name: "metadataURI", type: "string" },
     ],
     name: "createInvoice",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "bytes32", name: "invoiceId", type: "bytes32" }],
+    name: "cancelInvoice",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -89,9 +104,10 @@ const publicClient = createPublicClient({
 
 let walletClient: ReturnType<typeof createWalletClient> | null = null;
 let account: Address | null = null;
+let selectedProvider: EIP1193Provider | null = null;
 let invoices: Invoice[] = [];
 let selectedId = "";
-let contractAddress = (localStorage.getItem("arcinvoice.contractAddress") ?? "") as Address | "";
+let contractAddress = (localStorage.getItem("arcinvoice.contractAddress") ?? DEFAULT_CONTRACT_ADDRESS) as Address | "";
 
 const el = {
   connect: document.querySelector<HTMLButtonElement>("#connect")!,
@@ -118,6 +134,7 @@ const el = {
   receipt: document.querySelector<HTMLElement>("#receipt")!,
   registerInvoice: document.querySelector<HTMLButtonElement>("#registerInvoice")!,
   payInvoice: document.querySelector<HTMLButtonElement>("#payInvoice")!,
+  cancelInvoice: document.querySelector<HTMLButtonElement>("#cancelInvoice")!,
   copyLink: document.querySelector<HTMLButtonElement>("#copyLink")!,
   stepDraft: document.querySelector<HTMLElement>("#stepDraft")!,
   stepRegistered: document.querySelector<HTMLElement>("#stepRegistered")!,
@@ -179,19 +196,55 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+async function getEthereumProvider(): Promise<EIP1193Provider> {
+  const injected = window.ethereum as InjectedProvider | undefined;
+  const legacyMetaMask = injected?.providers?.find((provider: EIP1193Provider & { isMetaMask?: boolean }) => {
+    return provider.isMetaMask;
+  });
+  if (legacyMetaMask) return legacyMetaMask;
+  if (injected?.isMetaMask) return injected;
+
+  const announced: Array<{ provider: EIP1193Provider; name?: string; rdns?: string }> = [];
+  const onAnnounce = (event: Event): void => {
+    const detail = (event as CustomEvent).detail as
+      | { info?: { name?: string; rdns?: string }; provider?: EIP1193Provider }
+      | undefined;
+    if (detail?.provider) {
+      announced.push({
+        provider: detail.provider,
+        name: detail.info?.name,
+        rdns: detail.info?.rdns,
+      });
+    }
+  };
+
+  window.addEventListener("eip6963:announceProvider", onAnnounce);
+  window.dispatchEvent(new Event("eip6963:requestProvider"));
+  await new Promise((resolve) => setTimeout(resolve, 250));
+  window.removeEventListener("eip6963:announceProvider", onAnnounce);
+
+  const metaMask = announced.find((item) => {
+    const label = `${item.name ?? ""} ${item.rdns ?? ""}`.toLowerCase();
+    return label.includes("metamask");
+  });
+  if (metaMask) return metaMask.provider;
+
+  if (injected) return injected;
+  throw new Error("MetaMask provider not found.");
+}
+
 async function ensureArc(): Promise<void> {
-  if (!window.ethereum) {
-    throw new Error("MetaMask provider not found.");
-  }
+  const provider = selectedProvider ?? (await getEthereumProvider());
+  selectedProvider = provider;
 
   try {
-    await window.ethereum.request({
+    await provider.request({
       method: "wallet_switchEthereumChain",
       params: [{ chainId: ARC_TESTNET.chainId }],
     });
   } catch (error) {
     if ((error as { code?: number }).code !== 4902) throw error;
-    await window.ethereum.request({
+    await provider.request({
       method: "wallet_addEthereumChain",
       params: [ARC_TESTNET],
     });
@@ -205,22 +258,19 @@ async function refreshBalance(): Promise<void> {
 }
 
 async function connect(): Promise<void> {
-  if (!window.ethereum) {
-    setStatus("MetaMask provider not found.");
-    return;
-  }
-
   try {
     setStatus("Connecting wallet...");
+    const provider = await getEthereumProvider();
+    selectedProvider = provider;
     await ensureArc();
-    const accounts = (await window.ethereum.request({ method: "eth_requestAccounts" })) as Address[];
+    const accounts = (await provider.request({ method: "eth_requestAccounts" })) as Address[];
     account = accounts[0] ?? null;
     if (!account) throw new Error("No wallet account returned.");
 
     walletClient = createWalletClient({
       account,
       chain: arcTestnet,
-      transport: custom(window.ethereum),
+      transport: custom(provider),
     });
 
     el.walletAddress.textContent = account;
@@ -298,6 +348,9 @@ function renderReceipt(): void {
   const payment = invoice.paymentTxHash
     ? `<a href="${txUrl(invoice.paymentTxHash)}" target="_blank" rel="noreferrer">${shortHash(invoice.paymentTxHash)}</a>`
     : "-";
+  const cancellation = invoice.cancellationTxHash
+    ? `<a href="${txUrl(invoice.cancellationTxHash)}" target="_blank" rel="noreferrer">${shortHash(invoice.cancellationTxHash)}</a>`
+    : "-";
   const contractLink = contract
     ? `<a href="${addressUrl(contract)}" target="_blank" rel="noreferrer">${shortHash(contract)}</a>`
     : "-";
@@ -311,10 +364,14 @@ function renderReceipt(): void {
     receiptField("Contract", contractLink),
     receiptField("Register tx", registration),
     receiptField("Payment tx", payment),
+    receiptField("Cancel tx", cancellation),
   ].join("");
 
   el.stepDraft.classList.add("done");
-  el.stepRegistered.classList.toggle("done", invoice.status === "registered" || invoice.status === "paid");
+  el.stepRegistered.classList.toggle(
+    "done",
+    invoice.status === "registered" || invoice.status === "paid" || invoice.status === "cancelled",
+  );
   el.stepPaid.classList.toggle("done", invoice.status === "paid");
 }
 
@@ -331,6 +388,7 @@ function updateActions(): void {
   const invoice = selectedInvoice();
   el.registerInvoice.disabled = !account || !walletClient || !invoice || invoice.status !== "draft" || !contractAddress;
   el.payInvoice.disabled = !account || !walletClient || !invoice || invoice.status !== "registered" || !contractAddress;
+  el.cancelInvoice.disabled = !account || !walletClient || !invoice || invoice.status !== "registered" || !contractAddress;
   el.copyLink.disabled = !invoice;
 }
 
@@ -511,6 +569,43 @@ async function payInvoice(): Promise<void> {
   }
 }
 
+async function cancelInvoice(): Promise<void> {
+  const invoice = selectedInvoice();
+  if (!invoice || !walletClient || !account || !contractAddress) return;
+
+  try {
+    if (invoice.merchantWallet.toLowerCase() !== account.toLowerCase()) {
+      throw new Error("Connect the merchant wallet listed on this invoice before cancelling it.");
+    }
+    await ensureArc();
+    el.cancelInvoice.disabled = true;
+    setStatus("Cancelling invoice on Arc...");
+    const hash = await walletClient.writeContract({
+      address: contractAddress,
+      abi: arcInvoiceAbi,
+      functionName: "cancelInvoice",
+      args: [invoice.chainInvoiceId],
+      account,
+      chain: arcTestnet,
+    });
+    await publicClient.waitForTransactionReceipt({ hash });
+    const updated = await requestJson<Invoice>(`/api/arcinvoice/invoices/${invoice.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        status: "cancelled",
+        cancellationTxHash: hash,
+      }),
+    });
+    invoices = invoices.map((item) => (item.id === updated.id ? updated : item));
+    selectInvoice(updated.id);
+    setStatus(`Invoice cancelled: ${hash}`);
+  } catch (error) {
+    setStatus(errorMessage(error));
+  } finally {
+    updateActions();
+  }
+}
+
 async function copyInvoiceLink(): Promise<void> {
   const invoice = selectedInvoice();
   if (!invoice) return;
@@ -539,6 +634,7 @@ el.deployContract.addEventListener("click", () => void deployContract());
 el.saveContract.addEventListener("click", saveContract);
 el.registerInvoice.addEventListener("click", () => void registerInvoice());
 el.payInvoice.addEventListener("click", () => void payInvoice());
+el.cancelInvoice.addEventListener("click", () => void cancelInvoice());
 el.copyLink.addEventListener("click", () => void copyInvoiceLink());
 el.contractAddress.addEventListener("input", updateActions);
 

@@ -21,6 +21,7 @@ type Invoice = {
   contractAddress?: `0x${string}`;
   registrationTxHash?: `0x${string}`;
   paymentTxHash?: `0x${string}`;
+  cancellationTxHash?: `0x${string}`;
   payer?: `0x${string}`;
   createdAt: string;
   updatedAt: string;
@@ -182,6 +183,11 @@ function patchInvoice(invoice: Invoice, payload: Record<string, unknown>): Invoi
   if (payload.paymentTxHash !== undefined) {
     if (!isHash(payload.paymentTxHash)) throw new Error("Payment tx hash must be valid.");
     next.paymentTxHash = payload.paymentTxHash;
+  }
+
+  if (payload.cancellationTxHash !== undefined) {
+    if (!isHash(payload.cancellationTxHash)) throw new Error("Cancellation tx hash must be valid.");
+    next.cancellationTxHash = payload.cancellationTxHash;
   }
 
   if (payload.payer !== undefined) {

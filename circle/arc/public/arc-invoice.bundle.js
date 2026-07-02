@@ -23954,6 +23954,7 @@ var arcTestnet = {
   rpcUrls: { default: { http: ["https://rpc.testnet.arc.network"] } },
   blockExplorers: { default: { name: "ArcScan", url: "https://testnet.arcscan.app" } }
 };
+var DEFAULT_CONTRACT_ADDRESS = "0xda11c8b98f17164180eed93c4b62bc60407692d1";
 var arcInvoiceAbi = [
   {
     inputs: [
@@ -23962,6 +23963,13 @@ var arcInvoiceAbi = [
       { internalType: "string", name: "metadataURI", type: "string" }
     ],
     name: "createInvoice",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "bytes32", name: "invoiceId", type: "bytes32" }],
+    name: "cancelInvoice",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function"
@@ -23980,9 +23988,10 @@ var publicClient = createPublicClient({
 });
 var walletClient = null;
 var account = null;
+var selectedProvider = null;
 var invoices = [];
 var selectedId = "";
-var contractAddress = localStorage.getItem("arcinvoice.contractAddress") ?? "";
+var contractAddress = localStorage.getItem("arcinvoice.contractAddress") ?? DEFAULT_CONTRACT_ADDRESS;
 var el = {
   connect: document.querySelector("#connect"),
   walletAddress: document.querySelector("#walletAddress"),
@@ -24008,6 +24017,7 @@ var el = {
   receipt: document.querySelector("#receipt"),
   registerInvoice: document.querySelector("#registerInvoice"),
   payInvoice: document.querySelector("#payInvoice"),
+  cancelInvoice: document.querySelector("#cancelInvoice"),
   copyLink: document.querySelector("#copyLink"),
   stepDraft: document.querySelector("#stepDraft"),
   stepRegistered: document.querySelector("#stepRegistered"),
@@ -24058,18 +24068,47 @@ async function requestJson(path, init) {
   }
   return response.json();
 }
+async function getEthereumProvider() {
+  const injected = window.ethereum;
+  const legacyMetaMask = injected?.providers?.find((provider) => {
+    return provider.isMetaMask;
+  });
+  if (legacyMetaMask) return legacyMetaMask;
+  if (injected?.isMetaMask) return injected;
+  const announced = [];
+  const onAnnounce = (event) => {
+    const detail = event.detail;
+    if (detail?.provider) {
+      announced.push({
+        provider: detail.provider,
+        name: detail.info?.name,
+        rdns: detail.info?.rdns
+      });
+    }
+  };
+  window.addEventListener("eip6963:announceProvider", onAnnounce);
+  window.dispatchEvent(new Event("eip6963:requestProvider"));
+  await new Promise((resolve) => setTimeout(resolve, 250));
+  window.removeEventListener("eip6963:announceProvider", onAnnounce);
+  const metaMask = announced.find((item) => {
+    const label = `${item.name ?? ""} ${item.rdns ?? ""}`.toLowerCase();
+    return label.includes("metamask");
+  });
+  if (metaMask) return metaMask.provider;
+  if (injected) return injected;
+  throw new Error("MetaMask provider not found.");
+}
 async function ensureArc() {
-  if (!window.ethereum) {
-    throw new Error("MetaMask provider not found.");
-  }
+  const provider = selectedProvider ?? await getEthereumProvider();
+  selectedProvider = provider;
   try {
-    await window.ethereum.request({
+    await provider.request({
       method: "wallet_switchEthereumChain",
       params: [{ chainId: ARC_TESTNET.chainId }]
     });
   } catch (error) {
     if (error.code !== 4902) throw error;
-    await window.ethereum.request({
+    await provider.request({
       method: "wallet_addEthereumChain",
       params: [ARC_TESTNET]
     });
@@ -24081,20 +24120,18 @@ async function refreshBalance() {
   el.nativeBalance.textContent = `${formatEther(balance)} USDC`;
 }
 async function connect() {
-  if (!window.ethereum) {
-    setStatus("MetaMask provider not found.");
-    return;
-  }
   try {
     setStatus("Connecting wallet...");
+    const provider = await getEthereumProvider();
+    selectedProvider = provider;
     await ensureArc();
-    const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+    const accounts = await provider.request({ method: "eth_requestAccounts" });
     account = accounts[0] ?? null;
     if (!account) throw new Error("No wallet account returned.");
     walletClient = createWalletClient({
       account,
       chain: arcTestnet,
-      transport: custom(window.ethereum)
+      transport: custom(provider)
     });
     el.walletAddress.textContent = account;
     el.connect.textContent = "Connected";
@@ -24154,6 +24191,7 @@ function renderReceipt() {
   const contract = invoice.contractAddress ?? contractAddress;
   const registration = invoice.registrationTxHash ? `<a href="${txUrl(invoice.registrationTxHash)}" target="_blank" rel="noreferrer">${shortHash(invoice.registrationTxHash)}</a>` : "-";
   const payment = invoice.paymentTxHash ? `<a href="${txUrl(invoice.paymentTxHash)}" target="_blank" rel="noreferrer">${shortHash(invoice.paymentTxHash)}</a>` : "-";
+  const cancellation = invoice.cancellationTxHash ? `<a href="${txUrl(invoice.cancellationTxHash)}" target="_blank" rel="noreferrer">${shortHash(invoice.cancellationTxHash)}</a>` : "-";
   const contractLink = contract ? `<a href="${addressUrl(contract)}" target="_blank" rel="noreferrer">${shortHash(contract)}</a>` : "-";
   el.receipt.innerHTML = [
     receiptField("Invoice", escapeHtml(invoice.id)),
@@ -24163,10 +24201,14 @@ function renderReceipt() {
     receiptField("Chain invoice id", escapeHtml(shortHash(invoice.chainInvoiceId))),
     receiptField("Contract", contractLink),
     receiptField("Register tx", registration),
-    receiptField("Payment tx", payment)
+    receiptField("Payment tx", payment),
+    receiptField("Cancel tx", cancellation)
   ].join("");
   el.stepDraft.classList.add("done");
-  el.stepRegistered.classList.toggle("done", invoice.status === "registered" || invoice.status === "paid");
+  el.stepRegistered.classList.toggle(
+    "done",
+    invoice.status === "registered" || invoice.status === "paid" || invoice.status === "cancelled"
+  );
   el.stepPaid.classList.toggle("done", invoice.status === "paid");
 }
 function updateContractSummary() {
@@ -24179,6 +24221,7 @@ function updateActions() {
   const invoice = selectedInvoice();
   el.registerInvoice.disabled = !account || !walletClient || !invoice || invoice.status !== "draft" || !contractAddress;
   el.payInvoice.disabled = !account || !walletClient || !invoice || invoice.status !== "registered" || !contractAddress;
+  el.cancelInvoice.disabled = !account || !walletClient || !invoice || invoice.status !== "registered" || !contractAddress;
   el.copyLink.disabled = !invoice;
 }
 function selectInvoice(id) {
@@ -24344,6 +24387,41 @@ async function payInvoice() {
     updateActions();
   }
 }
+async function cancelInvoice() {
+  const invoice = selectedInvoice();
+  if (!invoice || !walletClient || !account || !contractAddress) return;
+  try {
+    if (invoice.merchantWallet.toLowerCase() !== account.toLowerCase()) {
+      throw new Error("Connect the merchant wallet listed on this invoice before cancelling it.");
+    }
+    await ensureArc();
+    el.cancelInvoice.disabled = true;
+    setStatus("Cancelling invoice on Arc...");
+    const hash3 = await walletClient.writeContract({
+      address: contractAddress,
+      abi: arcInvoiceAbi,
+      functionName: "cancelInvoice",
+      args: [invoice.chainInvoiceId],
+      account,
+      chain: arcTestnet
+    });
+    await publicClient.waitForTransactionReceipt({ hash: hash3 });
+    const updated = await requestJson(`/api/arcinvoice/invoices/${invoice.id}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        status: "cancelled",
+        cancellationTxHash: hash3
+      })
+    });
+    invoices = invoices.map((item) => item.id === updated.id ? updated : item);
+    selectInvoice(updated.id);
+    setStatus(`Invoice cancelled: ${hash3}`);
+  } catch (error) {
+    setStatus(errorMessage(error));
+  } finally {
+    updateActions();
+  }
+}
 async function copyInvoiceLink() {
   const invoice = selectedInvoice();
   if (!invoice) return;
@@ -24370,6 +24448,7 @@ el.deployContract.addEventListener("click", () => void deployContract2());
 el.saveContract.addEventListener("click", saveContract);
 el.registerInvoice.addEventListener("click", () => void registerInvoice());
 el.payInvoice.addEventListener("click", () => void payInvoice());
+el.cancelInvoice.addEventListener("click", () => void cancelInvoice());
 el.copyLink.addEventListener("click", () => void copyInvoiceLink());
 el.contractAddress.addEventListener("input", updateActions);
 void loadInvoices().catch((error) => setStatus(errorMessage(error)));
