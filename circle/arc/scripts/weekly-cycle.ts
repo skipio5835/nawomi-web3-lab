@@ -8,6 +8,21 @@ const MULTICALL3FROM_CONTRACT = "0x522fAf9A91c41c443c66765030741e4AaCe147D0";
 const DEFAULT_ARCINVOICE_CONTRACT = "0xda11c8b98f17164180eed93c4b62bc60407692d1";
 const DEFAULT_ARCESCROW_CONTRACT = "0x679b3456100a3102e81ba60b54a400443fe20558";
 const DEFAULT_ARCSUBSCRIPTION_CONTRACT = "0x89b7bde935505992bf33f838359613ed9cdfaed0";
+const DEFAULT_ARCMEMBERSHIP_CONTRACT = "0x6bd54d5524ffe9e40d64bf64057c59ecceedc889";
+const DEFAULT_ARCSAVINGSVAULT_CONTRACT = "0x6236cf93ba71d3a89400818478b7c9a395d2d474";
+const DEFAULT_ARCPOLL_CONTRACT = "0xdd6fe001dac9d93053c92fe966c0b4573340dba4";
+const DEFAULT_ARCAIRDROP_CONTRACT = "0xd4eed3efcd2f5f0a5005ee90e5b7de77786b718f";
+const DEFAULT_ARCBOUNTY_CONTRACT = "0x46d942923e3d1ffd4edbab4a66c2e819e5382635";
+const DEFAULT_ARCMILESTONE_CONTRACT = "0xb922ea1d992078226365e793f5ace4c08858e4d0";
+const DEFAULT_ARCEXPENSE_CONTRACT = "0xccd4bad1f974fda2167a7060942916bf3c148d93";
+const DEFAULT_ARCEVENTTICKETS_CONTRACT = "0xca0ef47f4ab7be8d0a290186666f8b37af9856d7";
+const DEFAULT_ARCMARKETPLACE_CONTRACT = "0x6b074ac5ec367008e323d9480b208b07f5cbc1cd";
+const DEFAULT_ARCSERVICEBOOKINGS_CONTRACT = "0x1f99c4b86918d1b3ae6635392800dd1ecadf6352";
+const DEFAULT_ARCDONATION_CONTRACT = "0x9a677c873ca846c55175aad7c0be8a299e325870";
+const DEFAULT_ARCPREORDER_CONTRACT = "0x7c97d3eff8681ea4c7bb3354d1b4d827141934e9";
+const DEFAULT_ARCPAYROLL_CONTRACT = "0xbb04cc4983802f9a7e4aea048a5e675c89f8c9ea";
+const DEFAULT_ARCREFUNDABLEDEPOSIT_CONTRACT = "0xcad7f2503eb90e38063aa2385fc4616db0e9f147";
+const DEFAULT_ARCINSTALLMENTS_CONTRACT = "0xb5b5d1ffa19b5357a03b84f6230f155b9d452cea";
 const CCTP_BRIDGE_CONTRACT = "0xC5567a5E3370d4DBfB0540025078e283e36A363d";
 const CCTP_MESSAGE_TRANSMITTER_V2 = "0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275";
 const BASE_URL = `http://localhost:${process.env.PORT ?? "4173"}`;
@@ -17,6 +32,23 @@ const circleWalletAddress = process.env.WALLET_ADDRESS?.trim() || DEFAULT_CIRCLE
 const arcInvoiceContract = process.env.ARCINVOICE_CONTRACT?.trim() || DEFAULT_ARCINVOICE_CONTRACT;
 const arcEscrowContract = process.env.ARCESCROW_CONTRACT?.trim() || DEFAULT_ARCESCROW_CONTRACT;
 const arcSubscriptionContract = process.env.ARCSUBSCRIPTION_CONTRACT?.trim() || DEFAULT_ARCSUBSCRIPTION_CONTRACT;
+const arcMembershipContract = process.env.ARCMEMBERSHIP_CONTRACT?.trim() || DEFAULT_ARCMEMBERSHIP_CONTRACT;
+const arcSavingsVaultContract = process.env.ARCSAVINGSVAULT_CONTRACT?.trim() || DEFAULT_ARCSAVINGSVAULT_CONTRACT;
+const arcPollContract = process.env.ARCPOLL_CONTRACT?.trim() || DEFAULT_ARCPOLL_CONTRACT;
+const arcAirdropContract = process.env.ARCAIRDROP_CONTRACT?.trim() || DEFAULT_ARCAIRDROP_CONTRACT;
+const arcBountyContract = process.env.ARCBOUNTY_CONTRACT?.trim() || DEFAULT_ARCBOUNTY_CONTRACT;
+const arcMilestoneContract = process.env.ARCMILESTONE_CONTRACT?.trim() || DEFAULT_ARCMILESTONE_CONTRACT;
+const arcExpenseContract = process.env.ARCEXPENSE_CONTRACT?.trim() || DEFAULT_ARCEXPENSE_CONTRACT;
+const arcEventTicketsContract = process.env.ARCEVENTTICKETS_CONTRACT?.trim() || DEFAULT_ARCEVENTTICKETS_CONTRACT;
+const arcMarketplaceContract = process.env.ARCMARKETPLACE_CONTRACT?.trim() || DEFAULT_ARCMARKETPLACE_CONTRACT;
+const arcServiceBookingsContract =
+  process.env.ARCSERVICEBOOKINGS_CONTRACT?.trim() || DEFAULT_ARCSERVICEBOOKINGS_CONTRACT;
+const arcDonationContract = process.env.ARCDONATION_CONTRACT?.trim() || DEFAULT_ARCDONATION_CONTRACT;
+const arcPreorderContract = process.env.ARCPREORDER_CONTRACT?.trim() || DEFAULT_ARCPREORDER_CONTRACT;
+const arcPayrollContract = process.env.ARCPAYROLL_CONTRACT?.trim() || DEFAULT_ARCPAYROLL_CONTRACT;
+const arcRefundableDepositContract =
+  process.env.ARCREFUNDABLEDEPOSIT_CONTRACT?.trim() || DEFAULT_ARCREFUNDABLEDEPOSIT_CONTRACT;
+const arcInstallmentsContract = process.env.ARCINSTALLMENTS_CONTRACT?.trim() || DEFAULT_ARCINSTALLMENTS_CONTRACT;
 
 type DailyPlan = {
   sendAmount: string;
@@ -54,6 +86,47 @@ type ProductPlan = {
   subscriptionPrice: string;
   subscriptionPeriodDays: string;
   subscriptionCycles: string;
+  membershipMintPrice: string;
+  membershipRenewalPrice: string;
+  membershipRenewalDays: string;
+  vaultGoal: string;
+  vaultDeposit: string;
+  vaultTopUp: string;
+  vaultWithdraw: string;
+  pollChoice: "Yes" | "No" | "Abstain";
+  pollReason: string;
+  pollDurationMinutes: string;
+  airdropAmount: string;
+  airdropDurationMinutes: string;
+  bountyReward: string;
+  bountySubmission: string;
+  milestoneFirstAmount: string;
+  milestoneSecondAmount: string;
+  milestoneSubmission: string;
+  expenseTarget: string;
+  expenseContribution: string;
+  expenseWithdraw: string;
+  eventTicketPrice: string;
+  eventMaxSupply: string;
+  marketplacePrice: string;
+  marketplaceMaxOrders: string;
+  marketplaceFulfillment: string;
+  servicePrice: string;
+  serviceMaxBookings: string;
+  serviceCompletion: string;
+  donationGoal: string;
+  donationAmount: string;
+  donationMessage: string;
+  preorderPrice: string;
+  preorderMaxSupply: string;
+  preorderFulfillment: string;
+  payrollAmount: string;
+  payrollClaim: string;
+  refundableDepositAmount: string;
+  refundableDepositOutcome: "refund" | "forfeit";
+  refundableDepositReason: string;
+  installmentAmount: string;
+  installmentCompletion: string;
 };
 
 const dailyPlans: DailyPlan[] = [
@@ -189,6 +262,47 @@ const productPlans: ProductPlan[] = [
     subscriptionPrice: "0.003",
     subscriptionPeriodDays: "7",
     subscriptionCycles: "1",
+    membershipMintPrice: "0.003",
+    membershipRenewalPrice: "0.001",
+    membershipRenewalDays: "14",
+    vaultGoal: "0.05",
+    vaultDeposit: "0.006",
+    vaultTopUp: "0.002",
+    vaultWithdraw: "0.001",
+    pollChoice: "Yes",
+    pollReason: "supports weekly arc activity",
+    pollDurationMinutes: "60",
+    airdropAmount: "0.004",
+    airdropDurationMinutes: "60",
+    bountyReward: "0.004",
+    bountySubmission: "accepted-weekly-work",
+    milestoneFirstAmount: "0.003",
+    milestoneSecondAmount: "0.002",
+    milestoneSubmission: "submitted-design-check",
+    expenseTarget: "0.006",
+    expenseContribution: "0.004",
+    expenseWithdraw: "0.0025",
+    eventTicketPrice: "0.003",
+    eventMaxSupply: "5",
+    marketplacePrice: "0.004",
+    marketplaceMaxOrders: "5",
+    marketplaceFulfillment: "fulfilled-weekly-market-order",
+    servicePrice: "0.0035",
+    serviceMaxBookings: "5",
+    serviceCompletion: "completed-weekly-service-booking",
+    donationGoal: "0.02",
+    donationAmount: "0.003",
+    donationMessage: "supports-weekly-build",
+    preorderPrice: "0.005",
+    preorderMaxSupply: "5",
+    preorderFulfillment: "fulfilled-weekly-preorder",
+    payrollAmount: "0.004",
+    payrollClaim: "claimed-weekly-payroll",
+    refundableDepositAmount: "0.004",
+    refundableDepositOutcome: "refund",
+    refundableDepositReason: "returned-weekly-deposit",
+    installmentAmount: "0.003",
+    installmentCompletion: "completed-weekly-installments",
   },
   {
     memoAmount: "0.004",
@@ -200,6 +314,47 @@ const productPlans: ProductPlan[] = [
     subscriptionPrice: "0.004",
     subscriptionPeriodDays: "14",
     subscriptionCycles: "1",
+    membershipMintPrice: "0.004",
+    membershipRenewalPrice: "0.0015",
+    membershipRenewalDays: "21",
+    vaultGoal: "0.06",
+    vaultDeposit: "0.007",
+    vaultTopUp: "0.0025",
+    vaultWithdraw: "0.0015",
+    pollChoice: "Yes",
+    pollReason: "confirms product loop",
+    pollDurationMinutes: "75",
+    airdropAmount: "0.005",
+    airdropDurationMinutes: "75",
+    bountyReward: "0.006",
+    bountySubmission: "submitted-product-loop",
+    milestoneFirstAmount: "0.004",
+    milestoneSecondAmount: "0.003",
+    milestoneSubmission: "submitted-first-deliverable",
+    expenseTarget: "0.007",
+    expenseContribution: "0.005",
+    expenseWithdraw: "0.003",
+    eventTicketPrice: "0.004",
+    eventMaxSupply: "6",
+    marketplacePrice: "0.005",
+    marketplaceMaxOrders: "6",
+    marketplaceFulfillment: "fulfilled-product-market-order",
+    servicePrice: "0.0045",
+    serviceMaxBookings: "6",
+    serviceCompletion: "completed-product-service-booking",
+    donationGoal: "0.025",
+    donationAmount: "0.004",
+    donationMessage: "supports-product-loop",
+    preorderPrice: "0.006",
+    preorderMaxSupply: "6",
+    preorderFulfillment: "fulfilled-product-preorder",
+    payrollAmount: "0.005",
+    payrollClaim: "claimed-product-payroll",
+    refundableDepositAmount: "0.005",
+    refundableDepositOutcome: "refund",
+    refundableDepositReason: "returned-product-deposit",
+    installmentAmount: "0.0035",
+    installmentCompletion: "completed-product-installments",
   },
   {
     memoAmount: "0.005",
@@ -211,6 +366,47 @@ const productPlans: ProductPlan[] = [
     subscriptionPrice: "0.005",
     subscriptionPeriodDays: "7",
     subscriptionCycles: "2",
+    membershipMintPrice: "0.005",
+    membershipRenewalPrice: "0.002",
+    membershipRenewalDays: "10",
+    vaultGoal: "0.07",
+    vaultDeposit: "0.008",
+    vaultTopUp: "0.003",
+    vaultWithdraw: "0.002",
+    pollChoice: "Abstain",
+    pollReason: "records neutral governance action",
+    pollDurationMinutes: "90",
+    airdropAmount: "0.006",
+    airdropDurationMinutes: "90",
+    bountyReward: "0.005",
+    bountySubmission: "submitted-arc-ops-proof",
+    milestoneFirstAmount: "0.005",
+    milestoneSecondAmount: "0.0025",
+    milestoneSubmission: "submitted-ops-review",
+    expenseTarget: "0.008",
+    expenseContribution: "0.006",
+    expenseWithdraw: "0.0035",
+    eventTicketPrice: "0.005",
+    eventMaxSupply: "7",
+    marketplacePrice: "0.006",
+    marketplaceMaxOrders: "7",
+    marketplaceFulfillment: "fulfilled-ops-market-order",
+    servicePrice: "0.0055",
+    serviceMaxBookings: "7",
+    serviceCompletion: "completed-ops-service-booking",
+    donationGoal: "0.03",
+    donationAmount: "0.005",
+    donationMessage: "supports-ops-proof",
+    preorderPrice: "0.007",
+    preorderMaxSupply: "7",
+    preorderFulfillment: "fulfilled-ops-preorder",
+    payrollAmount: "0.006",
+    payrollClaim: "claimed-ops-payroll",
+    refundableDepositAmount: "0.006",
+    refundableDepositOutcome: "forfeit",
+    refundableDepositReason: "forfeited-ops-deposit",
+    installmentAmount: "0.004",
+    installmentCompletion: "completed-ops-installments",
   },
   {
     memoAmount: "0.006",
@@ -222,6 +418,47 @@ const productPlans: ProductPlan[] = [
     subscriptionPrice: "0.006",
     subscriptionPeriodDays: "30",
     subscriptionCycles: "1",
+    membershipMintPrice: "0.006",
+    membershipRenewalPrice: "0.002",
+    membershipRenewalDays: "30",
+    vaultGoal: "0.08",
+    vaultDeposit: "0.009",
+    vaultTopUp: "0.0035",
+    vaultWithdraw: "0.0025",
+    pollChoice: "No",
+    pollReason: "tests alternate vote path",
+    pollDurationMinutes: "45",
+    airdropAmount: "0.007",
+    airdropDurationMinutes: "45",
+    bountyReward: "0.007",
+    bountySubmission: "submitted-alternate-path",
+    milestoneFirstAmount: "0.006",
+    milestoneSecondAmount: "0.003",
+    milestoneSubmission: "submitted-alt-scope",
+    expenseTarget: "0.009",
+    expenseContribution: "0.007",
+    expenseWithdraw: "0.004",
+    eventTicketPrice: "0.006",
+    eventMaxSupply: "8",
+    marketplacePrice: "0.007",
+    marketplaceMaxOrders: "8",
+    marketplaceFulfillment: "fulfilled-alt-market-order",
+    servicePrice: "0.0065",
+    serviceMaxBookings: "8",
+    serviceCompletion: "completed-alt-service-booking",
+    donationGoal: "0.035",
+    donationAmount: "0.006",
+    donationMessage: "supports-alt-route",
+    preorderPrice: "0.008",
+    preorderMaxSupply: "8",
+    preorderFulfillment: "fulfilled-alt-preorder",
+    payrollAmount: "0.007",
+    payrollClaim: "claimed-alt-payroll",
+    refundableDepositAmount: "0.007",
+    refundableDepositOutcome: "refund",
+    refundableDepositReason: "returned-alt-deposit",
+    installmentAmount: "0.0045",
+    installmentCompletion: "completed-alt-installments",
   },
   {
     memoAmount: "0.007",
@@ -233,6 +470,47 @@ const productPlans: ProductPlan[] = [
     subscriptionPrice: "0.007",
     subscriptionPeriodDays: "14",
     subscriptionCycles: "2",
+    membershipMintPrice: "0.007",
+    membershipRenewalPrice: "0.003",
+    membershipRenewalDays: "14",
+    vaultGoal: "0.09",
+    vaultDeposit: "0.01",
+    vaultTopUp: "0.004",
+    vaultWithdraw: "0.003",
+    pollChoice: "Yes",
+    pollReason: "keeps governance cadence",
+    pollDurationMinutes: "120",
+    airdropAmount: "0.008",
+    airdropDurationMinutes: "120",
+    bountyReward: "0.008",
+    bountySubmission: "submitted-release-check",
+    milestoneFirstAmount: "0.007",
+    milestoneSecondAmount: "0.0035",
+    milestoneSubmission: "submitted-release-slice",
+    expenseTarget: "0.010",
+    expenseContribution: "0.008",
+    expenseWithdraw: "0.0045",
+    eventTicketPrice: "0.007",
+    eventMaxSupply: "9",
+    marketplacePrice: "0.008",
+    marketplaceMaxOrders: "9",
+    marketplaceFulfillment: "fulfilled-release-market-order",
+    servicePrice: "0.0075",
+    serviceMaxBookings: "9",
+    serviceCompletion: "completed-release-service-booking",
+    donationGoal: "0.04",
+    donationAmount: "0.007",
+    donationMessage: "supports-release-check",
+    preorderPrice: "0.009",
+    preorderMaxSupply: "9",
+    preorderFulfillment: "fulfilled-release-preorder",
+    payrollAmount: "0.008",
+    payrollClaim: "claimed-release-payroll",
+    refundableDepositAmount: "0.008",
+    refundableDepositOutcome: "forfeit",
+    refundableDepositReason: "forfeited-release-deposit",
+    installmentAmount: "0.005",
+    installmentCompletion: "completed-release-installments",
   },
   {
     memoAmount: "0.008",
@@ -244,6 +522,47 @@ const productPlans: ProductPlan[] = [
     subscriptionPrice: "0.008",
     subscriptionPeriodDays: "7",
     subscriptionCycles: "1",
+    membershipMintPrice: "0.008",
+    membershipRenewalPrice: "0.003",
+    membershipRenewalDays: "7",
+    vaultGoal: "0.10",
+    vaultDeposit: "0.011",
+    vaultTopUp: "0.0045",
+    vaultWithdraw: "0.0035",
+    pollChoice: "Abstain",
+    pollReason: "checks abstain tally",
+    pollDurationMinutes: "60",
+    airdropAmount: "0.009",
+    airdropDurationMinutes: "60",
+    bountyReward: "0.009",
+    bountySubmission: "submitted-abstain-week",
+    milestoneFirstAmount: "0.008",
+    milestoneSecondAmount: "0.004",
+    milestoneSubmission: "submitted-weekly-slice",
+    expenseTarget: "0.011",
+    expenseContribution: "0.009",
+    expenseWithdraw: "0.005",
+    eventTicketPrice: "0.008",
+    eventMaxSupply: "10",
+    marketplacePrice: "0.009",
+    marketplaceMaxOrders: "10",
+    marketplaceFulfillment: "fulfilled-abstain-market-order",
+    servicePrice: "0.0085",
+    serviceMaxBookings: "10",
+    serviceCompletion: "completed-abstain-service-booking",
+    donationGoal: "0.045",
+    donationAmount: "0.008",
+    donationMessage: "supports-abstain-week",
+    preorderPrice: "0.010",
+    preorderMaxSupply: "10",
+    preorderFulfillment: "fulfilled-abstain-preorder",
+    payrollAmount: "0.009",
+    payrollClaim: "claimed-abstain-payroll",
+    refundableDepositAmount: "0.009",
+    refundableDepositOutcome: "refund",
+    refundableDepositReason: "returned-abstain-deposit",
+    installmentAmount: "0.0055",
+    installmentCompletion: "completed-abstain-installments",
   },
   {
     memoAmount: "0.009",
@@ -255,6 +574,47 @@ const productPlans: ProductPlan[] = [
     subscriptionPrice: "0.009",
     subscriptionPeriodDays: "30",
     subscriptionCycles: "1",
+    membershipMintPrice: "0.009",
+    membershipRenewalPrice: "0.004",
+    membershipRenewalDays: "21",
+    vaultGoal: "0.055",
+    vaultDeposit: "0.0065",
+    vaultTopUp: "0.002",
+    vaultWithdraw: "0.001",
+    pollChoice: "Yes",
+    pollReason: "final weekly variant",
+    pollDurationMinutes: "30",
+    airdropAmount: "0.0045",
+    airdropDurationMinutes: "30",
+    bountyReward: "0.0045",
+    bountySubmission: "submitted-final-variant",
+    milestoneFirstAmount: "0.0035",
+    milestoneSecondAmount: "0.002",
+    milestoneSubmission: "submitted-final-slice",
+    expenseTarget: "0.0065",
+    expenseContribution: "0.0045",
+    expenseWithdraw: "0.0025",
+    eventTicketPrice: "0.0035",
+    eventMaxSupply: "4",
+    marketplacePrice: "0.0045",
+    marketplaceMaxOrders: "4",
+    marketplaceFulfillment: "fulfilled-final-market-order",
+    servicePrice: "0.004",
+    serviceMaxBookings: "4",
+    serviceCompletion: "completed-final-service-booking",
+    donationGoal: "0.022",
+    donationAmount: "0.0035",
+    donationMessage: "supports-final-variant",
+    preorderPrice: "0.0055",
+    preorderMaxSupply: "4",
+    preorderFulfillment: "fulfilled-final-preorder",
+    payrollAmount: "0.0045",
+    payrollClaim: "claimed-final-payroll",
+    refundableDepositAmount: "0.0045",
+    refundableDepositOutcome: "forfeit",
+    refundableDepositReason: "forfeited-final-deposit",
+    installmentAmount: "0.0032",
+    installmentCompletion: "completed-final-installments",
   },
 ];
 
@@ -315,6 +675,40 @@ const invoiceLabel = `Arc Daily Invoice ${cycleDate} v${planIndex + 1}`;
 const cancelInvoiceLabel = `Arc Cancel Invoice ${cycleDate} v${planIndex + 1}`;
 const escrowReference = `arc-escrow-${cycleDate}-v${planIndex + 1}`;
 const subscriptionReference = `arc-subscription-${cycleDate}-v${planIndex + 1}`;
+const membershipHandle = `arc-member-${cycleDate}-v${planIndex + 1}`;
+const vaultLabel = `arc-vault-${cycleDate}-v${planIndex + 1}`;
+const pollTitle = `arc-poll-${cycleDate}-v${planIndex + 1}`;
+const airdropLabel = `arc-airdrop-${cycleDate}-v${planIndex + 1}`;
+const bountyTitle = `arc-bounty-${cycleDate}-v${planIndex + 1}`;
+const bountySubmissionURI = `local:${bountyTitle}:${productPlan.bountySubmission}`;
+const milestoneTitle = `arc-milestone-${cycleDate}-v${planIndex + 1}`;
+const milestoneSubmissionURI = `local:${milestoneTitle}:${productPlan.milestoneSubmission}`;
+const expenseTitle = `arc-expense-${cycleDate}-v${planIndex + 1}`;
+const eventTitle = `arc-event-${cycleDate}-v${planIndex + 1}`;
+const marketplaceTitle = `arc-market-${cycleDate}-v${planIndex + 1}`;
+const marketplaceFulfillmentURI = `local:${marketplaceTitle}:${productPlan.marketplaceFulfillment}`;
+const serviceTitle = `arc-service-${cycleDate}-v${planIndex + 1}`;
+const serviceCompletionURI = `local:${serviceTitle}:${productPlan.serviceCompletion}`;
+const donationTitle = `arc-donation-${cycleDate}-v${planIndex + 1}`;
+const donationMessage = `local:${donationTitle}:${productPlan.donationMessage}`;
+const preorderTitle = `arc-preorder-${cycleDate}-v${planIndex + 1}`;
+const preorderFulfillmentURI = `local:${preorderTitle}:${productPlan.preorderFulfillment}`;
+const payrollReference = `arc-payroll-${cycleDate}-v${planIndex + 1}`;
+const payrollClaimURI = `local:${payrollReference}:${productPlan.payrollClaim}`;
+const refundableDepositLabel = `arc-deposit-${cycleDate}-v${planIndex + 1}`;
+const refundableDepositResolutionURI = `local:${refundableDepositLabel}:${productPlan.refundableDepositReason}`;
+const refundableDepositAction =
+  productPlan.refundableDepositOutcome === "refund"
+    ? `Refund to: ${metamaskAddress}`
+    : `Forfeit to: ${circleWalletAddress}`;
+const refundableDepositResult =
+  productPlan.refundableDepositOutcome === "refund"
+    ? `Expected refund: ${productPlan.refundableDepositAmount} native USDC back to ${metamaskAddress}`
+    : `Expected payout: ${productPlan.refundableDepositAmount} native USDC to ${circleWalletAddress}`;
+const installmentLabel = `arc-installment-${cycleDate}-v${planIndex + 1}`;
+const installmentPaymentOneURI = `local:${installmentLabel}:payment-1`;
+const installmentPaymentTwoURI = `local:${installmentLabel}:payment-2`;
+const installmentCompletionURI = `local:${installmentLabel}:${productPlan.installmentCompletion}`;
 
 const steps: Step[] = [
   {
@@ -579,6 +973,647 @@ const steps: Step[] = [
       "Click Mint after Iris status is complete.",
     ],
     proof: "Save destination receiveMessage txHash and final destination USDC balance.",
+  },
+  {
+    title: "23. ArcMembership Mint or Renew",
+    url: `${BASE_URL}/public/arc-membership.html`,
+    fields: [
+      `Contract: ${arcMembershipContract || "deploy once, then save address and set ARCMEMBERSHIP_CONTRACT in .env"}`,
+      `Handle: ${membershipHandle}`,
+      `Mint price: ${productPlan.membershipMintPrice} native USDC`,
+      `Renew price: ${productPlan.membershipRenewalPrice} native USDC`,
+      `Renewal days: ${productPlan.membershipRenewalDays}`,
+      "Initial days: 30 when deploying a new contract",
+      "If no pass exists, deploy once, save the contract, then Mint Pass.",
+      "If a pass already exists, Refresh and click Renew Pass.",
+    ],
+    proof: "Save deploy tx if new, then save mintPass or renewPass txHash/explorer link.",
+  },
+  {
+    title: "24. ArcMembership NFT Approve",
+    url: `${BASE_URL}/public/arc-membership.html`,
+    fields: [
+      `Contract: ${arcMembershipContract || "use the saved ArcMembershipPass contract from step 23"}`,
+      `Spender: ${circleWalletAddress}`,
+      "Token ID: use the minted/refreshed pass tokenId",
+      "Click Approve and sign in MetaMask.",
+    ],
+    proof: "Save ERC721 approve txHash/explorer link and approved address.",
+  },
+  {
+    title: "25. ArcMembership NFT Revoke",
+    url: `${BASE_URL}/public/arc-membership.html`,
+    fields: [
+      `Contract: ${arcMembershipContract || "use the saved ArcMembershipPass contract from step 23"}`,
+      "Token ID: same pass tokenId",
+      "Click Revoke to approve the zero address.",
+    ],
+    proof: "Save ERC721 revoke txHash/explorer link and final approved address = 0x0.",
+  },
+  {
+    title: "26. ArcSavingsVault Create",
+    url: `${BASE_URL}/public/arc-savings-vault.html`,
+    fields: [
+      `Contract: ${arcSavingsVaultContract || "deploy once, then save address and set ARCSAVINGSVAULT_CONTRACT in .env"}`,
+      `Label: ${vaultLabel}`,
+      `Goal amount: ${productPlan.vaultGoal} native USDC`,
+      `Initial deposit: ${productPlan.vaultDeposit} native USDC`,
+      "If no vault contract exists, deploy once, save the contract, then Create Vault.",
+    ],
+    proof: "Save deploy tx if new, then save createVault txHash/explorer link and vaultId.",
+  },
+  {
+    title: "27. ArcSavingsVault Set Goal",
+    url: `${BASE_URL}/public/arc-savings-vault.html`,
+    fields: [
+      `Contract: ${arcSavingsVaultContract || "use the saved ArcSavingsVault contract from step 26"}`,
+      `Label: ${vaultLabel}`,
+      `Goal amount: ${productPlan.vaultGoal} native USDC`,
+      "Click Refresh, then Set Goal.",
+    ],
+    proof: "Save setGoal txHash/explorer link.",
+  },
+  {
+    title: "28. ArcSavingsVault Deposit",
+    url: `${BASE_URL}/public/arc-savings-vault.html`,
+    fields: [
+      `Contract: ${arcSavingsVaultContract || "use the saved ArcSavingsVault contract from step 26"}`,
+      `Label: ${vaultLabel}`,
+      `Deposit amount: ${productPlan.vaultTopUp} native USDC`,
+      "Use the Deposit amount field, then click Deposit.",
+    ],
+    proof: "Save deposit txHash/explorer link and updated vault balance.",
+  },
+  {
+    title: "29. ArcSavingsVault Withdraw",
+    url: `${BASE_URL}/public/arc-savings-vault.html`,
+    fields: [
+      `Contract: ${arcSavingsVaultContract || "use the saved ArcSavingsVault contract from step 26"}`,
+      `Label: ${vaultLabel}`,
+      `Withdraw amount: ${productPlan.vaultWithdraw} native USDC`,
+      `Recipient: ${metamaskAddress}`,
+      "Click Withdraw and sign in MetaMask.",
+    ],
+    proof: "Save withdraw txHash/explorer link and final vault balance.",
+  },
+  {
+    title: "30. ArcPoll Create",
+    url: `${BASE_URL}/public/arc-poll.html`,
+    fields: [
+      `Contract: ${arcPollContract || "deploy once, then save address and set ARCPOLL_CONTRACT in .env"}`,
+      `Title: ${pollTitle}`,
+      `Metadata URI: local:${pollTitle}`,
+      `Duration minutes: ${productPlan.pollDurationMinutes}`,
+      "If no poll contract exists, deploy once, save the contract, then Create Poll.",
+    ],
+    proof: "Save deploy tx if new, then save createPoll txHash/explorer link and pollId.",
+  },
+  {
+    title: "31. ArcPoll Cast Vote",
+    url: `${BASE_URL}/public/arc-poll.html`,
+    fields: [
+      `Contract: ${arcPollContract || "use the saved ArcPoll contract from step 30"}`,
+      `Title: ${pollTitle}`,
+      `Choice: ${productPlan.pollChoice}`,
+      `Reason: ${productPlan.pollReason}`,
+      "Click Refresh, then Cast Vote.",
+    ],
+    proof: "Save castVote txHash/explorer link and updated tally.",
+  },
+  {
+    title: "32. ArcPoll Close",
+    url: `${BASE_URL}/public/arc-poll.html`,
+    fields: [
+      `Contract: ${arcPollContract || "use the saved ArcPoll contract from step 30"}`,
+      `Title: ${pollTitle}`,
+      "Click Close Poll after the vote confirms.",
+    ],
+    proof: "Save closePoll txHash/explorer link and final tally.",
+  },
+  {
+    title: "33. ArcAirdrop Create Campaign",
+    url: `${BASE_URL}/public/arc-airdrop.html`,
+    fields: [
+      `Contract: ${arcAirdropContract || "deploy once, then save address and set ARCAIRDROP_CONTRACT in .env"}`,
+      `Label: ${airdropLabel}`,
+      `Recipient: ${metamaskAddress}`,
+      `Allocation amount: ${productPlan.airdropAmount} native USDC`,
+      `Duration minutes: ${productPlan.airdropDurationMinutes}`,
+      "If no airdrop contract exists, deploy once, save the contract, then Create Campaign.",
+    ],
+    proof: "Save deploy tx if new, then save createCampaign txHash/explorer link and campaignId.",
+  },
+  {
+    title: "34. ArcAirdrop Claim",
+    url: `${BASE_URL}/public/arc-airdrop.html`,
+    fields: [
+      `Contract: ${arcAirdropContract || "use the saved ArcAirdropCampaign contract from step 33"}`,
+      `Label: ${airdropLabel}`,
+      `Recipient / claimer: ${metamaskAddress}`,
+      "Click Refresh, then Claim.",
+    ],
+    proof: "Save claim txHash/explorer link and claimed amount.",
+  },
+  {
+    title: "35. ArcAirdrop Close Campaign",
+    url: `${BASE_URL}/public/arc-airdrop.html`,
+    fields: [
+      `Contract: ${arcAirdropContract || "use the saved ArcAirdropCampaign contract from step 33"}`,
+      `Label: ${airdropLabel}`,
+      `Refund to: ${metamaskAddress}`,
+      "Click Close Campaign after the claim confirms.",
+    ],
+    proof: "Save closeCampaign txHash/explorer link and final remaining balance.",
+  },
+  {
+    title: "36. ArcBounty Create",
+    url: `${BASE_URL}/public/arc-bounty.html`,
+    fields: [
+      `Contract: ${arcBountyContract || "deploy once, then save address and set ARCBOUNTY_CONTRACT in .env"}`,
+      `Title: ${bountyTitle}`,
+      `Metadata URI: local:${bountyTitle}`,
+      `Reward amount: ${productPlan.bountyReward} native USDC`,
+      "If no bounty contract exists, deploy once, save the contract, then Create Bounty.",
+    ],
+    proof: "Save deploy tx if new, then save createBounty txHash/explorer link and bountyId.",
+  },
+  {
+    title: "37. ArcBounty Accept",
+    url: `${BASE_URL}/public/arc-bounty.html`,
+    fields: [
+      `Contract: ${arcBountyContract || "use the saved ArcBountyBoard contract from step 36"}`,
+      `Title: ${bountyTitle}`,
+      "Click Refresh, then Accept Bounty.",
+    ],
+    proof: "Save acceptBounty txHash/explorer link and worker address.",
+  },
+  {
+    title: "38. ArcBounty Submit Work",
+    url: `${BASE_URL}/public/arc-bounty.html`,
+    fields: [
+      `Contract: ${arcBountyContract || "use the saved ArcBountyBoard contract from step 36"}`,
+      `Title: ${bountyTitle}`,
+      `Submission URI: ${bountySubmissionURI}`,
+      "Click Submit Work.",
+    ],
+    proof: "Save submitWork txHash/explorer link and submission URI.",
+  },
+  {
+    title: "39. ArcBounty Release Reward",
+    url: `${BASE_URL}/public/arc-bounty.html`,
+    fields: [
+      `Contract: ${arcBountyContract || "use the saved ArcBountyBoard contract from step 36"}`,
+      `Title: ${bountyTitle}`,
+      `Reward amount: ${productPlan.bountyReward} native USDC`,
+      "Click Release Reward after the submission confirms.",
+    ],
+    proof: "Save releaseBounty txHash/explorer link and final bounty status = released.",
+  },
+  {
+    title: "40. ArcMilestone Create Agreement",
+    url: `${BASE_URL}/public/arc-milestone.html`,
+    fields: [
+      `Contract: ${arcMilestoneContract || "deploy once, then save address and set ARCMILESTONE_CONTRACT in .env"}`,
+      `Title: ${milestoneTitle}`,
+      `Worker: ${metamaskAddress}`,
+      `Metadata URI: local:${milestoneTitle}`,
+      `Milestone 0 amount: ${productPlan.milestoneFirstAmount} native USDC`,
+      `Milestone 1 amount: ${productPlan.milestoneSecondAmount} native USDC`,
+      "If no milestone contract exists, deploy once, save the contract, then Create Agreement.",
+    ],
+    proof: "Save deploy tx if new, then save createAgreement txHash/explorer link and agreementId.",
+  },
+  {
+    title: "41. ArcMilestone Submit",
+    url: `${BASE_URL}/public/arc-milestone.html`,
+    fields: [
+      `Contract: ${arcMilestoneContract || "use the saved ArcMilestoneAgreement contract from step 40"}`,
+      `Title: ${milestoneTitle}`,
+      "Milestone index: 0",
+      `Submission URI: ${milestoneSubmissionURI}`,
+      "Click Refresh, then Submit Milestone.",
+    ],
+    proof: "Save submitMilestone txHash/explorer link and milestone submission URI.",
+  },
+  {
+    title: "42. ArcMilestone Release",
+    url: `${BASE_URL}/public/arc-milestone.html`,
+    fields: [
+      `Contract: ${arcMilestoneContract || "use the saved ArcMilestoneAgreement contract from step 40"}`,
+      `Title: ${milestoneTitle}`,
+      "Milestone index: 0",
+      `Release amount: ${productPlan.milestoneFirstAmount} native USDC`,
+      "Click Release Milestone after the submission confirms.",
+    ],
+    proof: "Save releaseMilestone txHash/explorer link and released/remaining totals.",
+  },
+  {
+    title: "43. ArcMilestone Close",
+    url: `${BASE_URL}/public/arc-milestone.html`,
+    fields: [
+      `Contract: ${arcMilestoneContract || "use the saved ArcMilestoneAgreement contract from step 40"}`,
+      `Title: ${milestoneTitle}`,
+      `Refund to: ${metamaskAddress}`,
+      `Expected refund: ${productPlan.milestoneSecondAmount} native USDC`,
+      "Click Close Agreement after milestone 0 is released.",
+    ],
+    proof: "Save closeAgreement txHash/explorer link and final agreement status = closed.",
+  },
+  {
+    title: "44. ArcExpense Create",
+    url: `${BASE_URL}/public/arc-expense.html`,
+    fields: [
+      `Contract: ${arcExpenseContract || "deploy once, then save address and set ARCEXPENSE_CONTRACT in .env"}`,
+      `Title: ${expenseTitle}`,
+      `Payee: ${metamaskAddress}`,
+      `Metadata URI: local:${expenseTitle}`,
+      `Target amount: ${productPlan.expenseTarget} native USDC`,
+      "If no expense contract exists, deploy once, save the contract, then Create Expense.",
+    ],
+    proof: "Save deploy tx if new, then save createExpense txHash/explorer link and expenseId.",
+  },
+  {
+    title: "45. ArcExpense Contribute",
+    url: `${BASE_URL}/public/arc-expense.html`,
+    fields: [
+      `Contract: ${arcExpenseContract || "use the saved ArcExpenseSplitter contract from step 44"}`,
+      `Title: ${expenseTitle}`,
+      `Contribution amount: ${productPlan.expenseContribution} native USDC`,
+      "Click Refresh, then Contribute.",
+    ],
+    proof: "Save contribute txHash/explorer link and contributor amount.",
+  },
+  {
+    title: "46. ArcExpense Withdraw",
+    url: `${BASE_URL}/public/arc-expense.html`,
+    fields: [
+      `Contract: ${arcExpenseContract || "use the saved ArcExpenseSplitter contract from step 44"}`,
+      `Title: ${expenseTitle}`,
+      `Withdraw amount: ${productPlan.expenseWithdraw} native USDC`,
+      `Withdraw to: ${metamaskAddress}`,
+      "Click Withdraw after the contribution confirms.",
+    ],
+    proof: "Save withdraw txHash/explorer link and remaining available amount.",
+  },
+  {
+    title: "47. ArcExpense Close",
+    url: `${BASE_URL}/public/arc-expense.html`,
+    fields: [
+      `Contract: ${arcExpenseContract || "use the saved ArcExpenseSplitter contract from step 44"}`,
+      `Title: ${expenseTitle}`,
+      `Refund to: ${metamaskAddress}`,
+      `Expected refund: contribution minus withdraw = ${productPlan.expenseContribution} - ${productPlan.expenseWithdraw} native USDC`,
+      "Click Close Expense after withdrawal confirms.",
+    ],
+    proof: "Save closeExpense txHash/explorer link and final contract balance = 0.",
+  },
+  {
+    title: "48. ArcEvent Create",
+    url: `${BASE_URL}/public/arc-event-tickets.html`,
+    fields: [
+      `Contract: ${arcEventTicketsContract || "deploy once, then save address and set ARCEVENTTICKETS_CONTRACT in .env"}`,
+      `Title: ${eventTitle}`,
+      `Treasury: ${metamaskAddress}`,
+      `Metadata URI: local:${eventTitle}`,
+      `Ticket price: ${productPlan.eventTicketPrice} native USDC`,
+      `Max supply: ${productPlan.eventMaxSupply}`,
+      "If no event ticket contract exists, deploy once, save the contract, then Create Event.",
+    ],
+    proof: "Save deploy tx if new, then save createEvent txHash/explorer link and eventId.",
+  },
+  {
+    title: "49. ArcEvent Buy Ticket",
+    url: `${BASE_URL}/public/arc-event-tickets.html`,
+    fields: [
+      `Contract: ${arcEventTicketsContract || "use the saved ArcEventTickets contract from step 48"}`,
+      `Title: ${eventTitle}`,
+      `Ticket price: ${productPlan.eventTicketPrice} native USDC`,
+      "Click Refresh, then Buy Ticket.",
+    ],
+    proof: "Save buyTicket txHash/explorer link and ticketId.",
+  },
+  {
+    title: "50. ArcEvent Check In",
+    url: `${BASE_URL}/public/arc-event-tickets.html`,
+    fields: [
+      `Contract: ${arcEventTicketsContract || "use the saved ArcEventTickets contract from step 48"}`,
+      `Title: ${eventTitle}`,
+      "Ticket ID: use the purchased ticket shown on the page.",
+      "Click Check In after the purchase confirms.",
+    ],
+    proof: "Save checkIn txHash/explorer link and checkedIn count.",
+  },
+  {
+    title: "51. ArcEvent Settle",
+    url: `${BASE_URL}/public/arc-event-tickets.html`,
+    fields: [
+      `Contract: ${arcEventTicketsContract || "use the saved ArcEventTickets contract from step 48"}`,
+      `Title: ${eventTitle}`,
+      `Settlement to: ${metamaskAddress}`,
+      `Expected settlement: ${productPlan.eventTicketPrice} native USDC`,
+      "Click Settle Event after check-in.",
+    ],
+    proof: "Save settleEvent txHash/explorer link and final contract balance = 0.",
+  },
+  {
+    title: "52. ArcMarketplace Create Listing",
+    url: `${BASE_URL}/public/arc-marketplace.html`,
+    fields: [
+      `Contract: ${arcMarketplaceContract || "deploy once, then save address and set ARCMARKETPLACE_CONTRACT in .env"}`,
+      `Title: ${marketplaceTitle}`,
+      `Treasury: ${metamaskAddress}`,
+      `Metadata URI: local:${marketplaceTitle}`,
+      `Price: ${productPlan.marketplacePrice} native USDC`,
+      `Max orders: ${productPlan.marketplaceMaxOrders}`,
+      "If no marketplace contract exists, deploy once, save the contract, then Create Listing.",
+    ],
+    proof: "Save deploy tx if new, then save createListing txHash/explorer link and listingId.",
+  },
+  {
+    title: "53. ArcMarketplace Buy Order",
+    url: `${BASE_URL}/public/arc-marketplace.html`,
+    fields: [
+      `Contract: ${arcMarketplaceContract || "use the saved ArcMarketplaceOrders contract from step 52"}`,
+      `Title: ${marketplaceTitle}`,
+      `Price: ${productPlan.marketplacePrice} native USDC`,
+      "Click Refresh, then Buy Order.",
+    ],
+    proof: "Save purchase txHash/explorer link and orderId.",
+  },
+  {
+    title: "54. ArcMarketplace Fulfill Order",
+    url: `${BASE_URL}/public/arc-marketplace.html`,
+    fields: [
+      `Contract: ${arcMarketplaceContract || "use the saved ArcMarketplaceOrders contract from step 52"}`,
+      `Title: ${marketplaceTitle}`,
+      `Fulfillment URI: ${marketplaceFulfillmentURI}`,
+      "Click Fulfill Order after the purchase confirms.",
+    ],
+    proof: "Save fulfillOrder txHash/explorer link and fulfillment URI.",
+  },
+  {
+    title: "55. ArcMarketplace Settle Listing",
+    url: `${BASE_URL}/public/arc-marketplace.html`,
+    fields: [
+      `Contract: ${arcMarketplaceContract || "use the saved ArcMarketplaceOrders contract from step 52"}`,
+      `Title: ${marketplaceTitle}`,
+      `Settlement to: ${metamaskAddress}`,
+      `Expected settlement: ${productPlan.marketplacePrice} native USDC`,
+      "Click Settle Listing after fulfillment.",
+    ],
+    proof: "Save settleListing txHash/explorer link and final contract balance = 0.",
+  },
+  {
+    title: "56. ArcService Create Service",
+    url: `${BASE_URL}/public/arc-service-bookings.html`,
+    fields: [
+      `Contract: ${arcServiceBookingsContract || "deploy once, then save address and set ARCSERVICEBOOKINGS_CONTRACT in .env"}`,
+      `Title: ${serviceTitle}`,
+      `Treasury: ${metamaskAddress}`,
+      `Metadata URI: local:${serviceTitle}`,
+      `Price: ${productPlan.servicePrice} native USDC`,
+      `Max bookings: ${productPlan.serviceMaxBookings}`,
+      "If no service bookings contract exists, deploy once, save the contract, then Create Service.",
+    ],
+    proof: "Save deploy tx if new, then save createService txHash/explorer link and serviceId.",
+  },
+  {
+    title: "57. ArcService Book Service",
+    url: `${BASE_URL}/public/arc-service-bookings.html`,
+    fields: [
+      `Contract: ${arcServiceBookingsContract || "use the saved ArcServiceBookings contract from step 56"}`,
+      `Title: ${serviceTitle}`,
+      `Price: ${productPlan.servicePrice} native USDC`,
+      "Click Refresh, then Book Service.",
+    ],
+    proof: "Save bookService txHash/explorer link and bookingId.",
+  },
+  {
+    title: "58. ArcService Complete Booking",
+    url: `${BASE_URL}/public/arc-service-bookings.html`,
+    fields: [
+      `Contract: ${arcServiceBookingsContract || "use the saved ArcServiceBookings contract from step 56"}`,
+      `Title: ${serviceTitle}`,
+      `Completion URI: ${serviceCompletionURI}`,
+      "Click Complete Booking after the booking confirms.",
+    ],
+    proof: "Save completeBooking txHash/explorer link and completion URI.",
+  },
+  {
+    title: "59. ArcService Settle Service",
+    url: `${BASE_URL}/public/arc-service-bookings.html`,
+    fields: [
+      `Contract: ${arcServiceBookingsContract || "use the saved ArcServiceBookings contract from step 56"}`,
+      `Title: ${serviceTitle}`,
+      `Settlement to: ${metamaskAddress}`,
+      `Expected settlement: ${productPlan.servicePrice} native USDC`,
+      "Click Settle Service after completion.",
+    ],
+    proof: "Save settleService txHash/explorer link and final contract balance = 0.",
+  },
+  {
+    title: "60. ArcDonation Create Campaign",
+    url: `${BASE_URL}/public/arc-donation.html`,
+    fields: [
+      `Contract: ${arcDonationContract || "deploy once, then save address and set ARCDONATION_CONTRACT in .env"}`,
+      `Title: ${donationTitle}`,
+      `Treasury: ${metamaskAddress}`,
+      `Metadata URI: local:${donationTitle}`,
+      `Goal amount: ${productPlan.donationGoal} native USDC`,
+      "If no donation contract exists, deploy once, save the contract, then Create Campaign.",
+    ],
+    proof: "Save deploy tx if new, then save createCampaign txHash/explorer link and campaignId.",
+  },
+  {
+    title: "61. ArcDonation Donate",
+    url: `${BASE_URL}/public/arc-donation.html`,
+    fields: [
+      `Contract: ${arcDonationContract || "use the saved ArcDonationJar contract from step 60"}`,
+      `Title: ${donationTitle}`,
+      `Donation amount: ${productPlan.donationAmount} native USDC`,
+      `Message: ${donationMessage}`,
+      "Click Refresh, then Donate.",
+    ],
+    proof: "Save donate txHash/explorer link and donationId.",
+  },
+  {
+    title: "62. ArcDonation Withdraw",
+    url: `${BASE_URL}/public/arc-donation.html`,
+    fields: [
+      `Contract: ${arcDonationContract || "use the saved ArcDonationJar contract from step 60"}`,
+      `Title: ${donationTitle}`,
+      `Withdraw amount: ${productPlan.donationAmount} native USDC`,
+      `Withdraw to: ${metamaskAddress}`,
+      "Click Withdraw after the donation confirms.",
+    ],
+    proof: "Save withdrawCampaign txHash/explorer link and final campaign available amount = 0.",
+  },
+  {
+    title: "63. ArcPreorder Create Product",
+    url: `${BASE_URL}/public/arc-preorder.html`,
+    fields: [
+      `Contract: ${arcPreorderContract || "deploy once, then save address and set ARCPREORDER_CONTRACT in .env"}`,
+      `Title: ${preorderTitle}`,
+      `Treasury: ${metamaskAddress}`,
+      `Metadata URI: local:${preorderTitle}`,
+      `Price: ${productPlan.preorderPrice} native USDC`,
+      `Max supply: ${productPlan.preorderMaxSupply}`,
+      "If no preorder contract exists, deploy once, save the contract, then Create Product.",
+    ],
+    proof: "Save deploy tx if new, then save createProduct txHash/explorer link and productId.",
+  },
+  {
+    title: "64. ArcPreorder Place Preorder",
+    url: `${BASE_URL}/public/arc-preorder.html`,
+    fields: [
+      `Contract: ${arcPreorderContract || "use the saved ArcPreorderStore contract from step 63"}`,
+      `Title: ${preorderTitle}`,
+      `Price: ${productPlan.preorderPrice} native USDC`,
+      "Click Refresh, then Place Preorder.",
+    ],
+    proof: "Save preorder txHash/explorer link and preorderId.",
+  },
+  {
+    title: "65. ArcPreorder Fulfill Preorder",
+    url: `${BASE_URL}/public/arc-preorder.html`,
+    fields: [
+      `Contract: ${arcPreorderContract || "use the saved ArcPreorderStore contract from step 63"}`,
+      `Title: ${preorderTitle}`,
+      `Fulfillment URI: ${preorderFulfillmentURI}`,
+      "Click Fulfill Preorder after the preorder confirms.",
+    ],
+    proof: "Save fulfillPreorder txHash/explorer link and fulfillment URI.",
+  },
+  {
+    title: "66. ArcPreorder Settle Product",
+    url: `${BASE_URL}/public/arc-preorder.html`,
+    fields: [
+      `Contract: ${arcPreorderContract || "use the saved ArcPreorderStore contract from step 63"}`,
+      `Title: ${preorderTitle}`,
+      `Settlement to: ${metamaskAddress}`,
+      `Expected settlement: ${productPlan.preorderPrice} native USDC`,
+      "Click Settle Product after fulfillment.",
+    ],
+    proof: "Save settleProduct txHash/explorer link and final contract balance = 0.",
+  },
+  {
+    title: "67. ArcPayroll Create Payroll",
+    url: `${BASE_URL}/public/arc-payroll.html`,
+    fields: [
+      `Contract: ${arcPayrollContract || "deploy once, then save address and set ARCPAYROLL_CONTRACT in .env"}`,
+      `Reference: ${payrollReference}`,
+      `Worker: ${metamaskAddress}`,
+      `Metadata URI: local:${payrollReference}`,
+      `Amount: ${productPlan.payrollAmount} native USDC`,
+      "Claim after: 0 / immediate",
+      "If no payroll contract exists, deploy once, save the contract, then Create Payroll.",
+    ],
+    proof: "Save deploy tx if new, then save createPayroll txHash/explorer link and payrollId.",
+  },
+  {
+    title: "68. ArcPayroll Claim Payroll",
+    url: `${BASE_URL}/public/arc-payroll.html`,
+    fields: [
+      `Contract: ${arcPayrollContract || "use the saved ArcPayrollVault contract from step 67"}`,
+      `Reference: ${payrollReference}`,
+      `Claim to: ${metamaskAddress}`,
+      `Claim URI: ${payrollClaimURI}`,
+      `Expected claim: ${productPlan.payrollAmount} native USDC`,
+      "Click Refresh, then Claim Payroll.",
+    ],
+    proof: "Save claimPayroll txHash/explorer link and claimed amount.",
+  },
+  {
+    title: "69. ArcPayroll Close Payroll",
+    url: `${BASE_URL}/public/arc-payroll.html`,
+    fields: [
+      `Contract: ${arcPayrollContract || "use the saved ArcPayrollVault contract from step 67"}`,
+      `Reference: ${payrollReference}`,
+      `Refund to: ${metamaskAddress}`,
+      "Expected refund: 0 native USDC after claim",
+      "Click Close Payroll after the claim confirms.",
+    ],
+    proof: "Save closePayroll txHash/explorer link and final contract balance = 0.",
+  },
+  {
+    title: "70. ArcDeposit Create Refundable Deposit",
+    url: `${BASE_URL}/public/arc-refundable-deposit.html`,
+    fields: [
+      `Contract: ${
+        arcRefundableDepositContract || "deploy once, then save address and set ARCREFUNDABLEDEPOSIT_CONTRACT in .env"
+      }`,
+      `Label: ${refundableDepositLabel}`,
+      `Beneficiary: ${circleWalletAddress}`,
+      `Metadata URI: local:${refundableDepositLabel}`,
+      `Amount: ${productPlan.refundableDepositAmount} native USDC`,
+      "Deadline: 0 / immediate resolution",
+      "If no refundable deposit contract exists, deploy once, save the contract, then Create Deposit.",
+    ],
+    proof: "Save deploy tx if new, then save createDeposit txHash/explorer link and depositId.",
+  },
+  {
+    title: "71. ArcDeposit Resolve Refundable Deposit",
+    url: `${BASE_URL}/public/arc-refundable-deposit.html`,
+    fields: [
+      `Contract: ${arcRefundableDepositContract || "use the saved ArcRefundableDeposit contract from step 70"}`,
+      `Label: ${refundableDepositLabel}`,
+      `Action: ${productPlan.refundableDepositOutcome}`,
+      refundableDepositAction,
+      `Resolution URI: ${refundableDepositResolutionURI}`,
+      refundableDepositResult,
+      productPlan.refundableDepositOutcome === "refund" ? "Click Refund Deposit." : "Click Forfeit Deposit.",
+    ],
+    proof: "Save refundDeposit or forfeitDeposit txHash/explorer link and final contract balance = 0.",
+  },
+  {
+    title: "72. ArcInstallment Create Agreement",
+    url: `${BASE_URL}/public/arc-installments.html`,
+    fields: [
+      `Contract: ${arcInstallmentsContract || "deploy once, then save address and set ARCINSTALLMENTS_CONTRACT in .env"}`,
+      `Label: ${installmentLabel}`,
+      `Merchant: ${circleWalletAddress}`,
+      "Installments: 2",
+      `Installment amount: ${productPlan.installmentAmount} native USDC`,
+      `Metadata URI: local:${installmentLabel}`,
+      "If no installment contract exists, deploy once, save the contract, then Create Agreement.",
+    ],
+    proof: "Save deploy tx if new, then save createAgreement txHash/explorer link and agreementId.",
+  },
+  {
+    title: "73. ArcInstallment Pay 1",
+    url: `${BASE_URL}/public/arc-installments.html`,
+    fields: [
+      `Contract: ${arcInstallmentsContract || "use the saved ArcInstallmentPayments contract from step 72"}`,
+      `Label: ${installmentLabel}`,
+      `Payment URI: ${installmentPaymentOneURI}`,
+      `Payment amount: ${productPlan.installmentAmount} native USDC`,
+      "Click Refresh, then Pay Installment.",
+    ],
+    proof: "Save first payInstallment txHash/explorer link and progress 1 / 2.",
+  },
+  {
+    title: "74. ArcInstallment Pay 2",
+    url: `${BASE_URL}/public/arc-installments.html`,
+    fields: [
+      `Contract: ${arcInstallmentsContract || "use the saved ArcInstallmentPayments contract from step 72"}`,
+      `Label: ${installmentLabel}`,
+      `Payment URI: ${installmentPaymentTwoURI}`,
+      `Payment amount: ${productPlan.installmentAmount} native USDC`,
+      "Click Pay Installment again after the first payment confirms.",
+    ],
+    proof: "Save second payInstallment txHash/explorer link and progress 2 / 2.",
+  },
+  {
+    title: "75. ArcInstallment Complete Agreement",
+    url: `${BASE_URL}/public/arc-installments.html`,
+    fields: [
+      `Contract: ${arcInstallmentsContract || "use the saved ArcInstallmentPayments contract from step 72"}`,
+      `Label: ${installmentLabel}`,
+      `Completion URI: ${installmentCompletionURI}`,
+      `Expected paid total: ${productPlan.installmentAmount} x 2 native USDC`,
+      "Click Complete Agreement after both installments confirm.",
+    ],
+    proof: "Save completeAgreement txHash/explorer link and final agreement status = completed.",
   },
 ];
 

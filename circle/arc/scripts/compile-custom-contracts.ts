@@ -11,6 +11,77 @@ const contractsToCompile = [
     filePath: "circle/arc/contracts/ArcSubscription.sol",
     name: "ArcSubscription",
   },
+  {
+    sourceName: "contracts/ArcMembershipPass.sol",
+    filePath: "circle/arc/contracts/ArcMembershipPass.sol",
+    name: "ArcMembershipPass",
+  },
+  {
+    sourceName: "contracts/ArcSavingsVault.sol",
+    filePath: "circle/arc/contracts/ArcSavingsVault.sol",
+    name: "ArcSavingsVault",
+  },
+  { sourceName: "contracts/ArcPoll.sol", filePath: "circle/arc/contracts/ArcPoll.sol", name: "ArcPoll" },
+  {
+    sourceName: "contracts/ArcAirdropCampaign.sol",
+    filePath: "circle/arc/contracts/ArcAirdropCampaign.sol",
+    name: "ArcAirdropCampaign",
+  },
+  {
+    sourceName: "contracts/ArcBountyBoard.sol",
+    filePath: "circle/arc/contracts/ArcBountyBoard.sol",
+    name: "ArcBountyBoard",
+  },
+  {
+    sourceName: "contracts/ArcMilestoneAgreement.sol",
+    filePath: "circle/arc/contracts/ArcMilestoneAgreement.sol",
+    name: "ArcMilestoneAgreement",
+  },
+  {
+    sourceName: "contracts/ArcExpenseSplitter.sol",
+    filePath: "circle/arc/contracts/ArcExpenseSplitter.sol",
+    name: "ArcExpenseSplitter",
+  },
+  {
+    sourceName: "contracts/ArcEventTickets.sol",
+    filePath: "circle/arc/contracts/ArcEventTickets.sol",
+    name: "ArcEventTickets",
+  },
+  {
+    sourceName: "contracts/ArcMarketplaceOrders.sol",
+    filePath: "circle/arc/contracts/ArcMarketplaceOrders.sol",
+    name: "ArcMarketplaceOrders",
+  },
+  {
+    sourceName: "contracts/ArcServiceBookings.sol",
+    filePath: "circle/arc/contracts/ArcServiceBookings.sol",
+    name: "ArcServiceBookings",
+  },
+  {
+    sourceName: "contracts/ArcDonationJar.sol",
+    filePath: "circle/arc/contracts/ArcDonationJar.sol",
+    name: "ArcDonationJar",
+  },
+  {
+    sourceName: "contracts/ArcPreorderStore.sol",
+    filePath: "circle/arc/contracts/ArcPreorderStore.sol",
+    name: "ArcPreorderStore",
+  },
+  {
+    sourceName: "contracts/ArcPayrollVault.sol",
+    filePath: "circle/arc/contracts/ArcPayrollVault.sol",
+    name: "ArcPayrollVault",
+  },
+  {
+    sourceName: "contracts/ArcRefundableDeposit.sol",
+    filePath: "circle/arc/contracts/ArcRefundableDeposit.sol",
+    name: "ArcRefundableDeposit",
+  },
+  {
+    sourceName: "contracts/ArcInstallmentPayments.sol",
+    filePath: "circle/arc/contracts/ArcInstallmentPayments.sol",
+    name: "ArcInstallmentPayments",
+  },
   { sourceName: "contracts/Skipio.sol", filePath: "circle/arc/contracts/Skipio.sol", name: "Skipio" },
   { sourceName: "contracts/ProofToken.sol", filePath: "circle/arc/contracts/ProofToken.sol", name: "ProofToken" },
   { sourceName: "contracts/BaseActivityToken.sol", filePath: "base/contracts/BaseActivityToken.sol", name: "BaseActivityToken" },
