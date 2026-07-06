@@ -82,6 +82,16 @@ const contractsToCompile = [
     filePath: "circle/arc/contracts/ArcInstallmentPayments.sol",
     name: "ArcInstallmentPayments",
   },
+  {
+    sourceName: "contracts/ArcVestingVault.sol",
+    filePath: "circle/arc/contracts/ArcVestingVault.sol",
+    name: "ArcVestingVault",
+  },
+  {
+    sourceName: "contracts/ArcGiftCardVault.sol",
+    filePath: "circle/arc/contracts/ArcGiftCardVault.sol",
+    name: "ArcGiftCardVault",
+  },
   { sourceName: "contracts/Skipio.sol", filePath: "circle/arc/contracts/Skipio.sol", name: "Skipio" },
   { sourceName: "contracts/ProofToken.sol", filePath: "circle/arc/contracts/ProofToken.sol", name: "ProofToken" },
   { sourceName: "contracts/BaseActivityToken.sol", filePath: "base/contracts/BaseActivityToken.sol", name: "BaseActivityToken" },

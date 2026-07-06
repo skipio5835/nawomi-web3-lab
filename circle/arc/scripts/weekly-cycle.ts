@@ -23,6 +23,8 @@ const DEFAULT_ARCPREORDER_CONTRACT = "0x7c97d3eff8681ea4c7bb3354d1b4d827141934e9
 const DEFAULT_ARCPAYROLL_CONTRACT = "0xbb04cc4983802f9a7e4aea048a5e675c89f8c9ea";
 const DEFAULT_ARCREFUNDABLEDEPOSIT_CONTRACT = "0xcad7f2503eb90e38063aa2385fc4616db0e9f147";
 const DEFAULT_ARCINSTALLMENTS_CONTRACT = "0xb5b5d1ffa19b5357a03b84f6230f155b9d452cea";
+const DEFAULT_ARCVESTING_CONTRACT = "0xc61917d88af3abf6f2c7dbeb473755de83f41332";
+const DEFAULT_ARCGIFTCARD_CONTRACT = "0x2113dd2e00b0fca54d3199b5b5cf8da83066efb3";
 const CCTP_BRIDGE_CONTRACT = "0xC5567a5E3370d4DBfB0540025078e283e36A363d";
 const CCTP_MESSAGE_TRANSMITTER_V2 = "0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275";
 const BASE_URL = `http://localhost:${process.env.PORT ?? "4173"}`;
@@ -49,6 +51,8 @@ const arcPayrollContract = process.env.ARCPAYROLL_CONTRACT?.trim() || DEFAULT_AR
 const arcRefundableDepositContract =
   process.env.ARCREFUNDABLEDEPOSIT_CONTRACT?.trim() || DEFAULT_ARCREFUNDABLEDEPOSIT_CONTRACT;
 const arcInstallmentsContract = process.env.ARCINSTALLMENTS_CONTRACT?.trim() || DEFAULT_ARCINSTALLMENTS_CONTRACT;
+const arcVestingContract = process.env.ARCVESTING_CONTRACT?.trim() || DEFAULT_ARCVESTING_CONTRACT;
+const arcGiftCardContract = process.env.ARCGIFTCARD_CONTRACT?.trim() || DEFAULT_ARCGIFTCARD_CONTRACT;
 
 type DailyPlan = {
   sendAmount: string;
@@ -127,6 +131,10 @@ type ProductPlan = {
   refundableDepositReason: string;
   installmentAmount: string;
   installmentCompletion: string;
+  vestingAmount: string;
+  vestingClaim: string;
+  giftCardAmount: string;
+  giftCardRedeem: string;
 };
 
 const dailyPlans: DailyPlan[] = [
@@ -303,6 +311,10 @@ const productPlans: ProductPlan[] = [
     refundableDepositReason: "returned-weekly-deposit",
     installmentAmount: "0.003",
     installmentCompletion: "completed-weekly-installments",
+    vestingAmount: "0.003",
+    vestingClaim: "claimed-weekly-vesting",
+    giftCardAmount: "0.003",
+    giftCardRedeem: "redeemed-weekly-gift",
   },
   {
     memoAmount: "0.004",
@@ -355,6 +367,10 @@ const productPlans: ProductPlan[] = [
     refundableDepositReason: "returned-product-deposit",
     installmentAmount: "0.0035",
     installmentCompletion: "completed-product-installments",
+    vestingAmount: "0.0035",
+    vestingClaim: "claimed-product-vesting",
+    giftCardAmount: "0.0035",
+    giftCardRedeem: "redeemed-product-gift",
   },
   {
     memoAmount: "0.005",
@@ -407,6 +423,10 @@ const productPlans: ProductPlan[] = [
     refundableDepositReason: "forfeited-ops-deposit",
     installmentAmount: "0.004",
     installmentCompletion: "completed-ops-installments",
+    vestingAmount: "0.004",
+    vestingClaim: "claimed-ops-vesting",
+    giftCardAmount: "0.004",
+    giftCardRedeem: "redeemed-ops-gift",
   },
   {
     memoAmount: "0.006",
@@ -459,6 +479,10 @@ const productPlans: ProductPlan[] = [
     refundableDepositReason: "returned-alt-deposit",
     installmentAmount: "0.0045",
     installmentCompletion: "completed-alt-installments",
+    vestingAmount: "0.0045",
+    vestingClaim: "claimed-alt-vesting",
+    giftCardAmount: "0.0045",
+    giftCardRedeem: "redeemed-alt-gift",
   },
   {
     memoAmount: "0.007",
@@ -511,6 +535,10 @@ const productPlans: ProductPlan[] = [
     refundableDepositReason: "forfeited-release-deposit",
     installmentAmount: "0.005",
     installmentCompletion: "completed-release-installments",
+    vestingAmount: "0.005",
+    vestingClaim: "claimed-release-vesting",
+    giftCardAmount: "0.005",
+    giftCardRedeem: "redeemed-release-gift",
   },
   {
     memoAmount: "0.008",
@@ -563,6 +591,10 @@ const productPlans: ProductPlan[] = [
     refundableDepositReason: "returned-abstain-deposit",
     installmentAmount: "0.0055",
     installmentCompletion: "completed-abstain-installments",
+    vestingAmount: "0.0055",
+    vestingClaim: "claimed-abstain-vesting",
+    giftCardAmount: "0.0055",
+    giftCardRedeem: "redeemed-abstain-gift",
   },
   {
     memoAmount: "0.009",
@@ -615,6 +647,10 @@ const productPlans: ProductPlan[] = [
     refundableDepositReason: "forfeited-final-deposit",
     installmentAmount: "0.0032",
     installmentCompletion: "completed-final-installments",
+    vestingAmount: "0.0032",
+    vestingClaim: "claimed-final-vesting",
+    giftCardAmount: "0.0032",
+    giftCardRedeem: "redeemed-final-gift",
   },
 ];
 
@@ -709,6 +745,10 @@ const installmentLabel = `arc-installment-${cycleDate}-v${planIndex + 1}`;
 const installmentPaymentOneURI = `local:${installmentLabel}:payment-1`;
 const installmentPaymentTwoURI = `local:${installmentLabel}:payment-2`;
 const installmentCompletionURI = `local:${installmentLabel}:${productPlan.installmentCompletion}`;
+const vestingLabel = `arc-vesting-${cycleDate}-v${planIndex + 1}`;
+const vestingClaimURI = `local:${vestingLabel}:${productPlan.vestingClaim}`;
+const giftCardLabel = `arc-gift-${cycleDate}-v${planIndex + 1}`;
+const giftCardRedeemURI = `local:${giftCardLabel}:${productPlan.giftCardRedeem}`;
 
 const steps: Step[] = [
   {
@@ -1614,6 +1654,84 @@ const steps: Step[] = [
       "Click Complete Agreement after both installments confirm.",
     ],
     proof: "Save completeAgreement txHash/explorer link and final agreement status = completed.",
+  },
+  {
+    title: "76. ArcVesting Create Grant",
+    url: `${BASE_URL}/public/arc-vesting.html`,
+    fields: [
+      `Contract: ${arcVestingContract || "deploy once, then save address and set ARCVESTING_CONTRACT in .env"}`,
+      `Label: ${vestingLabel}`,
+      `Beneficiary: ${metamaskAddress}`,
+      `Metadata URI: local:${vestingLabel}`,
+      `Amount: ${productPlan.vestingAmount} native USDC`,
+      "Unlock time: 0 / immediate",
+      "If no vesting contract exists, deploy once, save the contract, then Create Vesting.",
+    ],
+    proof: "Save deploy tx if new, then save createVesting txHash/explorer link and grantId.",
+  },
+  {
+    title: "77. ArcVesting Claim Grant",
+    url: `${BASE_URL}/public/arc-vesting.html`,
+    fields: [
+      `Contract: ${arcVestingContract || "use the saved ArcVestingVault contract from step 76"}`,
+      `Label: ${vestingLabel}`,
+      `Claim to: ${metamaskAddress}`,
+      `Claim URI: ${vestingClaimURI}`,
+      `Expected claim: ${productPlan.vestingAmount} native USDC`,
+      "Click Refresh, then Claim Vesting.",
+    ],
+    proof: "Save claimVesting txHash/explorer link and claimed amount.",
+  },
+  {
+    title: "78. ArcVesting Close Grant",
+    url: `${BASE_URL}/public/arc-vesting.html`,
+    fields: [
+      `Contract: ${arcVestingContract || "use the saved ArcVestingVault contract from step 76"}`,
+      `Label: ${vestingLabel}`,
+      `Refund to: ${metamaskAddress}`,
+      "Expected refund: 0 native USDC after claim",
+      "Click Close Vesting after the claim confirms.",
+    ],
+    proof: "Save closeVesting txHash/explorer link and final contract balance = 0.",
+  },
+  {
+    title: "79. ArcGiftCard Create Card",
+    url: `${BASE_URL}/public/arc-gift-card.html`,
+    fields: [
+      `Contract: ${arcGiftCardContract || "deploy once, then save address and set ARCGIFTCARD_CONTRACT in .env"}`,
+      `Label: ${giftCardLabel}`,
+      `Recipient: ${metamaskAddress}`,
+      `Metadata URI: local:${giftCardLabel}`,
+      `Amount: ${productPlan.giftCardAmount} native USDC`,
+      "Expires at: 0 / no expiry",
+      "If no gift card contract exists, deploy once, save the contract, then Create Gift Card.",
+    ],
+    proof: "Save deploy tx if new, then save createGiftCard txHash/explorer link and cardId.",
+  },
+  {
+    title: "80. ArcGiftCard Redeem Card",
+    url: `${BASE_URL}/public/arc-gift-card.html`,
+    fields: [
+      `Contract: ${arcGiftCardContract || "use the saved ArcGiftCardVault contract from step 79"}`,
+      `Label: ${giftCardLabel}`,
+      `Redeem to: ${metamaskAddress}`,
+      `Redeem URI: ${giftCardRedeemURI}`,
+      `Expected redeem: ${productPlan.giftCardAmount} native USDC`,
+      "Click Refresh, then Redeem Gift Card.",
+    ],
+    proof: "Save redeemGiftCard txHash/explorer link and redeemed amount.",
+  },
+  {
+    title: "81. ArcGiftCard Close Card",
+    url: `${BASE_URL}/public/arc-gift-card.html`,
+    fields: [
+      `Contract: ${arcGiftCardContract || "use the saved ArcGiftCardVault contract from step 79"}`,
+      `Label: ${giftCardLabel}`,
+      `Refund to: ${metamaskAddress}`,
+      "Expected refund: 0 native USDC after redeem",
+      "Click Close Gift Card after the redeem confirms.",
+    ],
+    proof: "Save closeGiftCard txHash/explorer link and final card redeemed/remaining amount.",
   },
 ];
 

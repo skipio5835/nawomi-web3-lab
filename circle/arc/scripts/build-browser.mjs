@@ -88,6 +88,8 @@ const targets = {
     "circle/arc/public/arc-refundable-deposit.bundle.js",
   ],
   "arc-installments": ["circle/arc/src/arc-installments.ts", "circle/arc/public/arc-installments.bundle.js"],
+  "arc-vesting": ["circle/arc/src/arc-vesting.ts", "circle/arc/public/arc-vesting.bundle.js"],
+  "arc-gift-card": ["circle/arc/src/arc-gift-card.ts", "circle/arc/public/arc-gift-card.bundle.js"],
   "raw-cctp": ["circle/arc/src/raw-cctp.ts", "circle/arc/public/raw-cctp.bundle.js"],
 };
 
