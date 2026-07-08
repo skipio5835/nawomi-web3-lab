@@ -90,6 +90,11 @@ const targets = {
   "arc-installments": ["circle/arc/src/arc-installments.ts", "circle/arc/public/arc-installments.bundle.js"],
   "arc-vesting": ["circle/arc/src/arc-vesting.ts", "circle/arc/public/arc-vesting.bundle.js"],
   "arc-gift-card": ["circle/arc/src/arc-gift-card.ts", "circle/arc/public/arc-gift-card.bundle.js"],
+  "arc-reward": ["circle/arc/src/arc-reward.ts", "circle/arc/public/arc-reward.bundle.js"],
+  "arc-coupon": ["circle/arc/src/arc-coupon.ts", "circle/arc/public/arc-coupon.bundle.js"],
+  "arc-referral": ["circle/arc/src/arc-referral.ts", "circle/arc/public/arc-referral.bundle.js"],
+  "arc-cashback": ["circle/arc/src/arc-cashback.ts", "circle/arc/public/arc-cashback.bundle.js"],
+  "arc-auction": ["circle/arc/src/arc-auction.ts", "circle/arc/public/arc-auction.bundle.js"],
   "raw-cctp": ["circle/arc/src/raw-cctp.ts", "circle/arc/public/raw-cctp.bundle.js"],
 };
 

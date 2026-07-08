@@ -25,6 +25,11 @@ const DEFAULT_ARCREFUNDABLEDEPOSIT_CONTRACT = "0xcad7f2503eb90e38063aa2385fc4616
 const DEFAULT_ARCINSTALLMENTS_CONTRACT = "0xb5b5d1ffa19b5357a03b84f6230f155b9d452cea";
 const DEFAULT_ARCVESTING_CONTRACT = "0xc61917d88af3abf6f2c7dbeb473755de83f41332";
 const DEFAULT_ARCGIFTCARD_CONTRACT = "0x2113dd2e00b0fca54d3199b5b5cf8da83066efb3";
+const DEFAULT_ARCREWARD_CONTRACT = "0x6da434b13e24ae1507687179ac57980776f11d2c";
+const DEFAULT_ARCCOUPON_CONTRACT = "0x689f5c5447b1f0505d49af73bc85475970e690e2";
+const DEFAULT_ARCREFERRAL_CONTRACT = "0xa2eaf480143d01ae4d9e9d9d880aff1c60d80396";
+const DEFAULT_ARCCASHBACK_CONTRACT = "0xe30af52b7da6a23e8ced04473290f57b8964fef8";
+const DEFAULT_ARCAUCTION_CONTRACT = "";
 const CCTP_BRIDGE_CONTRACT = "0xC5567a5E3370d4DBfB0540025078e283e36A363d";
 const CCTP_MESSAGE_TRANSMITTER_V2 = "0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275";
 const BASE_URL = `http://localhost:${process.env.PORT ?? "4173"}`;
@@ -53,6 +58,11 @@ const arcRefundableDepositContract =
 const arcInstallmentsContract = process.env.ARCINSTALLMENTS_CONTRACT?.trim() || DEFAULT_ARCINSTALLMENTS_CONTRACT;
 const arcVestingContract = process.env.ARCVESTING_CONTRACT?.trim() || DEFAULT_ARCVESTING_CONTRACT;
 const arcGiftCardContract = process.env.ARCGIFTCARD_CONTRACT?.trim() || DEFAULT_ARCGIFTCARD_CONTRACT;
+const arcRewardContract = process.env.ARCREWARD_CONTRACT?.trim() || DEFAULT_ARCREWARD_CONTRACT;
+const arcCouponContract = process.env.ARCCOUPON_CONTRACT?.trim() || DEFAULT_ARCCOUPON_CONTRACT;
+const arcReferralContract = process.env.ARCREFERRAL_CONTRACT?.trim() || DEFAULT_ARCREFERRAL_CONTRACT;
+const arcCashbackContract = process.env.ARCCASHBACK_CONTRACT?.trim() || DEFAULT_ARCCASHBACK_CONTRACT;
+const arcAuctionContract = process.env.ARCAUCTION_CONTRACT?.trim() || DEFAULT_ARCAUCTION_CONTRACT;
 
 type DailyPlan = {
   sendAmount: string;
@@ -135,6 +145,17 @@ type ProductPlan = {
   vestingClaim: string;
   giftCardAmount: string;
   giftCardRedeem: string;
+  rewardAmount: string;
+  rewardClaim: string;
+  couponAmount: string;
+  couponClaim: string;
+  referralAmount: string;
+  referralClaim: string;
+  cashbackAmount: string;
+  cashbackClaim: string;
+  auctionMinBid: string;
+  auctionRaiseBid: string;
+  auctionSettlement: string;
 };
 
 const dailyPlans: DailyPlan[] = [
@@ -315,6 +336,17 @@ const productPlans: ProductPlan[] = [
     vestingClaim: "claimed-weekly-vesting",
     giftCardAmount: "0.003",
     giftCardRedeem: "redeemed-weekly-gift",
+    rewardAmount: "0.003",
+    rewardClaim: "claimed-weekly-reward",
+    couponAmount: "0.003",
+    couponClaim: "claimed-weekly-coupon",
+    referralAmount: "0.003",
+    referralClaim: "claimed-weekly-referral",
+    cashbackAmount: "0.003",
+    cashbackClaim: "claimed-weekly-cashback",
+    auctionMinBid: "0.003",
+    auctionRaiseBid: "0.004",
+    auctionSettlement: "settled-weekly-auction",
   },
   {
     memoAmount: "0.004",
@@ -371,6 +403,17 @@ const productPlans: ProductPlan[] = [
     vestingClaim: "claimed-product-vesting",
     giftCardAmount: "0.0035",
     giftCardRedeem: "redeemed-product-gift",
+    rewardAmount: "0.0035",
+    rewardClaim: "claimed-product-reward",
+    couponAmount: "0.0035",
+    couponClaim: "claimed-product-coupon",
+    referralAmount: "0.0035",
+    referralClaim: "claimed-product-referral",
+    cashbackAmount: "0.0035",
+    cashbackClaim: "claimed-product-cashback",
+    auctionMinBid: "0.0035",
+    auctionRaiseBid: "0.0045",
+    auctionSettlement: "settled-product-auction",
   },
   {
     memoAmount: "0.005",
@@ -427,6 +470,17 @@ const productPlans: ProductPlan[] = [
     vestingClaim: "claimed-ops-vesting",
     giftCardAmount: "0.004",
     giftCardRedeem: "redeemed-ops-gift",
+    rewardAmount: "0.004",
+    rewardClaim: "claimed-ops-reward",
+    couponAmount: "0.004",
+    couponClaim: "claimed-ops-coupon",
+    referralAmount: "0.004",
+    referralClaim: "claimed-ops-referral",
+    cashbackAmount: "0.004",
+    cashbackClaim: "claimed-ops-cashback",
+    auctionMinBid: "0.004",
+    auctionRaiseBid: "0.005",
+    auctionSettlement: "settled-ops-auction",
   },
   {
     memoAmount: "0.006",
@@ -483,6 +537,17 @@ const productPlans: ProductPlan[] = [
     vestingClaim: "claimed-alt-vesting",
     giftCardAmount: "0.0045",
     giftCardRedeem: "redeemed-alt-gift",
+    rewardAmount: "0.0045",
+    rewardClaim: "claimed-alt-reward",
+    couponAmount: "0.0045",
+    couponClaim: "claimed-alt-coupon",
+    referralAmount: "0.0045",
+    referralClaim: "claimed-alt-referral",
+    cashbackAmount: "0.0045",
+    cashbackClaim: "claimed-alt-cashback",
+    auctionMinBid: "0.0045",
+    auctionRaiseBid: "0.0055",
+    auctionSettlement: "settled-alt-auction",
   },
   {
     memoAmount: "0.007",
@@ -539,6 +604,17 @@ const productPlans: ProductPlan[] = [
     vestingClaim: "claimed-release-vesting",
     giftCardAmount: "0.005",
     giftCardRedeem: "redeemed-release-gift",
+    rewardAmount: "0.005",
+    rewardClaim: "claimed-release-reward",
+    couponAmount: "0.005",
+    couponClaim: "claimed-release-coupon",
+    referralAmount: "0.005",
+    referralClaim: "claimed-release-referral",
+    cashbackAmount: "0.005",
+    cashbackClaim: "claimed-release-cashback",
+    auctionMinBid: "0.005",
+    auctionRaiseBid: "0.006",
+    auctionSettlement: "settled-release-auction",
   },
   {
     memoAmount: "0.008",
@@ -595,6 +671,17 @@ const productPlans: ProductPlan[] = [
     vestingClaim: "claimed-abstain-vesting",
     giftCardAmount: "0.0055",
     giftCardRedeem: "redeemed-abstain-gift",
+    rewardAmount: "0.0055",
+    rewardClaim: "claimed-abstain-reward",
+    couponAmount: "0.0055",
+    couponClaim: "claimed-abstain-coupon",
+    referralAmount: "0.0055",
+    referralClaim: "claimed-abstain-referral",
+    cashbackAmount: "0.0055",
+    cashbackClaim: "claimed-abstain-cashback",
+    auctionMinBid: "0.0055",
+    auctionRaiseBid: "0.0065",
+    auctionSettlement: "settled-abstain-auction",
   },
   {
     memoAmount: "0.009",
@@ -651,6 +738,17 @@ const productPlans: ProductPlan[] = [
     vestingClaim: "claimed-final-vesting",
     giftCardAmount: "0.0032",
     giftCardRedeem: "redeemed-final-gift",
+    rewardAmount: "0.0032",
+    rewardClaim: "claimed-final-reward",
+    couponAmount: "0.0032",
+    couponClaim: "claimed-final-coupon",
+    referralAmount: "0.0032",
+    referralClaim: "claimed-final-referral",
+    cashbackAmount: "0.0032",
+    cashbackClaim: "claimed-final-cashback",
+    auctionMinBid: "0.0032",
+    auctionRaiseBid: "0.0042",
+    auctionSettlement: "settled-final-auction",
   },
 ];
 
@@ -749,6 +847,16 @@ const vestingLabel = `arc-vesting-${cycleDate}-v${planIndex + 1}`;
 const vestingClaimURI = `local:${vestingLabel}:${productPlan.vestingClaim}`;
 const giftCardLabel = `arc-gift-${cycleDate}-v${planIndex + 1}`;
 const giftCardRedeemURI = `local:${giftCardLabel}:${productPlan.giftCardRedeem}`;
+const rewardLabel = `arc-reward-${cycleDate}-v${planIndex + 1}`;
+const rewardClaimURI = `local:${rewardLabel}:${productPlan.rewardClaim}`;
+const couponLabel = `arc-coupon-${cycleDate}-v${planIndex + 1}`;
+const couponClaimURI = `local:${couponLabel}:${productPlan.couponClaim}`;
+const referralLabel = `arc-referral-${cycleDate}-v${planIndex + 1}`;
+const referralClaimURI = `local:${referralLabel}:${productPlan.referralClaim}`;
+const cashbackLabel = `arc-cashback-${cycleDate}-v${planIndex + 1}`;
+const cashbackClaimURI = `local:${cashbackLabel}:${productPlan.cashbackClaim}`;
+const auctionTitle = `arc-auction-${cycleDate}-v${planIndex + 1}`;
+const auctionSettlementURI = `local:${auctionTitle}:${productPlan.auctionSettlement}`;
 
 const steps: Step[] = [
   {
@@ -1732,6 +1840,210 @@ const steps: Step[] = [
       "Click Close Gift Card after the redeem confirms.",
     ],
     proof: "Save closeGiftCard txHash/explorer link and final card redeemed/remaining amount.",
+  },
+  {
+    title: "82. ArcReward Create Reward",
+    url: `${BASE_URL}/public/arc-reward.html`,
+    fields: [
+      `Contract: ${arcRewardContract || "deploy once, then save address and set ARCREWARD_CONTRACT in .env"}`,
+      `Label: ${rewardLabel}`,
+      `Recipient: ${metamaskAddress}`,
+      `Metadata URI: local:${rewardLabel}`,
+      `Amount: ${productPlan.rewardAmount} native USDC`,
+      "Expires at: 0 / no expiry",
+      "If no reward contract exists, deploy once, save the contract, then Create Reward.",
+    ],
+    proof: "Save deploy tx if new, then save createReward txHash/explorer link and rewardId.",
+  },
+  {
+    title: "83. ArcReward Claim Reward",
+    url: `${BASE_URL}/public/arc-reward.html`,
+    fields: [
+      `Contract: ${arcRewardContract || "use the saved ArcRewardVault contract from step 82"}`,
+      `Label: ${rewardLabel}`,
+      `Claim to: ${metamaskAddress}`,
+      `Claim URI: ${rewardClaimURI}`,
+      `Expected claim: ${productPlan.rewardAmount} native USDC`,
+      "Click Refresh, then Claim Reward.",
+    ],
+    proof: "Save claimReward txHash/explorer link and claimed amount.",
+  },
+  {
+    title: "84. ArcReward Close Reward",
+    url: `${BASE_URL}/public/arc-reward.html`,
+    fields: [
+      `Contract: ${arcRewardContract || "use the saved ArcRewardVault contract from step 82"}`,
+      `Label: ${rewardLabel}`,
+      `Refund to: ${metamaskAddress}`,
+      "Expected refund: 0 native USDC after claim",
+      "Click Close Reward after the claim confirms.",
+    ],
+    proof: "Save closeReward txHash/explorer link and final reward claimed/remaining amount.",
+  },
+  {
+    title: "85. ArcCoupon Create Coupon",
+    url: `${BASE_URL}/public/arc-coupon.html`,
+    fields: [
+      `Contract: ${arcCouponContract || "deploy once, then save address and set ARCCOUPON_CONTRACT in .env"}`,
+      `Label: ${couponLabel}`,
+      `Recipient: ${metamaskAddress}`,
+      `Metadata URI: local:${couponLabel}`,
+      `Amount: ${productPlan.couponAmount} native USDC`,
+      "Expires at: 0 / no expiry",
+      "If no coupon contract exists, deploy once, save the contract, then Create Coupon.",
+    ],
+    proof: "Save deploy tx if new, then save createCoupon txHash/explorer link and couponId.",
+  },
+  {
+    title: "86. ArcCoupon Claim Coupon",
+    url: `${BASE_URL}/public/arc-coupon.html`,
+    fields: [
+      `Contract: ${arcCouponContract || "use the saved ArcCouponVault contract from step 85"}`,
+      `Label: ${couponLabel}`,
+      `Claim to: ${metamaskAddress}`,
+      `Claim URI: ${couponClaimURI}`,
+      `Expected claim: ${productPlan.couponAmount} native USDC`,
+      "Click Refresh, then Claim Coupon.",
+    ],
+    proof: "Save claimCoupon txHash/explorer link and claimed amount.",
+  },
+  {
+    title: "87. ArcCoupon Close Coupon",
+    url: `${BASE_URL}/public/arc-coupon.html`,
+    fields: [
+      `Contract: ${arcCouponContract || "use the saved ArcCouponVault contract from step 85"}`,
+      `Label: ${couponLabel}`,
+      `Refund to: ${metamaskAddress}`,
+      "Expected refund: 0 native USDC after claim",
+      "Click Close Coupon after the claim confirms.",
+    ],
+    proof: "Save closeCoupon txHash/explorer link and final coupon claimed/remaining amount.",
+  },
+  {
+    title: "88. ArcReferral Create Campaign",
+    url: `${BASE_URL}/public/arc-referral.html`,
+    fields: [
+      `Contract: ${arcReferralContract || "deploy once, then save address and set ARCREFERRAL_CONTRACT in .env"}`,
+      `Label: ${referralLabel}`,
+      `Recipient: ${metamaskAddress}`,
+      `Metadata URI: local:${referralLabel}`,
+      `Amount: ${productPlan.referralAmount} native USDC`,
+      "Expires at: 0 / no expiry",
+      "If no referral contract exists, deploy once, save the contract, then Create Referral.",
+    ],
+    proof: "Save deploy tx if new, then save createReferral txHash/explorer link and referralId.",
+  },
+  {
+    title: "89. ArcReferral Claim Referral",
+    url: `${BASE_URL}/public/arc-referral.html`,
+    fields: [
+      `Contract: ${arcReferralContract || "use the saved ArcReferralVault contract from step 88"}`,
+      `Label: ${referralLabel}`,
+      `Claim to: ${metamaskAddress}`,
+      `Claim URI: ${referralClaimURI}`,
+      `Expected claim: ${productPlan.referralAmount} native USDC`,
+      "Click Refresh, then Claim Referral.",
+    ],
+    proof: "Save claimReferral txHash/explorer link and claimed amount.",
+  },
+  {
+    title: "90. ArcReferral Close Referral",
+    url: `${BASE_URL}/public/arc-referral.html`,
+    fields: [
+      `Contract: ${arcReferralContract || "use the saved ArcReferralVault contract from step 88"}`,
+      `Label: ${referralLabel}`,
+      `Refund to: ${metamaskAddress}`,
+      "Expected refund: 0 native USDC after claim",
+      "Click Close Referral after the claim confirms.",
+    ],
+    proof: "Save closeReferral txHash/explorer link and final referral claimed/remaining amount.",
+  },
+  {
+    title: "91. ArcCashback Create Cashback",
+    url: `${BASE_URL}/public/arc-cashback.html`,
+    fields: [
+      `Contract: ${arcCashbackContract || "deploy once, then save address and set ARCCASHBACK_CONTRACT in .env"}`,
+      `Label: ${cashbackLabel}`,
+      `Recipient: ${metamaskAddress}`,
+      `Metadata URI: local:${cashbackLabel}`,
+      `Amount: ${productPlan.cashbackAmount} native USDC`,
+      "Expires at: 0 / no expiry",
+      "If no cashback contract exists, deploy once, save the contract, then Create Cashback.",
+    ],
+    proof: "Save deploy tx if new, then save createCashback txHash/explorer link and cashbackId.",
+  },
+  {
+    title: "92. ArcCashback Claim Cashback",
+    url: `${BASE_URL}/public/arc-cashback.html`,
+    fields: [
+      `Contract: ${arcCashbackContract || "use the saved ArcCashbackVault contract from step 91"}`,
+      `Label: ${cashbackLabel}`,
+      `Claim to: ${metamaskAddress}`,
+      `Claim URI: ${cashbackClaimURI}`,
+      `Expected claim: ${productPlan.cashbackAmount} native USDC`,
+      "Click Refresh, then Claim Cashback.",
+    ],
+    proof: "Save claimCashback txHash/explorer link and claimed amount.",
+  },
+  {
+    title: "93. ArcCashback Close Cashback",
+    url: `${BASE_URL}/public/arc-cashback.html`,
+    fields: [
+      `Contract: ${arcCashbackContract || "use the saved ArcCashbackVault contract from step 91"}`,
+      `Label: ${cashbackLabel}`,
+      `Refund to: ${metamaskAddress}`,
+      "Expected refund: 0 native USDC after claim",
+      "Click Close Cashback after the claim confirms.",
+    ],
+    proof: "Save closeCashback txHash/explorer link and final cashback claimed/remaining amount.",
+  },
+  {
+    title: "94. ArcAuction Create Auction",
+    url: `${BASE_URL}/public/arc-auction.html`,
+    fields: [
+      `Contract: ${arcAuctionContract || "deploy once, then save address and set ARCAUCTION_CONTRACT in .env"}`,
+      `Title: ${auctionTitle}`,
+      `Settlement to: ${metamaskAddress}`,
+      `Metadata URI: local:${auctionTitle}`,
+      `Minimum bid: ${productPlan.auctionMinBid} native USDC`,
+      "Duration minutes: 0 / immediate settlement",
+      "If no auction contract exists, deploy once, save the contract, then Create Auction.",
+    ],
+    proof: "Save deploy tx if new, then save createAuction txHash/explorer link and auctionId.",
+  },
+  {
+    title: "95. ArcAuction First Bid",
+    url: `${BASE_URL}/public/arc-auction.html`,
+    fields: [
+      `Contract: ${arcAuctionContract || "use the saved ArcAuctionHouse contract from step 94"}`,
+      `Title: ${auctionTitle}`,
+      `Bid amount: ${productPlan.auctionMinBid} native USDC`,
+      "Click Refresh, then Place Bid.",
+    ],
+    proof: "Save bid txHash/explorer link and highestBid.",
+  },
+  {
+    title: "96. ArcAuction Raise Bid",
+    url: `${BASE_URL}/public/arc-auction.html`,
+    fields: [
+      `Contract: ${arcAuctionContract || "use the saved ArcAuctionHouse contract from step 94"}`,
+      `Title: ${auctionTitle}`,
+      `Raise bid amount: ${productPlan.auctionRaiseBid} native USDC`,
+      "This replaces the previous highest bid and refunds the prior bid.",
+    ],
+    proof: "Save raise bid txHash/explorer link, bidCount, highestBid, and refund behavior.",
+  },
+  {
+    title: "97. ArcAuction Settle Auction",
+    url: `${BASE_URL}/public/arc-auction.html`,
+    fields: [
+      `Contract: ${arcAuctionContract || "use the saved ArcAuctionHouse contract from step 94"}`,
+      `Title: ${auctionTitle}`,
+      `Settlement URI: ${auctionSettlementURI}`,
+      `Expected settlement: ${productPlan.auctionRaiseBid} native USDC`,
+      "Click Settle Auction after the raised bid confirms.",
+    ],
+    proof: "Save settleAuction txHash/explorer link and final status = settled.",
   },
 ];
 
