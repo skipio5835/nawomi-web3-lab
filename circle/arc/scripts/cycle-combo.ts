@@ -1,6 +1,6 @@
 ﻿import { spawn } from "node:child_process";
 
-type ComboKey = "reward" | "coupon" | "referral" | "cashback" | "auction";
+type ComboKey = "reward" | "coupon" | "referral" | "cashback" | "auction" | "rental";
 
 type ComboPlan = {
   cashbackAmount: string;
@@ -12,6 +12,10 @@ type ComboPlan = {
   couponClaim: string;
   referralAmount: string;
   referralClaim: string;
+  rentalDamageFee: string;
+  rentalDeposit: string;
+  rentalFee: string;
+  rentalReturn: string;
   rewardAmount: string;
   rewardClaim: string;
 };
@@ -31,6 +35,7 @@ const DEFAULT_ARCCOUPON_CONTRACT = "0x689f5c5447b1f0505d49af73bc85475970e690e2";
 const DEFAULT_ARCREFERRAL_CONTRACT = "0xa2eaf480143d01ae4d9e9d9d880aff1c60d80396";
 const DEFAULT_ARCCASHBACK_CONTRACT = "0xe30af52b7da6a23e8ced04473290f57b8964fef8";
 const DEFAULT_ARCAUCTION_CONTRACT = "";
+const DEFAULT_ARCRENTAL_CONTRACT = "0x69177a3ce61b80e28709a1a9f873ec1a23d77076";
 const BASE_URL = `http://localhost:${process.env.PORT ?? "4173"}`;
 
 const productPlans: ComboPlan[] = [
@@ -46,6 +51,10 @@ const productPlans: ComboPlan[] = [
     auctionMinBid: "0.003",
     auctionRaiseBid: "0.004",
     auctionSettlement: "settled-weekly-auction",
+    rentalFee: "0.0015",
+    rentalDeposit: "0.003",
+    rentalDamageFee: "0.0005",
+    rentalReturn: "returned-weekly-rental",
   },
   {
     rewardAmount: "0.0035",
@@ -59,6 +68,10 @@ const productPlans: ComboPlan[] = [
     auctionMinBid: "0.0035",
     auctionRaiseBid: "0.0045",
     auctionSettlement: "settled-product-auction",
+    rentalFee: "0.002",
+    rentalDeposit: "0.0035",
+    rentalDamageFee: "0.0006",
+    rentalReturn: "returned-product-rental",
   },
   {
     rewardAmount: "0.004",
@@ -72,6 +85,10 @@ const productPlans: ComboPlan[] = [
     auctionMinBid: "0.004",
     auctionRaiseBid: "0.005",
     auctionSettlement: "settled-ops-auction",
+    rentalFee: "0.0025",
+    rentalDeposit: "0.004",
+    rentalDamageFee: "0.0007",
+    rentalReturn: "returned-ops-rental",
   },
   {
     rewardAmount: "0.0045",
@@ -85,6 +102,10 @@ const productPlans: ComboPlan[] = [
     auctionMinBid: "0.0045",
     auctionRaiseBid: "0.0055",
     auctionSettlement: "settled-alt-auction",
+    rentalFee: "0.003",
+    rentalDeposit: "0.0045",
+    rentalDamageFee: "0.0008",
+    rentalReturn: "returned-alt-rental",
   },
   {
     rewardAmount: "0.005",
@@ -98,6 +119,10 @@ const productPlans: ComboPlan[] = [
     auctionMinBid: "0.005",
     auctionRaiseBid: "0.006",
     auctionSettlement: "settled-release-auction",
+    rentalFee: "0.0035",
+    rentalDeposit: "0.005",
+    rentalDamageFee: "0.0009",
+    rentalReturn: "returned-release-rental",
   },
   {
     rewardAmount: "0.0055",
@@ -111,6 +136,10 @@ const productPlans: ComboPlan[] = [
     auctionMinBid: "0.0055",
     auctionRaiseBid: "0.0065",
     auctionSettlement: "settled-abstain-auction",
+    rentalFee: "0.004",
+    rentalDeposit: "0.0055",
+    rentalDamageFee: "0.001",
+    rentalReturn: "returned-abstain-rental",
   },
   {
     rewardAmount: "0.0032",
@@ -124,6 +153,10 @@ const productPlans: ComboPlan[] = [
     auctionMinBid: "0.0032",
     auctionRaiseBid: "0.0042",
     auctionSettlement: "settled-final-auction",
+    rentalFee: "0.0018",
+    rentalDeposit: "0.0032",
+    rentalDamageFee: "0.0004",
+    rentalReturn: "returned-final-rental",
   },
 ];
 
@@ -205,6 +238,14 @@ function buildSpecs(cycleDate: string, variant: number, plan: ComboPlan): Record
       page: "arc-auction.html",
       title: "ArcAuction Create + Bid + Raise + Settle",
     },
+    rental: {
+      amount: plan.rentalFee,
+      claim: plan.rentalReturn,
+      contract: process.env.ARCRENTAL_CONTRACT?.trim() || DEFAULT_ARCRENTAL_CONTRACT,
+      label: `arc-rental-${cycleDate}-v${variant}`,
+      page: "arc-rental.html",
+      title: "ArcRental Create + Book + Return",
+    },
   };
 }
 
@@ -221,6 +262,24 @@ function buildUrl(spec: ComboSpec): string {
       raiseBid: plan.auctionRaiseBid,
       settlementTo: owner,
       settlementURI: `local:${spec.label}:${plan.auctionSettlement}`,
+      title: spec.label,
+    });
+
+    return `${BASE_URL}/public/${spec.page}?${params}`;
+  }
+  if (spec.page === "arc-rental.html") {
+    const plan = productPlans[variantIndex];
+    const params = new URLSearchParams({
+      autorun: "1",
+      cancelURI: `local:${spec.label}:canceled`,
+      contract: spec.contract,
+      damageFee: plan.rentalDamageFee,
+      deposit: plan.rentalDeposit,
+      metadataURI: `local:${spec.label}`,
+      payoutTo: owner,
+      refundTo: owner,
+      rentalFee: plan.rentalFee,
+      returnURI: `local:${spec.label}:${plan.rentalReturn}`,
       title: spec.label,
     });
 

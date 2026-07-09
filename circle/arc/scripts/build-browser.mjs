@@ -95,6 +95,7 @@ const targets = {
   "arc-referral": ["circle/arc/src/arc-referral.ts", "circle/arc/public/arc-referral.bundle.js"],
   "arc-cashback": ["circle/arc/src/arc-cashback.ts", "circle/arc/public/arc-cashback.bundle.js"],
   "arc-auction": ["circle/arc/src/arc-auction.ts", "circle/arc/public/arc-auction.bundle.js"],
+  "arc-rental": ["circle/arc/src/arc-rental.ts", "circle/arc/public/arc-rental.bundle.js"],
   "raw-cctp": ["circle/arc/src/raw-cctp.ts", "circle/arc/public/raw-cctp.bundle.js"],
 };
 

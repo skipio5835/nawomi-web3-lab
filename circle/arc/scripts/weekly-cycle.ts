@@ -30,6 +30,7 @@ const DEFAULT_ARCCOUPON_CONTRACT = "0x689f5c5447b1f0505d49af73bc85475970e690e2";
 const DEFAULT_ARCREFERRAL_CONTRACT = "0xa2eaf480143d01ae4d9e9d9d880aff1c60d80396";
 const DEFAULT_ARCCASHBACK_CONTRACT = "0xe30af52b7da6a23e8ced04473290f57b8964fef8";
 const DEFAULT_ARCAUCTION_CONTRACT = "";
+const DEFAULT_ARCRENTAL_CONTRACT = "0x69177a3ce61b80e28709a1a9f873ec1a23d77076";
 const CCTP_BRIDGE_CONTRACT = "0xC5567a5E3370d4DBfB0540025078e283e36A363d";
 const CCTP_MESSAGE_TRANSMITTER_V2 = "0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275";
 const BASE_URL = `http://localhost:${process.env.PORT ?? "4173"}`;
@@ -63,6 +64,7 @@ const arcCouponContract = process.env.ARCCOUPON_CONTRACT?.trim() || DEFAULT_ARCC
 const arcReferralContract = process.env.ARCREFERRAL_CONTRACT?.trim() || DEFAULT_ARCREFERRAL_CONTRACT;
 const arcCashbackContract = process.env.ARCCASHBACK_CONTRACT?.trim() || DEFAULT_ARCCASHBACK_CONTRACT;
 const arcAuctionContract = process.env.ARCAUCTION_CONTRACT?.trim() || DEFAULT_ARCAUCTION_CONTRACT;
+const arcRentalContract = process.env.ARCRENTAL_CONTRACT?.trim() || DEFAULT_ARCRENTAL_CONTRACT;
 
 type DailyPlan = {
   sendAmount: string;
@@ -156,6 +158,10 @@ type ProductPlan = {
   auctionMinBid: string;
   auctionRaiseBid: string;
   auctionSettlement: string;
+  rentalFee: string;
+  rentalDeposit: string;
+  rentalDamageFee: string;
+  rentalReturn: string;
 };
 
 const dailyPlans: DailyPlan[] = [
@@ -347,6 +353,10 @@ const productPlans: ProductPlan[] = [
     auctionMinBid: "0.003",
     auctionRaiseBid: "0.004",
     auctionSettlement: "settled-weekly-auction",
+    rentalFee: "0.0015",
+    rentalDeposit: "0.003",
+    rentalDamageFee: "0.0005",
+    rentalReturn: "returned-weekly-rental",
   },
   {
     memoAmount: "0.004",
@@ -414,6 +424,10 @@ const productPlans: ProductPlan[] = [
     auctionMinBid: "0.0035",
     auctionRaiseBid: "0.0045",
     auctionSettlement: "settled-product-auction",
+    rentalFee: "0.002",
+    rentalDeposit: "0.0035",
+    rentalDamageFee: "0.0006",
+    rentalReturn: "returned-product-rental",
   },
   {
     memoAmount: "0.005",
@@ -481,6 +495,10 @@ const productPlans: ProductPlan[] = [
     auctionMinBid: "0.004",
     auctionRaiseBid: "0.005",
     auctionSettlement: "settled-ops-auction",
+    rentalFee: "0.0025",
+    rentalDeposit: "0.004",
+    rentalDamageFee: "0.0007",
+    rentalReturn: "returned-ops-rental",
   },
   {
     memoAmount: "0.006",
@@ -548,6 +566,10 @@ const productPlans: ProductPlan[] = [
     auctionMinBid: "0.0045",
     auctionRaiseBid: "0.0055",
     auctionSettlement: "settled-alt-auction",
+    rentalFee: "0.003",
+    rentalDeposit: "0.0045",
+    rentalDamageFee: "0.0008",
+    rentalReturn: "returned-alt-rental",
   },
   {
     memoAmount: "0.007",
@@ -615,6 +637,10 @@ const productPlans: ProductPlan[] = [
     auctionMinBid: "0.005",
     auctionRaiseBid: "0.006",
     auctionSettlement: "settled-release-auction",
+    rentalFee: "0.0035",
+    rentalDeposit: "0.005",
+    rentalDamageFee: "0.0009",
+    rentalReturn: "returned-release-rental",
   },
   {
     memoAmount: "0.008",
@@ -682,6 +708,10 @@ const productPlans: ProductPlan[] = [
     auctionMinBid: "0.0055",
     auctionRaiseBid: "0.0065",
     auctionSettlement: "settled-abstain-auction",
+    rentalFee: "0.004",
+    rentalDeposit: "0.0055",
+    rentalDamageFee: "0.001",
+    rentalReturn: "returned-abstain-rental",
   },
   {
     memoAmount: "0.009",
@@ -749,6 +779,10 @@ const productPlans: ProductPlan[] = [
     auctionMinBid: "0.0032",
     auctionRaiseBid: "0.0042",
     auctionSettlement: "settled-final-auction",
+    rentalFee: "0.0018",
+    rentalDeposit: "0.0032",
+    rentalDamageFee: "0.0004",
+    rentalReturn: "returned-final-rental",
   },
 ];
 
@@ -857,6 +891,8 @@ const cashbackLabel = `arc-cashback-${cycleDate}-v${planIndex + 1}`;
 const cashbackClaimURI = `local:${cashbackLabel}:${productPlan.cashbackClaim}`;
 const auctionTitle = `arc-auction-${cycleDate}-v${planIndex + 1}`;
 const auctionSettlementURI = `local:${auctionTitle}:${productPlan.auctionSettlement}`;
+const rentalTitle = `arc-rental-${cycleDate}-v${planIndex + 1}`;
+const rentalReturnURI = `local:${rentalTitle}:${productPlan.rentalReturn}`;
 
 const steps: Step[] = [
   {
@@ -2045,6 +2081,44 @@ const steps: Step[] = [
     ],
     proof: "Save settleAuction txHash/explorer link and final status = settled.",
   },
+  {
+    title: "98. ArcRental Create Rental",
+    url: `${BASE_URL}/public/arc-rental.html`,
+    fields: [
+      `Contract: ${arcRentalContract || "deploy once, then save address and set ARCRENTAL_CONTRACT in .env"}`,
+      `Title: ${rentalTitle}`,
+      `Payout to: ${metamaskAddress}`,
+      `Metadata URI: local:${rentalTitle}`,
+      `Rental fee: ${productPlan.rentalFee} native USDC`,
+      `Deposit: ${productPlan.rentalDeposit} native USDC`,
+      "If no rental contract exists, deploy once, save the contract, then Create Rental.",
+    ],
+    proof: "Save deploy tx if new, then save createRental txHash/explorer link and rentalId.",
+  },
+  {
+    title: "99. ArcRental Book Rental",
+    url: `${BASE_URL}/public/arc-rental.html`,
+    fields: [
+      `Contract: ${arcRentalContract || "use the saved ArcRentalEscrow contract from step 98"}`,
+      `Title: ${rentalTitle}`,
+      `Payment total: ${productPlan.rentalFee} fee + ${productPlan.rentalDeposit} deposit native USDC`,
+      "Click Refresh, then Book Rental.",
+    ],
+    proof: "Save bookRental txHash/explorer link and paidTotal.",
+  },
+  {
+    title: "100. ArcRental Return Rental",
+    url: `${BASE_URL}/public/arc-rental.html`,
+    fields: [
+      `Contract: ${arcRentalContract || "use the saved ArcRentalEscrow contract from step 98"}`,
+      `Title: ${rentalTitle}`,
+      `Damage fee: ${productPlan.rentalDamageFee} native USDC`,
+      `Refund to: ${metamaskAddress}`,
+      `Return URI: ${rentalReturnURI}`,
+      "Click Return Rental after the booking confirms.",
+    ],
+    proof: "Save returnRental txHash/explorer link and final contract balance = 0.",
+  },
 ];
 
 function printStep(step: Step): void {
@@ -2075,3 +2149,4 @@ for (const step of steps) {
 }
 
 console.log("After each run, keep txHash/explorer links together in one note.");
+
