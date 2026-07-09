@@ -53,6 +53,7 @@
     "deploy-erc1155": "tsx --env-file-if-exists=.env circle/arc/scripts/deploy-template.ts erc1155",
     "deploy-airdrop": "tsx --env-file-if-exists=.env circle/arc/scripts/deploy-template.ts airdrop",
     "deploy-base-token": "tsx --env-file-if-exists=.env base/scripts/deploy-base-token.ts",
+    "start-base-console": "tsx base/scripts/serve-activity-console.ts",
     "grant-metamask-roles": "tsx --env-file-if-exists=.env circle/arc/scripts/grant-metamask-roles.ts",
     "mint-token": "tsx --env-file-if-exists=.env circle/arc/scripts/mint-token.ts",
     "dev-wallet-usdc-transfer": "tsx --env-file-if-exists=.env circle/arc/scripts/dev-wallet-usdc-transfer.ts",

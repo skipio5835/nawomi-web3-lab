@@ -1,0 +1,1201 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Base Activity Console</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f5f7fb;
+        color: #18202a;
+        --border: #d5dce7;
+        --muted: #657083;
+        --panel: #ffffff;
+        --ink: #18202a;
+        --blue: #155eef;
+        --green: #12715b;
+        --red: #a43a3a;
+        --amber: #8c5d00;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      main {
+        width: min(1180px, 100%);
+        margin: 0 auto;
+        display: grid;
+        gap: 14px;
+      }
+
+      header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 6px 0 2px;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 28px;
+        line-height: 1.15;
+      }
+
+      h2 {
+        font-size: 16px;
+        line-height: 1.2;
+      }
+
+      .subtle {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(330px, 0.8fr);
+        gap: 14px;
+      }
+
+      .section {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        display: grid;
+        gap: 14px;
+      }
+
+      .stack {
+        display: grid;
+        gap: 14px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .metric {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px;
+        min-height: 74px;
+        display: grid;
+        align-content: center;
+        gap: 4px;
+      }
+
+      .metric strong {
+        font-size: 22px;
+        line-height: 1;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      input,
+      select {
+        width: 100%;
+        height: 42px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0 10px;
+        color: var(--ink);
+        background: #fbfcff;
+        font: inherit;
+        font-size: 14px;
+        text-transform: none;
+      }
+
+      button,
+      a.button {
+        min-height: 40px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        padding: 0 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        color: #ffffff;
+        background: var(--blue);
+        font: inherit;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      button.secondary,
+      a.button.secondary {
+        color: var(--ink);
+        background: #eef2f7;
+        border-color: var(--border);
+      }
+
+      button.danger {
+        background: var(--red);
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .routine-toolbar {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .routine-list {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        display: grid;
+      }
+
+      .routine-row {
+        display: grid;
+        grid-template-columns: 110px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        background: #ffffff;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .routine-row:last-child {
+        border-bottom: 0;
+      }
+
+      .routine-row.active {
+        background: #f5f8ff;
+      }
+
+      .routine-row.done {
+        background: #f1fbf7;
+      }
+
+      .routine-badge {
+        width: max-content;
+        max-width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 4px 8px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      .routine-main {
+        min-width: 0;
+        display: grid;
+        gap: 3px;
+      }
+
+      .routine-main strong,
+      .routine-main span {
+        overflow-wrap: anywhere;
+      }
+
+      .routine-actions {
+        display: flex;
+        justify-content: end;
+        gap: 8px;
+      }
+
+      .empty {
+        padding: 14px;
+        color: var(--muted);
+        background: #fbfcff;
+      }
+
+      .checkline {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: none;
+      }
+
+      .checkline input {
+        width: auto;
+        height: auto;
+      }
+
+      .function-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .function-grid button {
+        background: #ffffff;
+        color: var(--ink);
+        border-color: var(--border);
+        min-height: 38px;
+      }
+
+      .function-grid button.done {
+        color: #ffffff;
+        background: var(--green);
+        border-color: var(--green);
+      }
+
+      .function-grid button.next {
+        border-color: var(--blue);
+        box-shadow: 0 0 0 2px rgba(21, 94, 239, 0.14);
+      }
+
+      .status {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px;
+        min-height: 46px;
+        background: #fbfcff;
+        color: var(--ink);
+        word-break: break-word;
+      }
+
+      .status.warn {
+        border-color: #e5c36a;
+        color: var(--amber);
+        background: #fff9e8;
+      }
+
+      .status.ok {
+        border-color: #91d5bf;
+        color: var(--green);
+        background: #effbf6;
+      }
+
+      progress {
+        width: 100%;
+        height: 12px;
+        accent-color: var(--blue);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--border);
+        padding: 8px 6px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+      }
+
+      code {
+        font-family: "Cascadia Mono", Consolas, monospace;
+        font-size: 12px;
+      }
+
+      .log {
+        max-height: 260px;
+        overflow: auto;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+
+      @media (max-width: 900px) {
+        body {
+          padding: 14px;
+        }
+
+        header,
+        .layout {
+          grid-template-columns: 1fr;
+          display: grid;
+        }
+
+        .metrics,
+        .grid,
+        .function-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .routine-toolbar,
+        .routine-row {
+          grid-template-columns: 1fr;
+          align-items: stretch;
+          display: grid;
+        }
+
+        .routine-actions {
+          justify-content: start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>Base Activity Console</h1>
+          <p class="subtle">Direct wallet-signed calls for Base mainnet activity tracking.</p>
+        </div>
+        <div class="actions">
+          <button id="connect">Connect</button>
+          <button id="refresh" class="secondary" disabled>Refresh Count</button>
+        </div>
+      </header>
+
+      <section class="section">
+        <div class="grid">
+          <label>
+            Activity Contract
+            <input id="contractAddress" value="0x0000000000000000000000000000000000000000" />
+          </label>
+          <label>
+            Target Successful Sent Tx
+            <input id="targetCount" type="number" min="1" step="1" value="1000" />
+          </label>
+        </div>
+        <div class="metrics">
+          <div class="metric">
+            <span class="subtle">Wallet</span>
+            <strong id="walletShort">-</strong>
+          </div>
+          <div class="metric">
+            <span class="subtle">Sent Tx</span>
+            <strong id="sentCount">-</strong>
+          </div>
+          <div class="metric">
+            <span class="subtle">Remaining</span>
+            <strong id="remainingCount">-</strong>
+          </div>
+          <div class="metric">
+            <span class="subtle">Round</span>
+            <strong id="roundCount">0/20</strong>
+          </div>
+        </div>
+        <progress id="goalProgress" max="1000" value="0"></progress>
+        <div id="status" class="status">Ready.</div>
+      </section>
+
+      <section class="section">
+        <div class="routine-toolbar">
+          <div>
+            <h2>Today's Routine</h2>
+            <p id="routineDate" class="subtle">No routine generated yet.</p>
+          </div>
+          <div class="actions">
+            <button id="generateRoutine" class="secondary">Generate Routine</button>
+            <button id="runRoutine" disabled>Run Routine Calls</button>
+            <button id="clearRoutine" class="secondary">Clear</button>
+          </div>
+        </div>
+
+        <div class="grid">
+          <label>
+            Empty Contract Calls
+            <input id="routineCallCount" type="number" min="4" max="20" step="1" value="12" />
+          </label>
+          <label class="checkline">
+            <input id="includeLoggedCalls" type="checkbox" />
+            Include countPing and logActivity
+          </label>
+        </div>
+
+        <div id="routineList" class="routine-list"></div>
+      </section>
+
+      <div class="layout">
+        <section class="section">
+          <div>
+            <h2>Contract Calls</h2>
+            <p class="subtle">Each transaction opens a wallet confirmation. The page never sees your private key.</p>
+          </div>
+
+          <div class="actions">
+            <button id="callNext" disabled>Call Next</button>
+            <button id="runRound" disabled>Run 20-Call Round</button>
+            <button id="stopRound" class="danger" disabled>Stop After Current</button>
+            <button id="resetRound" class="secondary">Reset Round</button>
+          </div>
+
+          <div class="grid">
+            <label>
+              Wait Mode
+              <select id="waitMode">
+                <option value="submitted">Next after wallet submits</option>
+                <option value="mined">Next after tx is mined</option>
+              </select>
+            </label>
+            <label>
+              Delay Between Prompts (ms)
+              <input id="delayMs" type="number" min="0" step="250" value="900" />
+            </label>
+          </div>
+
+          <div id="functionGrid" class="function-grid"></div>
+
+          <div class="grid">
+            <label>
+              Log Action
+              <input id="logAction" value="daily-check" />
+            </label>
+            <div class="actions">
+              <button id="countPing" class="secondary" disabled>countPing</button>
+              <button id="logActivity" class="secondary" disabled>logActivity</button>
+            </div>
+          </div>
+        </section>
+
+        <div class="stack">
+          <section class="section">
+            <div>
+              <h2>Native Transfer</h2>
+              <p class="subtle">Use a helper wallet or self-address for tiny ETH transfers.</p>
+            </div>
+            <label>
+              Recipient
+              <input id="ethTo" placeholder="0x..." />
+            </label>
+            <label>
+              Value (wei)
+              <input id="ethValueWei" value="1" />
+            </label>
+            <div class="actions">
+              <button id="sendEth" disabled>Send ETH Tx</button>
+              <button id="useSelfEth" class="secondary" disabled>Use Self</button>
+            </div>
+          </section>
+
+          <section class="section">
+            <div>
+              <h2>USDC Transfer</h2>
+              <p class="subtle">USDC transfer costs more than empty calls and uses the official Base USDC contract.</p>
+            </div>
+            <label>
+              Recipient
+              <input id="usdcTo" placeholder="0x..." />
+            </label>
+            <label>
+              Amount (USDC)
+              <input id="usdcAmount" value="0.000001" />
+            </label>
+            <div class="actions">
+              <button id="sendUsdc" disabled>Send USDC Tx</button>
+              <button id="useSelfUsdc" class="secondary" disabled>Use Self</button>
+            </div>
+          </section>
+
+          <section class="section">
+            <div>
+              <h2>Swap Shortcuts</h2>
+              <p class="subtle">Swaps are opened in trusted apps; this console does not request token approvals.</p>
+            </div>
+            <div class="actions">
+              <a class="button secondary" href="https://app.uniswap.org/swap?chain=base" target="_blank" rel="noreferrer">Uniswap Base</a>
+              <a class="button secondary" href="https://aerodrome.finance/swap" target="_blank" rel="noreferrer">Aerodrome</a>
+              <a id="walletExplorer" class="button secondary" href="https://base.blockscout.com/address/0x0000000000000000000000000000000000000000" target="_blank" rel="noreferrer">Wallet</a>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <section class="section">
+        <div>
+          <h2>Recent Console Actions</h2>
+          <p class="subtle">Submitted hashes appear here. Refresh the count after confirmations settle.</p>
+        </div>
+        <div class="log">
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Action</th>
+                <th>Status</th>
+                <th>Hash</th>
+              </tr>
+            </thead>
+            <tbody id="logBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script type="module">
+      import { BrowserProvider, Contract, formatUnits, parseUnits } from "/node_modules/ethers/dist/ethers.min.js";
+
+      const BASE = {
+        chainId: "0x2105",
+        chainName: "Base Mainnet",
+        nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+        rpcUrls: ["https://mainnet.base.org"],
+        blockExplorerUrls: ["https://basescan.org", "https://base.blockscout.com"],
+      };
+
+      const ACTIVITY_FUNCTIONS = [
+        "ping",
+        "touch",
+        "check",
+        "pulse",
+        "mark",
+        "signal",
+        "alive",
+        "tick",
+        "tap",
+        "wave",
+        "note",
+        "step",
+        "trace",
+        "echo",
+        "beat",
+        "probe",
+        "stamp",
+        "cycle",
+        "anchor",
+        "attest",
+      ];
+
+      const ACTIVITY_ABI = [
+        ...ACTIVITY_FUNCTIONS.map((name) => `function ${name}() external`),
+        "function countPing() external",
+        "function logActivity(string action) external",
+      ];
+      const USDC_ABI = ["function transfer(address to, uint256 amount) external returns (bool)"];
+      const USDC_BASE = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+      const ROUTINE_CALL_TYPES = new Set(["call", "countPing", "logActivity"]);
+
+      function getLocalDateKey(date = new Date()) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+
+      function loadStoredRoutine() {
+        try {
+          const raw = localStorage.getItem("baseActivityRoutine");
+          const stored = raw ? JSON.parse(raw) : null;
+          if (!stored || stored.date !== getLocalDateKey() || !Array.isArray(stored.items)) {
+            return { date: "", items: [] };
+          }
+          return stored;
+        } catch {
+          return { date: "", items: [] };
+        }
+      }
+
+      const storedRoutine = loadStoredRoutine();
+
+      const state = {
+        provider: null,
+        signer: null,
+        account: "",
+        roundIndex: Math.min(
+          ACTIVITY_FUNCTIONS.length,
+          Math.max(0, Number(localStorage.getItem("baseActivityRoundIndex") ?? "0")),
+        ),
+        running: false,
+        stopRequested: false,
+        routineDate: storedRoutine.date,
+        routine: storedRoutine.items,
+      };
+
+      const els = {
+        connect: document.querySelector("#connect"),
+        refresh: document.querySelector("#refresh"),
+        contractAddress: document.querySelector("#contractAddress"),
+        targetCount: document.querySelector("#targetCount"),
+        walletShort: document.querySelector("#walletShort"),
+        sentCount: document.querySelector("#sentCount"),
+        remainingCount: document.querySelector("#remainingCount"),
+        roundCount: document.querySelector("#roundCount"),
+        goalProgress: document.querySelector("#goalProgress"),
+        status: document.querySelector("#status"),
+        routineDate: document.querySelector("#routineDate"),
+        routineCallCount: document.querySelector("#routineCallCount"),
+        includeLoggedCalls: document.querySelector("#includeLoggedCalls"),
+        generateRoutine: document.querySelector("#generateRoutine"),
+        runRoutine: document.querySelector("#runRoutine"),
+        clearRoutine: document.querySelector("#clearRoutine"),
+        routineList: document.querySelector("#routineList"),
+        callNext: document.querySelector("#callNext"),
+        runRound: document.querySelector("#runRound"),
+        stopRound: document.querySelector("#stopRound"),
+        resetRound: document.querySelector("#resetRound"),
+        waitMode: document.querySelector("#waitMode"),
+        delayMs: document.querySelector("#delayMs"),
+        functionGrid: document.querySelector("#functionGrid"),
+        ethTo: document.querySelector("#ethTo"),
+        ethValueWei: document.querySelector("#ethValueWei"),
+        sendEth: document.querySelector("#sendEth"),
+        useSelfEth: document.querySelector("#useSelfEth"),
+        usdcTo: document.querySelector("#usdcTo"),
+        usdcAmount: document.querySelector("#usdcAmount"),
+        sendUsdc: document.querySelector("#sendUsdc"),
+        useSelfUsdc: document.querySelector("#useSelfUsdc"),
+        countPing: document.querySelector("#countPing"),
+        logActivity: document.querySelector("#logActivity"),
+        logAction: document.querySelector("#logAction"),
+        walletExplorer: document.querySelector("#walletExplorer"),
+        logBody: document.querySelector("#logBody"),
+      };
+
+      function shortAddress(value) {
+        return value ? `${value.slice(0, 6)}...${value.slice(-4)}` : "-";
+      }
+
+      function setStatus(message, kind = "") {
+        els.status.textContent = message;
+        els.status.className = `status ${kind}`.trim();
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function randomUnit() {
+        const buffer = new Uint32Array(1);
+        crypto.getRandomValues(buffer);
+        return buffer[0] / 2 ** 32;
+      }
+
+      function shuffle(values) {
+        const copy = [...values];
+        for (let index = copy.length - 1; index > 0; index -= 1) {
+          const swapIndex = Math.floor(randomUnit() * (index + 1));
+          [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
+        }
+        return copy;
+      }
+
+      function hasPendingRoutineCalls() {
+        return state.routine.some((item) => ROUTINE_CALL_TYPES.has(item.type) && item.status !== "done");
+      }
+
+      function setControls(enabled) {
+        els.refresh.disabled = !enabled;
+        els.callNext.disabled = !enabled || state.running;
+        els.runRound.disabled = !enabled || state.running;
+        els.runRoutine.disabled = !enabled || state.running || !hasPendingRoutineCalls();
+        els.sendEth.disabled = !enabled || state.running;
+        els.sendUsdc.disabled = !enabled || state.running;
+        els.useSelfEth.disabled = !enabled;
+        els.useSelfUsdc.disabled = !enabled;
+        els.countPing.disabled = !enabled || state.running;
+        els.logActivity.disabled = !enabled || state.running;
+        els.stopRound.disabled = !state.running;
+      }
+
+      function persistRoundIndex() {
+        localStorage.setItem("baseActivityRoundIndex", String(state.roundIndex));
+      }
+
+      function persistRoutine() {
+        localStorage.setItem("baseActivityRoutine", JSON.stringify({ date: state.routineDate, items: state.routine }));
+      }
+
+      function updateRoundUI() {
+        els.roundCount.textContent = `${state.roundIndex}/${ACTIVITY_FUNCTIONS.length}`;
+        [...els.functionGrid.querySelectorAll("button")].forEach((button, index) => {
+          button.classList.toggle("done", index < state.roundIndex);
+          button.classList.toggle("next", state.roundIndex < ACTIVITY_FUNCTIONS.length && index === state.roundIndex);
+        });
+      }
+
+      function makeRoutineItem(type, label, detail, extra = {}) {
+        const random = Math.floor(randomUnit() * 1_000_000_000);
+        return {
+          id: `${Date.now()}-${random}`,
+          type,
+          label,
+          detail,
+          status: "pending",
+          ...extra,
+        };
+      }
+
+      function routineActionLabel(type) {
+        if (type === "eth") return "Send";
+        if (type === "usdc") return "Send";
+        if (type === "swap") return "Open";
+        if (type === "refresh") return "Refresh";
+        return "Call";
+      }
+
+      function routineStatusLabel(status) {
+        if (status === "active") return "Signing";
+        if (status === "done") return "Done";
+        return "Ready";
+      }
+
+      function renderRoutine() {
+        els.routineDate.textContent = state.routineDate
+          ? `Plan date ${state.routineDate}`
+          : "No routine generated yet.";
+        els.routineList.replaceChildren();
+
+        if (!state.routine.length) {
+          const empty = document.createElement("div");
+          empty.className = "empty";
+          empty.textContent = "Generate a routine to build today's call order.";
+          els.routineList.append(empty);
+          setControls(Boolean(state.account));
+          return;
+        }
+
+        state.routine.forEach((item, index) => {
+          const row = document.createElement("div");
+          row.className = `routine-row ${item.status ?? "pending"}`.trim();
+
+          const badge = document.createElement("span");
+          badge.className = "routine-badge";
+          badge.textContent = routineStatusLabel(item.status);
+
+          const main = document.createElement("div");
+          main.className = "routine-main";
+          const title = document.createElement("strong");
+          title.textContent = item.label;
+          const detail = document.createElement("span");
+          detail.className = "subtle";
+          detail.textContent = item.detail;
+          main.append(title, detail);
+
+          const actions = document.createElement("div");
+          actions.className = "routine-actions";
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = item.type === "call" || item.type === "countPing" || item.type === "logActivity" ? "" : "secondary";
+          button.textContent = routineActionLabel(item.type);
+          button.disabled = !state.account || state.running || item.status === "active" || item.status === "done";
+          button.addEventListener("click", () => runSingleRoutineItem(index).catch((error) => setStatus(error.message ?? String(error), "warn")));
+          actions.append(button);
+
+          row.append(badge, main, actions);
+          els.routineList.append(row);
+        });
+
+        setControls(Boolean(state.account));
+      }
+
+      function generateRoutine() {
+        const count = clamp(Number(els.routineCallCount.value || "12"), 4, ACTIVITY_FUNCTIONS.length);
+        els.routineCallCount.value = String(count);
+        const selected = shuffle(ACTIVITY_FUNCTIONS).slice(0, count);
+        const items = selected.map((name) =>
+          makeRoutineItem("call", `${name}()`, "Empty BaseActivityPing contract call.", { functionName: name }),
+        );
+
+        if (els.includeLoggedCalls.checked) {
+          items.splice(
+            Math.min(2, items.length),
+            0,
+            makeRoutineItem("countPing", "countPing()", "Storage-writing contract call; use occasionally."),
+          );
+          items.splice(
+            Math.min(7, items.length),
+            0,
+            makeRoutineItem("logActivity", "logActivity()", "Event log contract call with today's label.", {
+              action: `base-${getLocalDateKey()}`,
+            }),
+          );
+        }
+
+        items.splice(
+          Math.min(3, items.length),
+          0,
+          makeRoutineItem("eth", "Tiny ETH transfer", `${els.ethValueWei.value || "1"} wei using Native Transfer fields.`),
+        );
+        items.splice(
+          Math.min(8, items.length),
+          0,
+          makeRoutineItem("swap", "Small swap shortcut", "Open a swap app and choose size manually."),
+        );
+        items.splice(
+          Math.min(13, items.length),
+          0,
+          makeRoutineItem("usdc", "Tiny USDC transfer", `${els.usdcAmount.value || "0.000001"} USDC using USDC Transfer fields.`),
+        );
+        items.push(makeRoutineItem("refresh", "Refresh tx count", "Update successful sent transaction count."));
+
+        state.routineDate = getLocalDateKey();
+        state.routine = items;
+        persistRoutine();
+        renderRoutine();
+        setStatus(`Generated today's routine with ${count} empty contract calls.`, "ok");
+      }
+
+      function setRoutineItemStatus(index, status) {
+        state.routine[index].status = status;
+        persistRoutine();
+        renderRoutine();
+      }
+
+      async function runSingleRoutineItem(index) {
+        state.running = true;
+        state.stopRequested = false;
+        renderRoutine();
+        try {
+          await runRoutineItem(index);
+        } finally {
+          state.running = false;
+          state.stopRequested = false;
+          renderRoutine();
+        }
+      }
+
+      function addLog(action, status, hash = "") {
+        const row = document.createElement("tr");
+        const link = hash
+          ? `<a href="https://base.blockscout.com/tx/${hash}" target="_blank" rel="noreferrer"><code>${shortAddress(hash)}</code></a>`
+          : "";
+        row.innerHTML = `<td>${new Date().toLocaleTimeString()}</td><td>${action}</td><td>${status}</td><td>${link}</td>`;
+        els.logBody.prepend(row);
+      }
+
+      function getActivityContract() {
+        return new Contract(els.contractAddress.value.trim(), ACTIVITY_ABI, state.signer);
+      }
+
+      async function ensureBase() {
+        const chainId = await window.ethereum.request({ method: "eth_chainId" });
+        if (chainId === BASE.chainId) return;
+
+        try {
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: BASE.chainId }],
+          });
+        } catch (error) {
+          if (error.code !== 4902) throw error;
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [BASE],
+          });
+        }
+      }
+
+      async function connect() {
+        if (!window.ethereum) {
+          throw new Error("No injected wallet found.");
+        }
+
+        await ensureBase();
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+        state.provider = new BrowserProvider(window.ethereum);
+        state.signer = await state.provider.getSigner();
+        state.account = accounts[0];
+        els.walletShort.textContent = shortAddress(state.account);
+        els.ethTo.value ||= state.account;
+        els.usdcTo.value ||= state.account;
+        els.walletExplorer.href = `https://base.blockscout.com/address/${state.account}`;
+        setControls(true);
+        renderRoutine();
+        setStatus(`Connected ${state.account}`, "ok");
+        await refreshCount();
+      }
+
+      async function fetchAllSentTransactions(wallet) {
+        let url = `https://base.blockscout.com/api/v2/addresses/${wallet}/transactions`;
+        const all = [];
+        for (let page = 0; page < 80 && url; page += 1) {
+          const response = await fetch(url, { headers: { accept: "application/json" } });
+          if (!response.ok) throw new Error(`Blockscout count failed: ${response.status}`);
+          const data = await response.json();
+          all.push(...(data.items ?? []));
+          if (!data.next_page_params) break;
+          const query = new URLSearchParams();
+          Object.entries(data.next_page_params).forEach(([key, value]) => query.set(key, String(value)));
+          url = `https://base.blockscout.com/api/v2/addresses/${wallet}/transactions?${query.toString()}`;
+        }
+
+        return all.filter((tx) => tx.from?.hash?.toLowerCase() === wallet.toLowerCase());
+      }
+
+      async function refreshCount() {
+        if (!state.account) return;
+        setStatus("Refreshing Base transaction count...");
+        const sent = await fetchAllSentTransactions(state.account);
+        const success = sent.filter((tx) => tx.status === "ok" || tx.result === "success");
+        const target = Math.max(1, Number(els.targetCount.value || "1000"));
+        els.goalProgress.max = target;
+        els.goalProgress.value = success.length;
+        els.sentCount.textContent = String(success.length);
+        els.remainingCount.textContent = String(Math.max(0, target - success.length));
+        setStatus(`Count refreshed: ${success.length} successful sent tx.`, "ok");
+      }
+
+      async function callActivityFunction(name, actionLabel = `${name}()`) {
+        const contract = getActivityContract();
+        setStatus(`Waiting for wallet signature: ${name}()`);
+        const tx = await contract[name]();
+        addLog(actionLabel, "submitted", tx.hash);
+        setStatus(`Submitted ${name}(): ${tx.hash}`, "ok");
+        if (els.waitMode.value === "mined") {
+          setStatus(`Waiting for mining: ${name}()`);
+          await tx.wait();
+          addLog(actionLabel, "mined", tx.hash);
+          setStatus(`Mined ${name}(): ${tx.hash}`, "ok");
+        }
+        return tx;
+      }
+
+      async function callCountPing(actionLabel = "countPing()") {
+        const contract = getActivityContract();
+        setStatus("Waiting for wallet signature: countPing()");
+        const tx = await contract.countPing();
+        addLog(actionLabel, "submitted", tx.hash);
+        setStatus(`Submitted countPing(): ${tx.hash}`, "ok");
+        if (els.waitMode.value === "mined") {
+          setStatus("Waiting for mining: countPing()");
+          await tx.wait();
+          addLog(actionLabel, "mined", tx.hash);
+          setStatus(`Mined countPing(): ${tx.hash}`, "ok");
+        }
+        return tx;
+      }
+
+      async function submitLogActivity(action = els.logAction.value.trim() || "daily-check", actionLabel = "logActivity()") {
+        const contract = getActivityContract();
+        setStatus(`Waiting for wallet signature: logActivity(${action})`);
+        const tx = await contract.logActivity(action);
+        addLog(actionLabel, "submitted", tx.hash);
+        setStatus(`Submitted logActivity(): ${tx.hash}`, "ok");
+        if (els.waitMode.value === "mined") {
+          setStatus("Waiting for mining: logActivity()");
+          await tx.wait();
+          addLog(actionLabel, "mined", tx.hash);
+          setStatus(`Mined logActivity(): ${tx.hash}`, "ok");
+        }
+        return tx;
+      }
+
+      async function callNextFunction() {
+        if (state.roundIndex >= ACTIVITY_FUNCTIONS.length) {
+          state.roundIndex = 0;
+          updateRoundUI();
+        }
+
+        const name = ACTIVITY_FUNCTIONS[state.roundIndex];
+        await callActivityFunction(name);
+        state.roundIndex = Math.min(ACTIVITY_FUNCTIONS.length, state.roundIndex + 1);
+        persistRoundIndex();
+        updateRoundUI();
+      }
+
+      async function runRound() {
+        state.running = true;
+        state.stopRequested = false;
+        setControls(Boolean(state.account));
+        try {
+          if (state.roundIndex >= ACTIVITY_FUNCTIONS.length) {
+            state.roundIndex = 0;
+            persistRoundIndex();
+            updateRoundUI();
+          }
+
+          while (state.roundIndex < ACTIVITY_FUNCTIONS.length) {
+            if (state.stopRequested) break;
+            await callNextFunction();
+            const delay = Math.max(0, Number(els.delayMs.value || "0"));
+            if (delay > 0) await sleep(delay);
+          }
+          setStatus(state.stopRequested ? "Round stopped." : "20-call round finished.", "ok");
+        } catch (error) {
+          setStatus(error.message ?? String(error), "warn");
+        } finally {
+          state.running = false;
+          state.stopRequested = false;
+          setControls(Boolean(state.account));
+        }
+      }
+
+      async function sendEth(actionLabel = "ETH transfer") {
+        const to = els.ethTo.value.trim();
+        const value = BigInt(els.ethValueWei.value.trim());
+        setStatus("Waiting for wallet signature: ETH transfer");
+        const tx = await state.signer.sendTransaction({ to, value });
+        addLog(actionLabel, "submitted", tx.hash);
+        setStatus(`Submitted ETH transfer: ${tx.hash}`, "ok");
+      }
+
+      async function sendUsdc(actionLabel = "USDC transfer") {
+        const to = els.usdcTo.value.trim();
+        const amount = parseUnits(els.usdcAmount.value.trim(), 6);
+        const usdc = new Contract(USDC_BASE, USDC_ABI, state.signer);
+        setStatus("Waiting for wallet signature: USDC transfer");
+        const tx = await usdc.transfer(to, amount);
+        addLog(`${actionLabel} ${formatUnits(amount, 6)}`, "submitted", tx.hash);
+        setStatus(`Submitted USDC transfer: ${tx.hash}`, "ok");
+      }
+
+      async function runRoutineItem(index) {
+        const item = state.routine[index];
+        if (!item || !state.account) return;
+        setRoutineItemStatus(index, "active");
+
+        try {
+          if (item.type === "call") {
+            await callActivityFunction(item.functionName, `Routine ${item.functionName}()`);
+          } else if (item.type === "countPing") {
+            await callCountPing("Routine countPing()");
+          } else if (item.type === "logActivity") {
+            await submitLogActivity(item.action || `base-${getLocalDateKey()}`, "Routine logActivity()");
+          } else if (item.type === "eth") {
+            await sendEth("Routine ETH transfer");
+          } else if (item.type === "usdc") {
+            await sendUsdc("Routine USDC transfer");
+          } else if (item.type === "swap") {
+            window.open("https://app.uniswap.org/swap?chain=base", "_blank", "noreferrer");
+          } else if (item.type === "refresh") {
+            await refreshCount();
+          }
+
+          setRoutineItemStatus(index, "done");
+        } catch (error) {
+          setRoutineItemStatus(index, "pending");
+          throw error;
+        }
+      }
+
+      async function runRoutineCalls() {
+        state.running = true;
+        state.stopRequested = false;
+        renderRoutine();
+        try {
+          for (let index = 0; index < state.routine.length; index += 1) {
+            const item = state.routine[index];
+            if (state.stopRequested) break;
+            if (!ROUTINE_CALL_TYPES.has(item.type) || item.status === "done") continue;
+            await runRoutineItem(index);
+            const delay = Math.max(0, Number(els.delayMs.value || "0"));
+            if (delay > 0) await sleep(delay);
+          }
+          setStatus(state.stopRequested ? "Routine stopped." : "Routine contract calls finished.", "ok");
+        } catch (error) {
+          setStatus(error.message ?? String(error), "warn");
+        } finally {
+          state.running = false;
+          state.stopRequested = false;
+          renderRoutine();
+        }
+      }
+
+      ACTIVITY_FUNCTIONS.forEach((name, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = name;
+        button.addEventListener("click", async () => {
+          if (!state.account) return;
+          try {
+            await callActivityFunction(name);
+            if (index === state.roundIndex) {
+              state.roundIndex = (state.roundIndex + 1) % ACTIVITY_FUNCTIONS.length;
+              persistRoundIndex();
+              updateRoundUI();
+            }
+          } catch (error) {
+            setStatus(error.message ?? String(error), "warn");
+          }
+        });
+        els.functionGrid.append(button);
+      });
+
+      els.connect.addEventListener("click", () => connect().catch((error) => setStatus(error.message ?? String(error), "warn")));
+      els.refresh.addEventListener("click", () => refreshCount().catch((error) => setStatus(error.message ?? String(error), "warn")));
+      els.generateRoutine.addEventListener("click", generateRoutine);
+      els.runRoutine.addEventListener("click", runRoutineCalls);
+      els.clearRoutine.addEventListener("click", () => {
+        state.routineDate = "";
+        state.routine = [];
+        localStorage.removeItem("baseActivityRoutine");
+        renderRoutine();
+        setStatus("Routine cleared.", "ok");
+      });
+      els.callNext.addEventListener("click", () => callNextFunction().catch((error) => setStatus(error.message ?? String(error), "warn")));
+      els.runRound.addEventListener("click", runRound);
+      els.stopRound.addEventListener("click", () => {
+        state.stopRequested = true;
+        setStatus("Stop requested. Finish or reject the current wallet prompt.");
+      });
+      els.resetRound.addEventListener("click", () => {
+        state.roundIndex = 0;
+        persistRoundIndex();
+        updateRoundUI();
+      });
+      els.useSelfEth.addEventListener("click", () => {
+        els.ethTo.value = state.account;
+      });
+      els.useSelfUsdc.addEventListener("click", () => {
+        els.usdcTo.value = state.account;
+      });
+      els.sendEth.addEventListener("click", () => sendEth().catch((error) => setStatus(error.message ?? String(error), "warn")));
+      els.sendUsdc.addEventListener("click", () => sendUsdc().catch((error) => setStatus(error.message ?? String(error), "warn")));
+      els.countPing.addEventListener("click", () => callCountPing().catch((error) => setStatus(error.message ?? String(error), "warn")));
+      els.logActivity.addEventListener("click", () =>
+        submitLogActivity().catch((error) => setStatus(error.message ?? String(error), "warn")),
+      );
+      els.targetCount.addEventListener("change", () => {
+        const sent = Number(els.sentCount.textContent);
+        if (Number.isFinite(sent)) {
+          const target = Math.max(1, Number(els.targetCount.value || "1000"));
+          els.goalProgress.max = target;
+          els.goalProgress.value = sent;
+          els.remainingCount.textContent = String(Math.max(0, target - sent));
+        }
+      });
+
+      updateRoundUI();
+      renderRoutine();
+      setControls(false);
+    </script>
+  </body>
+</html>

@@ -4,6 +4,9 @@ node_modules/
 !.env.example
 dist/
 coverage/
+out/
+cache/
+broadcast/
 artifacts/
 circle/arc/artifacts/
 circle/arc/public/artifacts/
@@ -12,3 +15,4 @@ recovery/
 npm-debug.log*
 server.out.log
 server.err.log
+base-console.out.log
