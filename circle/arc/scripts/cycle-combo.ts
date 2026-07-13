@@ -1,6 +1,15 @@
 ﻿import { spawn } from "node:child_process";
 
-type ComboKey = "reward" | "coupon" | "referral" | "cashback" | "auction" | "rental";
+type ComboKey =
+  | "reward"
+  | "coupon"
+  | "referral"
+  | "cashback"
+  | "auction"
+  | "rental"
+  | "warranty"
+  | "support"
+  | "access";
 
 type ComboPlan = {
   cashbackAmount: string;
@@ -18,6 +27,15 @@ type ComboPlan = {
   rentalReturn: string;
   rewardAmount: string;
   rewardClaim: string;
+  warrantyClaim: string;
+  warrantyExpiresDays: string;
+  warrantyResolution: string;
+  supportCategory: string;
+  supportResponse: string;
+  supportClose: string;
+  accessRole: string;
+  accessApproval: string;
+  accessRevoke: string;
 };
 
 type ComboSpec = {
@@ -36,6 +54,9 @@ const DEFAULT_ARCREFERRAL_CONTRACT = "0xa2eaf480143d01ae4d9e9d9d880aff1c60d80396
 const DEFAULT_ARCCASHBACK_CONTRACT = "0xe30af52b7da6a23e8ced04473290f57b8964fef8";
 const DEFAULT_ARCAUCTION_CONTRACT = "";
 const DEFAULT_ARCRENTAL_CONTRACT = "0x69177a3ce61b80e28709a1a9f873ec1a23d77076";
+const DEFAULT_ARCWARRANTY_CONTRACT = "0xAd668A996e80607B963Ed0FB2593EB9B11E00313";
+const DEFAULT_ARCSUPPORTDESK_CONTRACT = "0x9a2B3a86959E2d944fde2660B616c2c7Ce17D6fc";
+const DEFAULT_ARCACCESS_CONTRACT = "0xc561Df062A6D74c951db2b18Ba106eB3771ED2a5";
 const BASE_URL = `http://localhost:${process.env.PORT ?? "4173"}`;
 
 const productPlans: ComboPlan[] = [
@@ -55,6 +76,15 @@ const productPlans: ComboPlan[] = [
     rentalDeposit: "0.003",
     rentalDamageFee: "0.0005",
     rentalReturn: "returned-weekly-rental",
+    warrantyClaim: "claimed-weekly-warranty",
+    warrantyResolution: "resolved-weekly-warranty",
+    warrantyExpiresDays: "0",
+    supportCategory: "billing",
+    supportResponse: "responded-weekly-support",
+    supportClose: "closed-weekly-support",
+    accessRole: "billing-operator",
+    accessApproval: "approved-weekly-access",
+    accessRevoke: "revoked-weekly-access",
   },
   {
     rewardAmount: "0.0035",
@@ -72,6 +102,15 @@ const productPlans: ComboPlan[] = [
     rentalDeposit: "0.0035",
     rentalDamageFee: "0.0006",
     rentalReturn: "returned-product-rental",
+    warrantyClaim: "claimed-product-warranty",
+    warrantyResolution: "resolved-product-warranty",
+    warrantyExpiresDays: "14",
+    supportCategory: "product",
+    supportResponse: "responded-product-support",
+    supportClose: "closed-product-support",
+    accessRole: "product-operator",
+    accessApproval: "approved-product-access",
+    accessRevoke: "revoked-product-access",
   },
   {
     rewardAmount: "0.004",
@@ -89,6 +128,15 @@ const productPlans: ComboPlan[] = [
     rentalDeposit: "0.004",
     rentalDamageFee: "0.0007",
     rentalReturn: "returned-ops-rental",
+    warrantyClaim: "claimed-ops-warranty",
+    warrantyResolution: "resolved-ops-warranty",
+    warrantyExpiresDays: "30",
+    supportCategory: "ops",
+    supportResponse: "responded-ops-support",
+    supportClose: "closed-ops-support",
+    accessRole: "ops-operator",
+    accessApproval: "approved-ops-access",
+    accessRevoke: "revoked-ops-access",
   },
   {
     rewardAmount: "0.0045",
@@ -106,6 +154,15 @@ const productPlans: ComboPlan[] = [
     rentalDeposit: "0.0045",
     rentalDamageFee: "0.0008",
     rentalReturn: "returned-alt-rental",
+    warrantyClaim: "claimed-alt-warranty",
+    warrantyResolution: "resolved-alt-warranty",
+    warrantyExpiresDays: "7",
+    supportCategory: "account",
+    supportResponse: "responded-alt-support",
+    supportClose: "closed-alt-support",
+    accessRole: "account-operator",
+    accessApproval: "approved-alt-access",
+    accessRevoke: "revoked-alt-access",
   },
   {
     rewardAmount: "0.005",
@@ -123,6 +180,15 @@ const productPlans: ComboPlan[] = [
     rentalDeposit: "0.005",
     rentalDamageFee: "0.0009",
     rentalReturn: "returned-release-rental",
+    warrantyClaim: "claimed-release-warranty",
+    warrantyResolution: "resolved-release-warranty",
+    warrantyExpiresDays: "21",
+    supportCategory: "release",
+    supportResponse: "responded-release-support",
+    supportClose: "closed-release-support",
+    accessRole: "release-operator",
+    accessApproval: "approved-release-access",
+    accessRevoke: "revoked-release-access",
   },
   {
     rewardAmount: "0.0055",
@@ -140,6 +206,15 @@ const productPlans: ComboPlan[] = [
     rentalDeposit: "0.0055",
     rentalDamageFee: "0.001",
     rentalReturn: "returned-abstain-rental",
+    warrantyClaim: "claimed-abstain-warranty",
+    warrantyResolution: "resolved-abstain-warranty",
+    warrantyExpiresDays: "45",
+    supportCategory: "review",
+    supportResponse: "responded-abstain-support",
+    supportClose: "closed-abstain-support",
+    accessRole: "review-operator",
+    accessApproval: "approved-abstain-access",
+    accessRevoke: "revoked-abstain-access",
   },
   {
     rewardAmount: "0.0032",
@@ -157,6 +232,15 @@ const productPlans: ComboPlan[] = [
     rentalDeposit: "0.0032",
     rentalDamageFee: "0.0004",
     rentalReturn: "returned-final-rental",
+    warrantyClaim: "claimed-final-warranty",
+    warrantyResolution: "resolved-final-warranty",
+    warrantyExpiresDays: "0",
+    supportCategory: "final",
+    supportResponse: "responded-final-support",
+    supportClose: "closed-final-support",
+    accessRole: "final-operator",
+    accessApproval: "approved-final-access",
+    accessRevoke: "revoked-final-access",
   },
 ];
 
@@ -246,6 +330,30 @@ function buildSpecs(cycleDate: string, variant: number, plan: ComboPlan): Record
       page: "arc-rental.html",
       title: "ArcRental Create + Book + Return",
     },
+    warranty: {
+      amount: "0",
+      claim: plan.warrantyResolution,
+      contract: process.env.ARCWARRANTY_CONTRACT?.trim() || DEFAULT_ARCWARRANTY_CONTRACT,
+      label: `arc-warranty-${cycleDate}-v${variant}`,
+      page: "arc-warranty.html",
+      title: "ArcWarranty Register + Claim + Resolve",
+    },
+    support: {
+      amount: "0",
+      claim: plan.supportClose,
+      contract: process.env.ARCSUPPORTDESK_CONTRACT?.trim() || DEFAULT_ARCSUPPORTDESK_CONTRACT,
+      label: `arc-support-${cycleDate}-v${variant}`,
+      page: "arc-support-desk.html",
+      title: "ArcSupport Create + Respond + Close",
+    },
+    access: {
+      amount: "0",
+      claim: plan.accessRevoke,
+      contract: process.env.ARCACCESS_CONTRACT?.trim() || DEFAULT_ARCACCESS_CONTRACT,
+      label: `arc-access-${cycleDate}-v${variant}`,
+      page: "arc-access.html",
+      title: "ArcAccess Request + Approve + Revoke",
+    },
   };
 }
 
@@ -280,6 +388,54 @@ function buildUrl(spec: ComboSpec): string {
       refundTo: owner,
       rentalFee: plan.rentalFee,
       returnURI: `local:${spec.label}:${plan.rentalReturn}`,
+      title: spec.label,
+    });
+
+    return `${BASE_URL}/public/${spec.page}?${params}`;
+  }
+  if (spec.page === "arc-warranty.html") {
+    const plan = productPlans[variantIndex];
+    const params = new URLSearchParams({
+      autorun: "1",
+      claimURI: `local:${spec.label}:${plan.warrantyClaim}`,
+      contract: spec.contract,
+      expiresDays: plan.warrantyExpiresDays,
+      metadataURI: `local:${spec.label}`,
+      productRef: spec.label,
+      resolutionURI: `local:${spec.label}:${plan.warrantyResolution}`,
+      serviceProvider: owner,
+      title: spec.label,
+    });
+
+    return `${BASE_URL}/public/${spec.page}?${params}`;
+  }
+  if (spec.page === "arc-support-desk.html") {
+    const plan = productPlans[variantIndex];
+    const params = new URLSearchParams({
+      agent: owner,
+      autorun: "1",
+      category: plan.supportCategory,
+      closeURI: `local:${spec.label}:${plan.supportClose}`,
+      contract: spec.contract,
+      metadataURI: `local:${spec.label}`,
+      responseURI: `local:${spec.label}:${plan.supportResponse}`,
+      ticketRef: spec.label,
+      title: spec.label,
+    });
+
+    return `${BASE_URL}/public/${spec.page}?${params}`;
+  }
+  if (spec.page === "arc-access.html") {
+    const plan = productPlans[variantIndex];
+    const params = new URLSearchParams({
+      accessRef: spec.label,
+      approvalURI: `local:${spec.label}:${plan.accessApproval}`,
+      approver: owner,
+      autorun: "1",
+      contract: spec.contract,
+      metadataURI: `local:${spec.label}`,
+      revokeURI: `local:${spec.label}:${plan.accessRevoke}`,
+      role: plan.accessRole,
       title: spec.label,
     });
 
