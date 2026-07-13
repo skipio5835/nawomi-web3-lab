@@ -2,110 +2,70 @@
 pragma solidity ^0.8.20;
 
 /// @title BaseActivityPing
-/// @notice Low-cost direct-call target for creating Base mainnet Contract Call history from the caller wallet.
+/// @notice Minimal no-op interaction target used by local Base workflows.
 contract BaseActivityPing {
     event Activity(address indexed caller, string action, uint256 timestamp);
 
     mapping(address => uint256) public callCount;
 
-    // Ultra-low-gas activity call.
-    // No storage write, no event, no parameter, no return.
-    // The transaction itself remains visible from the caller wallet on BaseScan.
+    // No storage write, event, parameter, or return value.
     function ping() external {}
 
-    // Ultra-low-gas activity call.
-    // No storage write, no event, no parameter, no return.
-    // The transaction itself remains visible from the caller wallet on BaseScan.
+    // No storage write, event, parameter, or return value.
     function touch() external {}
 
-    // Ultra-low-gas activity call.
-    // No storage write, no event, no parameter, no return.
-    // The transaction itself remains visible from the caller wallet on BaseScan.
+    // No storage write, event, parameter, or return value.
     function check() external {}
 
-    // Ultra-low-gas activity call.
-    // No storage write, no event, no parameter, no return.
-    // The transaction itself remains visible from the caller wallet on BaseScan.
+    // No storage write, event, parameter, or return value.
     function pulse() external {}
 
-    // Ultra-low-gas activity call.
-    // No storage write, no event, no parameter, no return.
-    // The transaction itself remains visible from the caller wallet on BaseScan.
+    // No storage write, event, parameter, or return value.
     function mark() external {}
 
-    // Ultra-low-gas activity call.
-    // No storage write, no event, no parameter, no return.
-    // The transaction itself remains visible from the caller wallet on BaseScan.
+    // No storage write, event, parameter, or return value.
     function signal() external {}
 
-    // Ultra-low-gas activity call.
-    // No storage write, no event, no parameter, no return.
-    // The transaction itself remains visible from the caller wallet on BaseScan.
+    // No storage write, event, parameter, or return value.
     function alive() external {}
 
-    // Ultra-low-gas activity call.
-    // No storage write, no event, no parameter, no return.
-    // The transaction itself remains visible from the caller wallet on BaseScan.
+    // No storage write, event, parameter, or return value.
     function tick() external {}
 
-    // Ultra-low-gas activity call.
-    // No storage write, no event, no parameter, no return.
-    // The transaction itself remains visible from the caller wallet on BaseScan.
+    // No storage write, event, parameter, or return value.
     function tap() external {}
 
-    // Ultra-low-gas activity call.
-    // No storage write, no event, no parameter, no return.
-    // The transaction itself remains visible from the caller wallet on BaseScan.
+    // No storage write, event, parameter, or return value.
     function wave() external {}
 
-    // Ultra-low-gas activity call.
-    // No storage write, no event, no parameter, no return.
-    // The transaction itself remains visible from the caller wallet on BaseScan.
+    // No storage write, event, parameter, or return value.
     function note() external {}
 
-    // Ultra-low-gas activity call.
-    // No storage write, no event, no parameter, no return.
-    // The transaction itself remains visible from the caller wallet on BaseScan.
+    // No storage write, event, parameter, or return value.
     function step() external {}
 
-    // Ultra-low-gas activity call.
-    // No storage write, no event, no parameter, no return.
-    // The transaction itself remains visible from the caller wallet on BaseScan.
+    // No storage write, event, parameter, or return value.
     function trace() external {}
 
-    // Ultra-low-gas activity call.
-    // No storage write, no event, no parameter, no return.
-    // The transaction itself remains visible from the caller wallet on BaseScan.
+    // No storage write, event, parameter, or return value.
     function echo() external {}
 
-    // Ultra-low-gas activity call.
-    // No storage write, no event, no parameter, no return.
-    // The transaction itself remains visible from the caller wallet on BaseScan.
+    // No storage write, event, parameter, or return value.
     function beat() external {}
 
-    // Ultra-low-gas activity call.
-    // No storage write, no event, no parameter, no return.
-    // The transaction itself remains visible from the caller wallet on BaseScan.
+    // No storage write, event, parameter, or return value.
     function probe() external {}
 
-    // Ultra-low-gas activity call.
-    // No storage write, no event, no parameter, no return.
-    // The transaction itself remains visible from the caller wallet on BaseScan.
+    // No storage write, event, parameter, or return value.
     function stamp() external {}
 
-    // Ultra-low-gas activity call.
-    // No storage write, no event, no parameter, no return.
-    // The transaction itself remains visible from the caller wallet on BaseScan.
+    // No storage write, event, parameter, or return value.
     function cycle() external {}
 
-    // Ultra-low-gas activity call.
-    // No storage write, no event, no parameter, no return.
-    // The transaction itself remains visible from the caller wallet on BaseScan.
+    // No storage write, event, parameter, or return value.
     function anchor() external {}
 
-    // Ultra-low-gas activity call.
-    // No storage write, no event, no parameter, no return.
-    // The transaction itself remains visible from the caller wallet on BaseScan.
+    // No storage write, event, parameter, or return value.
     function attest() external {}
 
     /// @notice Emits an Activity event for occasional, more explicit history.
@@ -121,7 +81,7 @@ contract BaseActivityPing {
     }
 
     /// @notice Read-only version helper.
-    /// @dev Usually queried with eth_call; it does not need a transaction for wallet activity history.
+    /// @dev Usually queried with eth_call.
     function version() external pure returns (string memory) {
         return "BaseActivityPing v1";
     }

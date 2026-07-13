@@ -13,6 +13,10 @@ circle/arc/public/artifacts/
 public/artifacts/
 recovery/
 npm-debug.log*
+*.log
+*.err.log
 server.out.log
 server.err.log
 base-console.out.log
+base-console*.log
+circle/arc/serve-deployer*.log

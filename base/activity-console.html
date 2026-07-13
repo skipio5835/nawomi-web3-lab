@@ -382,7 +382,7 @@
       <header>
         <div>
           <h1>Base Activity Console</h1>
-          <p class="subtle">Direct wallet-signed calls for Base mainnet activity tracking.</p>
+          <p class="subtle">Local Base workflow console for trusted workstations.</p>
         </div>
         <div class="actions">
           <button id="connect">Connect</button>
@@ -394,7 +394,7 @@
         <div class="grid">
           <label>
             Activity Contract
-            <input id="contractAddress" value="0x0000000000000000000000000000000000000000" />
+            <input id="contractAddress" placeholder="0x..." />
           </label>
           <label>
             Target Successful Sent Tx
@@ -459,7 +459,7 @@
 
           <div class="actions">
             <button id="callNext" disabled>Call Next</button>
-            <button id="runRound" disabled>Run 20-Call Round</button>
+            <button id="runRound" disabled>Run Function Round</button>
             <button id="stopRound" class="danger" disabled>Stop After Current</button>
             <button id="resetRound" class="secondary">Reset Round</button>
           </div>
@@ -539,7 +539,7 @@
             <div class="actions">
               <a class="button secondary" href="https://app.uniswap.org/swap?chain=base" target="_blank" rel="noreferrer">Uniswap Base</a>
               <a class="button secondary" href="https://aerodrome.finance/swap" target="_blank" rel="noreferrer">Aerodrome</a>
-              <a id="walletExplorer" class="button secondary" href="https://base.blockscout.com/address/0x0000000000000000000000000000000000000000" target="_blank" rel="noreferrer">Wallet</a>
+              <a id="walletExplorer" class="button secondary" href="https://base.blockscout.com" target="_blank" rel="noreferrer">Wallet</a>
             </div>
           </section>
         </div>
@@ -608,6 +608,7 @@
       const USDC_ABI = ["function transfer(address to, uint256 amount) external returns (bool)"];
       const USDC_BASE = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
       const ROUTINE_CALL_TYPES = new Set(["call", "countPing", "logActivity"]);
+      const CONTRACT_ADDRESS_KEY = "baseActivityContractAddress";
 
       function getLocalDateKey(date = new Date()) {
         const year = date.getFullYear();
@@ -902,7 +903,12 @@
       }
 
       function getActivityContract() {
-        return new Contract(els.contractAddress.value.trim(), ACTIVITY_ABI, state.signer);
+        const address = els.contractAddress.value.trim();
+        if (!address) {
+          throw new Error("Enter the local activity contract address first.");
+        }
+        localStorage.setItem(CONTRACT_ADDRESS_KEY, address);
+        return new Contract(address, ACTIVITY_ABI, state.signer);
       }
 
       async function ensureBase() {
@@ -1193,6 +1199,10 @@
         }
       });
 
+      els.contractAddress.value = localStorage.getItem(CONTRACT_ADDRESS_KEY) ?? "";
+      els.contractAddress.addEventListener("change", () => {
+        localStorage.setItem(CONTRACT_ADDRESS_KEY, els.contractAddress.value.trim());
+      });
       updateRoundUI();
       renderRoutine();
       setControls(false);
