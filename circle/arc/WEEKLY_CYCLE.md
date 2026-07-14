@@ -42,7 +42,7 @@ $env:PORT="4174"; npm.cmd run cycle:today
 $env:PORT="4174"; npm.cmd run start-deployer
 ```
 
-The checklist changes slightly by date. It rotates small amounts, swap direction, bridge destination, raw CCTP destination, issued token, Dev Wallet amount, memo receipt amount, batch payout rows, ArcInvoice amount, token allowance amount, delegated transfer amount, ArcEscrow amount, escrow settlement outcome, ArcSubscription price/cadence, ArcMembership pass price/renewal days, ArcSavingsVault goal/deposit/withdraw amounts, ArcPoll vote choices/reasons, ArcAirdrop campaign allocations, ArcBounty rewards/submissions, ArcMilestone funding/submissions, ArcExpense contribution/withdraw amounts, ArcEvent ticket pricing/supply, ArcMarketplace order pricing/fulfillment, ArcService booking pricing/completion, ArcDonation campaign goals/messages, ArcPreorder pricing/fulfillment, ArcPayroll claim receipts, ArcRefundableDeposit outcomes, ArcInstallment staged payments, ArcVesting unlock claims, ArcGiftCard voucher redemptions, ArcReward claim receipts, ArcCoupon claim receipts, ArcReferral claim receipts, ArcCashback claim receipts, ArcAuction bid receipts, ArcRental deposit returns, zero-value ArcWarranty claim receipts, zero-value ArcSupport ticket receipts, and zero-value ArcAccess approval receipts.
+The checklist changes slightly by date. It rotates small amounts, swap direction, bridge destination, raw CCTP destination, issued token, Dev Wallet amount, memo receipt amount, batch payout rows, ArcInvoice amount, token allowance amount, delegated transfer amount, ArcEscrow amount, escrow settlement outcome, ArcEscrow dispute evidence/resolution, ArcSubscription price/cadence, ArcMembership pass price/renewal days, ArcSavingsVault goal/deposit/withdraw amounts, ArcPoll vote choices/reasons, ArcAirdrop campaign allocations, ArcBounty rewards/submissions, ArcMilestone funding/submissions, ArcExpense contribution/withdraw amounts, ArcEvent ticket pricing/supply, ArcMarketplace order pricing/fulfillment, ArcService booking pricing/completion, ArcDonation campaign goals/messages, ArcPreorder pricing/fulfillment, ArcPayroll claim receipts, ArcRefundableDeposit outcomes, ArcInstallment staged payments, ArcVesting unlock claims, ArcGiftCard voucher redemptions, ArcReward claim receipts, ArcCoupon claim receipts, ArcReferral claim receipts, ArcCashback claim receipts, ArcAuction bid receipts, ArcRental deposit returns, zero-value ArcWarranty claim receipts, zero-value ArcSupport ticket receipts, and zero-value ArcAccess approval receipts.
 
 Fast order:
 
@@ -63,6 +63,9 @@ Fast order:
 14. Issued Token Revoke: revoke the same spender by approving `0`.
 15. ArcEscrow Fund: create a draft, fund it with native USDC, and save the funding tx.
 16. ArcEscrow Settle: release or refund the funded escrow according to the printed outcome.
+16A. ArcEscrow Dispute Fund: create a separate small escrow for the dispute path.
+16B. ArcEscrow Open Dispute + Evidence: open the dispute, then submit evidence.
+16C. ArcEscrow Resolve Dispute: resolve the disputed escrow to seller release or buyer refund.
 17. ArcSubscription Plan: create a native-USDC subscription plan.
 18. ArcSubscription Subscribe: pay for the printed number of cycles.
 19. ArcSubscription Cancel: cancel the active subscription.

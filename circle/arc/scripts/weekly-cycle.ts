@@ -105,6 +105,10 @@ type ProductPlan = {
   invoiceAmount: string;
   escrowAmount: string;
   escrowOutcome: "release" | "refund";
+  escrowDisputeAmount: string;
+  escrowDisputeOutcome: "release" | "refund";
+  escrowDisputeEvidence: string;
+  escrowDisputeResolution: string;
   subscriptionPrice: string;
   subscriptionPeriodDays: string;
   subscriptionCycles: string;
@@ -309,6 +313,10 @@ const productPlans: ProductPlan[] = [
     invoiceAmount: "0.01",
     escrowAmount: "0.004",
     escrowOutcome: "release",
+    escrowDisputeAmount: "0.0015",
+    escrowDisputeOutcome: "refund",
+    escrowDisputeEvidence: "evidence-weekly-delivery-mismatch",
+    escrowDisputeResolution: "resolved-weekly-refund",
     subscriptionPrice: "0.003",
     subscriptionPeriodDays: "7",
     subscriptionCycles: "1",
@@ -389,6 +397,10 @@ const productPlans: ProductPlan[] = [
     invoiceAmount: "0.02",
     escrowAmount: "0.005",
     escrowOutcome: "refund",
+    escrowDisputeAmount: "0.0016",
+    escrowDisputeOutcome: "release",
+    escrowDisputeEvidence: "evidence-product-completion",
+    escrowDisputeResolution: "resolved-product-release",
     subscriptionPrice: "0.004",
     subscriptionPeriodDays: "14",
     subscriptionCycles: "1",
@@ -469,6 +481,10 @@ const productPlans: ProductPlan[] = [
     invoiceAmount: "0.01",
     escrowAmount: "0.006",
     escrowOutcome: "release",
+    escrowDisputeAmount: "0.0017",
+    escrowDisputeOutcome: "refund",
+    escrowDisputeEvidence: "evidence-ops-refund-check",
+    escrowDisputeResolution: "resolved-ops-refund",
     subscriptionPrice: "0.005",
     subscriptionPeriodDays: "7",
     subscriptionCycles: "2",
@@ -549,6 +565,10 @@ const productPlans: ProductPlan[] = [
     invoiceAmount: "0.03",
     escrowAmount: "0.007",
     escrowOutcome: "refund",
+    escrowDisputeAmount: "0.0018",
+    escrowDisputeOutcome: "release",
+    escrowDisputeEvidence: "evidence-alt-service-accepted",
+    escrowDisputeResolution: "resolved-alt-release",
     subscriptionPrice: "0.006",
     subscriptionPeriodDays: "30",
     subscriptionCycles: "1",
@@ -629,6 +649,10 @@ const productPlans: ProductPlan[] = [
     invoiceAmount: "0.02",
     escrowAmount: "0.008",
     escrowOutcome: "release",
+    escrowDisputeAmount: "0.0019",
+    escrowDisputeOutcome: "refund",
+    escrowDisputeEvidence: "evidence-release-refund-review",
+    escrowDisputeResolution: "resolved-release-refund",
     subscriptionPrice: "0.007",
     subscriptionPeriodDays: "14",
     subscriptionCycles: "2",
@@ -709,6 +733,10 @@ const productPlans: ProductPlan[] = [
     invoiceAmount: "0.01",
     escrowAmount: "0.009",
     escrowOutcome: "refund",
+    escrowDisputeAmount: "0.002",
+    escrowDisputeOutcome: "release",
+    escrowDisputeEvidence: "evidence-abstain-work-accepted",
+    escrowDisputeResolution: "resolved-abstain-release",
     subscriptionPrice: "0.008",
     subscriptionPeriodDays: "7",
     subscriptionCycles: "1",
@@ -789,6 +817,10 @@ const productPlans: ProductPlan[] = [
     invoiceAmount: "0.02",
     escrowAmount: "0.01",
     escrowOutcome: "release",
+    escrowDisputeAmount: "0.0014",
+    escrowDisputeOutcome: "refund",
+    escrowDisputeEvidence: "evidence-final-refund-check",
+    escrowDisputeResolution: "resolved-final-refund",
     subscriptionPrice: "0.009",
     subscriptionPeriodDays: "30",
     subscriptionCycles: "1",
@@ -920,6 +952,10 @@ const memoReference = `arc-receipt-${cycleDate}-v${planIndex + 1}`;
 const invoiceLabel = `Arc Daily Invoice ${cycleDate} v${planIndex + 1}`;
 const cancelInvoiceLabel = `Arc Cancel Invoice ${cycleDate} v${planIndex + 1}`;
 const escrowReference = `arc-escrow-${cycleDate}-v${planIndex + 1}`;
+const escrowDisputeReference = `arc-escrow-dispute-${cycleDate}-v${planIndex + 1}`;
+const escrowDisputeURI = `local:${escrowDisputeReference}:opened`;
+const escrowEvidenceURI = `local:${escrowDisputeReference}:${productPlan.escrowDisputeEvidence}`;
+const escrowResolutionURI = `local:${escrowDisputeReference}:${productPlan.escrowDisputeResolution}`;
 const subscriptionReference = `arc-subscription-${cycleDate}-v${planIndex + 1}`;
 const membershipHandle = `arc-member-${cycleDate}-v${planIndex + 1}`;
 const vaultLabel = `arc-vault-${cycleDate}-v${planIndex + 1}`;
@@ -1175,6 +1211,44 @@ const steps: Step[] = [
       "Click Release or Refund and sign in MetaMask.",
     ],
     proof: "Save releaseEscrow/refundEscrow txHash and final status.",
+  },
+  {
+    title: "16A. ArcEscrow Dispute Fund",
+    url: `${BASE_URL}/public/arc-escrow.html`,
+    fields: [
+      `Contract: ${arcEscrowContract}`,
+      "Requires the newer ArcEscrow deployment with dispute functions.",
+      `Seller: ${circleWalletAddress}`,
+      `Amount: ${productPlan.escrowDisputeAmount} native USDC`,
+      `Reference: ${escrowDisputeReference}`,
+      "Outcome can stay release/refund; dispute resolution uses the field below.",
+      "Create Draft, select it, then click Fund Escrow.",
+    ],
+    proof: "Save createEscrow/fund txHash for the dispute escrow.",
+  },
+  {
+    title: "16B. ArcEscrow Open Dispute + Evidence",
+    url: `${BASE_URL}/public/arc-escrow.html`,
+    fields: [
+      `Select funded escrow: ${escrowDisputeReference}`,
+      `Dispute URI: ${escrowDisputeURI}`,
+      `Evidence URI: ${escrowEvidenceURI}`,
+      "Click Open Dispute, then Submit Evidence after the first tx confirms.",
+    ],
+    proof: "Save openDispute and submitEvidence txHash/explorer links.",
+  },
+  {
+    title: "16C. ArcEscrow Resolve Dispute",
+    url: `${BASE_URL}/public/arc-escrow.html`,
+    fields: [
+      `Select disputed escrow: ${escrowDisputeReference}`,
+      `Resolution action: ${productPlan.escrowDisputeOutcome}`,
+      `Resolution URI: ${escrowResolutionURI}`,
+      productPlan.escrowDisputeOutcome === "release"
+        ? `Resolve Release sends ${productPlan.escrowDisputeAmount} native USDC to seller ${circleWalletAddress}.`
+        : `Resolve Refund returns ${productPlan.escrowDisputeAmount} native USDC to buyer ${metamaskAddress}.`,
+    ],
+    proof: "Save resolveDispute txHash/explorer link and final disputed escrow status.",
   },
   {
     title: "17. ArcSubscription Plan",

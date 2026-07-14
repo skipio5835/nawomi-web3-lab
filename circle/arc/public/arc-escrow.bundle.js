@@ -23985,6 +23985,37 @@ var arcEscrowAbi = [
     type: "function"
   },
   {
+    inputs: [
+      { internalType: "bytes32", name: "escrowId", type: "bytes32" },
+      { internalType: "string", name: "disputeURI", type: "string" }
+    ],
+    name: "openDispute",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "bytes32", name: "escrowId", type: "bytes32" },
+      { internalType: "string", name: "evidenceURI", type: "string" }
+    ],
+    name: "submitEvidence",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "bytes32", name: "escrowId", type: "bytes32" },
+      { internalType: "bool", name: "releaseToSeller", type: "bool" },
+      { internalType: "string", name: "resolutionURI", type: "string" }
+    ],
+    name: "resolveDispute",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
     inputs: [{ internalType: "bytes32", name: "escrowId", type: "bytes32" }],
     name: "getEscrow",
     outputs: [
@@ -23997,6 +24028,25 @@ var arcEscrowAbi = [
           { internalType: "string", name: "metadataURI", type: "string" }
         ],
         internalType: "struct ArcEscrow.Escrow",
+        name: "",
+        type: "tuple"
+      }
+    ],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [{ internalType: "bytes32", name: "escrowId", type: "bytes32" }],
+    name: "getDispute",
+    outputs: [
+      {
+        components: [
+          { internalType: "address", name: "openedBy", type: "address" },
+          { internalType: "string", name: "disputeURI", type: "string" },
+          { internalType: "string", name: "evidenceURI", type: "string" },
+          { internalType: "string", name: "resolutionURI", type: "string" }
+        ],
+        internalType: "struct ArcEscrow.Dispute",
         name: "",
         type: "tuple"
       }
@@ -24030,6 +24080,13 @@ var el = {
   fundEscrow: document.querySelector("#fundEscrow"),
   releaseEscrow: document.querySelector("#releaseEscrow"),
   refundEscrow: document.querySelector("#refundEscrow"),
+  disputeURI: document.querySelector("#disputeURI"),
+  evidenceURI: document.querySelector("#evidenceURI"),
+  resolutionURI: document.querySelector("#resolutionURI"),
+  openDispute: document.querySelector("#openDispute"),
+  submitEvidence: document.querySelector("#submitEvidence"),
+  resolveDisputeRelease: document.querySelector("#resolveDisputeRelease"),
+  resolveDisputeRefund: document.querySelector("#resolveDisputeRefund"),
   refreshSelected: document.querySelector("#refreshSelected"),
   escrowRows: document.querySelector("#escrowRows"),
   selectedStatus: document.querySelector("#selectedStatus"),
@@ -24040,6 +24097,9 @@ el.contractAddress.value = contractAddress;
 el.seller.value = CIRCLE_WALLET;
 el.amount.value = "0.004";
 el.reference.value = `arc-escrow-${(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)}`;
+el.disputeURI.value = `local:dispute:${(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)}`;
+el.evidenceURI.value = `local:evidence:${(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)}`;
+el.resolutionURI.value = `local:resolution:${(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)}`;
 function loadRecords() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return [];
@@ -24201,6 +24261,9 @@ function renderReceipt() {
   const contract = record.contractAddress ?? contractAddress;
   const funding = record.fundingTxHash ? `<a href="${txUrl(record.fundingTxHash)}" target="_blank" rel="noreferrer">${shortHash(record.fundingTxHash)}</a>` : "-";
   const settlement = record.settlementTxHash ? `<a href="${txUrl(record.settlementTxHash)}" target="_blank" rel="noreferrer">${shortHash(record.settlementTxHash)}</a>` : "-";
+  const dispute = record.disputeTxHash ? `<a href="${txUrl(record.disputeTxHash)}" target="_blank" rel="noreferrer">${shortHash(record.disputeTxHash)}</a>` : "-";
+  const evidence = record.evidenceTxHash ? `<a href="${txUrl(record.evidenceTxHash)}" target="_blank" rel="noreferrer">${shortHash(record.evidenceTxHash)}</a>` : "-";
+  const resolution = record.resolutionTxHash ? `<a href="${txUrl(record.resolutionTxHash)}" target="_blank" rel="noreferrer">${shortHash(record.resolutionTxHash)}</a>` : "-";
   const contractLink = contract ? `<a href="${addressUrl(contract)}" target="_blank" rel="noreferrer">${shortHash(contract)}</a>` : "-";
   el.selectedStatus.className = statusClass(record.status);
   el.selectedStatus.textContent = statusLabel(record.status);
@@ -24211,7 +24274,13 @@ function renderReceipt() {
     receiptField("Amount", `${escapeHtml(record.amount)} USDC`),
     receiptField("Outcome", escapeHtml(record.outcome)),
     receiptField("Fund tx", funding),
+    receiptField("Dispute tx", dispute),
+    receiptField("Evidence tx", evidence),
+    receiptField("Resolve tx", resolution),
     receiptField("Settle tx", settlement),
+    receiptField("Dispute URI", escapeHtml(record.disputeURI ?? "-")),
+    receiptField("Evidence URI", escapeHtml(record.evidenceURI ?? "-")),
+    receiptField("Resolution URI", escapeHtml(record.resolutionURI ?? "-")),
     receiptField("Metadata", escapeHtml(record.metadataURI))
   ].join("");
 }
@@ -24225,6 +24294,10 @@ function updateActions() {
   el.fundEscrow.disabled = !hasWallet || !hasContract || !record || record.status !== "draft";
   el.releaseEscrow.disabled = !hasWallet || !hasContract || !record || record.status !== "funded";
   el.refundEscrow.disabled = !hasWallet || !hasContract || !record || record.status !== "funded";
+  el.openDispute.disabled = !hasWallet || !hasContract || !record || record.status !== "funded";
+  el.submitEvidence.disabled = !hasWallet || !hasContract || !record || record.status !== "disputed";
+  el.resolveDisputeRelease.disabled = !hasWallet || !hasContract || !record || record.status !== "disputed";
+  el.resolveDisputeRefund.disabled = !hasWallet || !hasContract || !record || record.status !== "disputed";
   el.refreshSelected.disabled = !hasContract || !record;
 }
 function render() {
@@ -24325,6 +24398,7 @@ function statusFromChain(value) {
   if (value === 1) return "funded";
   if (value === 2) return "released";
   if (value === 3) return "refunded";
+  if (value === 4) return "disputed";
   return "draft";
 }
 async function refreshSelected() {
@@ -24342,6 +24416,20 @@ async function refreshSelected() {
     const rawStatus = Array.isArray(chainValue) ? chainValue[3] : chainValue.status;
     const status = statusFromChain(Number(rawStatus ?? 0));
     record.status = status;
+    try {
+      const disputeRecord = await publicClient.readContract({
+        address: contractAddress,
+        abi: arcEscrowAbi,
+        functionName: "getDispute",
+        args: [record.escrowId]
+      });
+      const disputeObject = disputeRecord;
+      const disputeTuple = disputeRecord;
+      record.disputeURI = disputeObject.disputeURI ?? disputeTuple[1];
+      record.evidenceURI = disputeObject.evidenceURI ?? disputeTuple[2];
+      record.resolutionURI = disputeObject.resolutionURI ?? disputeTuple[3];
+    } catch {
+    }
     record.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
     saveRecords();
     render();
@@ -24412,6 +24500,110 @@ async function settleEscrow(outcome) {
     updateActions();
   }
 }
+async function openDispute() {
+  const record = selectedRecord();
+  if (!record || !walletClient || !account || !contractAddress) return;
+  const disputeURI = el.disputeURI.value.trim();
+  if (!disputeURI) {
+    setStatus("Dispute URI is required.");
+    return;
+  }
+  try {
+    el.openDispute.disabled = true;
+    setStatus("Opening escrow dispute...");
+    const hash3 = await walletClient.writeContract({
+      address: contractAddress,
+      abi: arcEscrowAbi,
+      functionName: "openDispute",
+      args: [record.escrowId, disputeURI],
+      account,
+      chain: arcTestnet
+    });
+    setStatus(`Dispute submitted: ${hash3}`);
+    await publicClient.waitForTransactionReceipt({ hash: hash3 });
+    record.status = "disputed";
+    record.disputeURI = disputeURI;
+    record.disputeTxHash = hash3;
+    record.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+    saveRecords();
+    render();
+    setStatus(`Escrow dispute opened: ${hash3}`);
+  } catch (error) {
+    setStatus(errorMessage(error));
+  } finally {
+    updateActions();
+  }
+}
+async function submitEvidence() {
+  const record = selectedRecord();
+  if (!record || !walletClient || !account || !contractAddress) return;
+  const evidenceURI = el.evidenceURI.value.trim();
+  if (!evidenceURI) {
+    setStatus("Evidence URI is required.");
+    return;
+  }
+  try {
+    el.submitEvidence.disabled = true;
+    setStatus("Submitting escrow evidence...");
+    const hash3 = await walletClient.writeContract({
+      address: contractAddress,
+      abi: arcEscrowAbi,
+      functionName: "submitEvidence",
+      args: [record.escrowId, evidenceURI],
+      account,
+      chain: arcTestnet
+    });
+    setStatus(`Evidence submitted: ${hash3}`);
+    await publicClient.waitForTransactionReceipt({ hash: hash3 });
+    record.evidenceURI = evidenceURI;
+    record.evidenceTxHash = hash3;
+    record.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+    saveRecords();
+    render();
+    setStatus(`Escrow evidence saved: ${hash3}`);
+  } catch (error) {
+    setStatus(errorMessage(error));
+  } finally {
+    updateActions();
+  }
+}
+async function resolveDispute(releaseToSeller) {
+  const record = selectedRecord();
+  if (!record || !walletClient || !account || !contractAddress) return;
+  const resolutionURI = el.resolutionURI.value.trim();
+  if (!resolutionURI) {
+    setStatus("Resolution URI is required.");
+    return;
+  }
+  try {
+    el.resolveDisputeRelease.disabled = true;
+    el.resolveDisputeRefund.disabled = true;
+    setStatus(`Resolving dispute with ${releaseToSeller ? "seller release" : "buyer refund"}...`);
+    const hash3 = await walletClient.writeContract({
+      address: contractAddress,
+      abi: arcEscrowAbi,
+      functionName: "resolveDispute",
+      args: [record.escrowId, releaseToSeller, resolutionURI],
+      account,
+      chain: arcTestnet
+    });
+    setStatus(`Dispute resolution submitted: ${hash3}`);
+    await publicClient.waitForTransactionReceipt({ hash: hash3 });
+    record.status = releaseToSeller ? "released" : "refunded";
+    record.resolutionURI = resolutionURI;
+    record.resolutionTxHash = hash3;
+    record.settlementTxHash = hash3;
+    record.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+    saveRecords();
+    await refreshBalance();
+    render();
+    setStatus(`Escrow dispute resolved: ${hash3}`);
+  } catch (error) {
+    setStatus(errorMessage(error));
+  } finally {
+    updateActions();
+  }
+}
 el.connect.addEventListener("click", () => void connect());
 el.deployContract.addEventListener("click", () => void deployContract2());
 el.saveContract.addEventListener("click", saveContract);
@@ -24419,6 +24611,10 @@ el.createDraft.addEventListener("click", createDraft);
 el.fundEscrow.addEventListener("click", () => void fundEscrow());
 el.releaseEscrow.addEventListener("click", () => void settleEscrow("release"));
 el.refundEscrow.addEventListener("click", () => void settleEscrow("refund"));
+el.openDispute.addEventListener("click", () => void openDispute());
+el.submitEvidence.addEventListener("click", () => void submitEvidence());
+el.resolveDisputeRelease.addEventListener("click", () => void resolveDispute(true));
+el.resolveDisputeRefund.addEventListener("click", () => void resolveDispute(false));
 el.refreshSelected.addEventListener("click", () => void refreshSelected());
 el.contractAddress.addEventListener("input", updateActions);
 render();

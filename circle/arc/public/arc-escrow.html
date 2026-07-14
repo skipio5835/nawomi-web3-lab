@@ -279,6 +279,11 @@
         color: #80560b;
       }
 
+      .status.disputed {
+        background: #fff1f0;
+        color: #a61b14;
+      }
+
       dl {
         margin: 0;
         display: grid;
@@ -441,6 +446,26 @@
               </div>
             </div>
             <div class="panel-body">
+              <div class="fields">
+                <label class="wide">
+                  Dispute URI
+                  <input id="disputeURI" />
+                </label>
+                <label class="wide">
+                  Evidence URI
+                  <input id="evidenceURI" />
+                </label>
+                <label class="wide">
+                  Resolution URI
+                  <input id="resolutionURI" />
+                </label>
+              </div>
+              <div class="actions">
+                <button id="openDispute" class="danger" type="button" disabled>Open Dispute</button>
+                <button id="submitEvidence" class="secondary" type="button" disabled>Submit Evidence</button>
+                <button id="resolveDisputeRelease" class="secondary" type="button" disabled>Resolve Release</button>
+                <button id="resolveDisputeRefund" class="warn" type="button" disabled>Resolve Refund</button>
+              </div>
               <dl id="receipt"></dl>
               <p id="statusLine"></p>
             </div>

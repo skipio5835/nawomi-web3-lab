@@ -141,6 +141,7 @@ const contractsToCompile = [
   { sourceName: "contracts/ProofToken.sol", filePath: "circle/arc/contracts/ProofToken.sol", name: "ProofToken" },
   { sourceName: "contracts/BaseActivityToken.sol", filePath: "base/contracts/BaseActivityToken.sol", name: "BaseActivityToken" },
   { sourceName: "src/BaseActivityPing.sol", filePath: "src/BaseActivityPing.sol", name: "BaseActivityPing" },
+  { sourceName: "src/BaseActivityPingV2.sol", filePath: "src/BaseActivityPingV2.sol", name: "BaseActivityPingV2" },
 ] as const;
 
 function findImports(importPath: string): { contents?: string; error?: string } {

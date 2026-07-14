@@ -416,7 +416,7 @@
           </div>
           <div class="metric">
             <span class="subtle">Round</span>
-            <strong id="roundCount">0/20</strong>
+            <strong id="roundCount">0/64</strong>
           </div>
         </div>
         <progress id="goalProgress" max="1000" value="0"></progress>
@@ -439,7 +439,7 @@
         <div class="grid">
           <label>
             Empty Contract Calls
-            <input id="routineCallCount" type="number" min="4" max="20" step="1" value="12" />
+            <input id="routineCallCount" type="number" min="4" max="64" step="1" value="16" />
           </label>
           <label class="checkline">
             <input id="includeLoggedCalls" type="checkbox" />
@@ -598,6 +598,50 @@
         "cycle",
         "anchor",
         "attest",
+        "sync",
+        "shift",
+        "route",
+        "track",
+        "point",
+        "watch",
+        "guard",
+        "seal",
+        "frame",
+        "flash",
+        "spark",
+        "stream",
+        "flow",
+        "relay",
+        "pathway",
+        "align",
+        "focus",
+        "scan",
+        "mesh",
+        "grid",
+        "field",
+        "proof",
+        "cursor",
+        "marker",
+        "sample",
+        "record",
+        "mirror",
+        "channel",
+        "motion",
+        "vector",
+        "packet",
+        "ledger",
+        "signalA",
+        "signalB",
+        "signalC",
+        "touchA",
+        "pulseA",
+        "anchorA",
+        "attestA",
+        "pingA",
+        "checkA",
+        "markA",
+        "traceA",
+        "probeA",
       ];
 
       const ACTIVITY_ABI = [
@@ -828,7 +872,7 @@
       }
 
       function generateRoutine() {
-        const count = clamp(Number(els.routineCallCount.value || "12"), 4, ACTIVITY_FUNCTIONS.length);
+        const count = clamp(Number(els.routineCallCount.value || "16"), 4, ACTIVITY_FUNCTIONS.length);
         els.routineCallCount.value = String(count);
         const selected = shuffle(ACTIVITY_FUNCTIONS).slice(0, count);
         const items = selected.map((name) =>
