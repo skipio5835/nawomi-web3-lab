@@ -203,7 +203,7 @@
 
       .metrics {
         display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-columns: repeat(6, minmax(0, 1fr));
         gap: 10px;
       }
 
@@ -289,6 +289,10 @@
         <div class="metric">
           <span>Provider</span>
           <strong id="providerAddress">-</strong>
+        </div>
+        <div class="metric">
+          <span>Work order</span>
+          <strong id="workOrderStatus">none</strong>
         </div>
       </section>
 
@@ -378,11 +382,56 @@
 
           <section class="panel">
             <div class="panel-head">
-              <h2>Receipt</h2>
-              <span class="pill">service id</span>
+              <h2>Work Order</h2>
+              <button id="refreshWorkOrder" class="secondary" type="button" disabled>Refresh Work Order</button>
             </div>
             <div class="panel-body">
+              <div class="fields">
+                <label class="wide">
+                  Work title
+                  <input id="workTitle" />
+                </label>
+                <label>
+                  Worker
+                  <input id="worker" />
+                </label>
+                <label>
+                  Amount
+                  <input id="workAmount" inputmode="decimal" />
+                </label>
+                <label class="wide">
+                  Brief URI
+                  <input id="briefURI" />
+                </label>
+                <label class="wide">
+                  Submission URI
+                  <input id="submissionURI" />
+                </label>
+                <label class="wide">
+                  Approval URI
+                  <input id="approvalURI" />
+                </label>
+              </div>
+              <div class="actions">
+                <button id="createWorkOrder" type="button" disabled>Create Work Order</button>
+                <button id="acceptWorkOrder" class="secondary" type="button" disabled>Accept</button>
+                <button id="submitWorkOrder" class="secondary" type="button" disabled>Submit</button>
+                <button id="approveWorkOrder" class="warn" type="button" disabled>Approve Payout</button>
+                <button id="refundWorkOrder" class="danger" type="button" disabled>Refund Work Order</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Receipt</h2>
+              <span class="pill">ids</span>
+            </div>
+            <div class="panel-body">
+              <p>Service ID</p>
               <code id="serviceId">-</code>
+              <p>Work Order ID</p>
+              <code id="workOrderId">-</code>
               <p>Booking ID: <strong id="bookingId">-</strong></p>
               <p id="statusLine"></p>
             </div>

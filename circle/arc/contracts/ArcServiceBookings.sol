@@ -2,6 +2,15 @@
 pragma solidity ^0.8.24;
 
 contract ArcServiceBookings {
+    enum WorkOrderStatus {
+        None,
+        Created,
+        Accepted,
+        Submitted,
+        Approved,
+        Refunded
+    }
+
     struct Service {
         address provider;
         address treasury;
@@ -26,9 +35,21 @@ contract ArcServiceBookings {
         string completionURI;
     }
 
+    struct WorkOrder {
+        address client;
+        address worker;
+        uint256 amount;
+        WorkOrderStatus status;
+        string title;
+        string briefURI;
+        string submissionURI;
+        string approvalURI;
+    }
+
     mapping(bytes32 serviceId => Service service) private _services;
     mapping(bytes32 serviceId => mapping(uint256 bookingId => Booking booking)) private _bookings;
     mapping(bytes32 serviceId => mapping(address client => uint256 bookingId)) private _bookingOf;
+    mapping(bytes32 workOrderId => WorkOrder workOrder) private _workOrders;
 
     event ServiceCreated(
         bytes32 indexed serviceId,
@@ -43,6 +64,24 @@ contract ArcServiceBookings {
     event BookingCompleted(bytes32 indexed serviceId, uint256 indexed bookingId, address indexed client, string completionURI);
     event BookingRefunded(bytes32 indexed serviceId, uint256 indexed bookingId, address indexed client, uint256 amount);
     event ServiceSettled(bytes32 indexed serviceId, address indexed provider, address indexed to, uint256 amount);
+    event WorkOrderCreated(
+        bytes32 indexed workOrderId,
+        address indexed client,
+        address indexed worker,
+        uint256 amount,
+        string title,
+        string briefURI
+    );
+    event WorkOrderAccepted(bytes32 indexed workOrderId, address indexed worker);
+    event WorkOrderSubmitted(bytes32 indexed workOrderId, address indexed worker, string submissionURI);
+    event WorkOrderApproved(
+        bytes32 indexed workOrderId,
+        address indexed client,
+        address indexed payoutTo,
+        uint256 amount,
+        string approvalURI
+    );
+    event WorkOrderRefunded(bytes32 indexed workOrderId, address indexed refundTo, uint256 amount);
 
     error BookingAlreadyExists(address client);
     error BookingCompletedAlready(uint256 bookingId);
@@ -57,6 +96,9 @@ contract ArcServiceBookings {
     error ServiceMissing(bytes32 serviceId);
     error TransferFailed();
     error Unauthorized();
+    error WorkOrderAlreadyExists(bytes32 workOrderId);
+    error WorkOrderMissing(bytes32 workOrderId);
+    error WorkOrderWrongStatus(bytes32 workOrderId);
 
     function createService(
         bytes32 serviceId,
@@ -162,6 +204,89 @@ contract ArcServiceBookings {
         service.active = false;
     }
 
+    function createWorkOrder(
+        bytes32 workOrderId,
+        address worker,
+        string calldata title,
+        string calldata briefURI
+    ) external payable {
+        if (_workOrders[workOrderId].client != address(0)) revert WorkOrderAlreadyExists(workOrderId);
+        if (worker == address(0)) revert InvalidAddress();
+        if (msg.value == 0) revert InvalidAmount();
+        if (bytes(title).length == 0 || bytes(briefURI).length == 0) revert InvalidText();
+
+        _workOrders[workOrderId] = WorkOrder({
+            client: msg.sender,
+            worker: worker,
+            amount: msg.value,
+            status: WorkOrderStatus.Created,
+            title: title,
+            briefURI: briefURI,
+            submissionURI: "",
+            approvalURI: ""
+        });
+
+        emit WorkOrderCreated(workOrderId, msg.sender, worker, msg.value, title, briefURI);
+    }
+
+    function acceptWorkOrder(bytes32 workOrderId) external {
+        WorkOrder storage order = _requireWorkOrder(workOrderId);
+        if (msg.sender != order.worker) revert Unauthorized();
+        if (order.status != WorkOrderStatus.Created) revert WorkOrderWrongStatus(workOrderId);
+
+        order.status = WorkOrderStatus.Accepted;
+
+        emit WorkOrderAccepted(workOrderId, msg.sender);
+    }
+
+    function submitWorkOrder(bytes32 workOrderId, string calldata submissionURI) external {
+        WorkOrder storage order = _requireWorkOrder(workOrderId);
+        if (msg.sender != order.worker) revert Unauthorized();
+        if (order.status != WorkOrderStatus.Accepted) revert WorkOrderWrongStatus(workOrderId);
+        if (bytes(submissionURI).length == 0) revert InvalidText();
+
+        order.status = WorkOrderStatus.Submitted;
+        order.submissionURI = submissionURI;
+
+        emit WorkOrderSubmitted(workOrderId, msg.sender, submissionURI);
+    }
+
+    function approveWorkOrder(
+        bytes32 workOrderId,
+        address payable payoutTo,
+        string calldata approvalURI
+    ) external {
+        WorkOrder storage order = _requireWorkOrder(workOrderId);
+        if (msg.sender != order.client) revert Unauthorized();
+        if (order.status != WorkOrderStatus.Submitted) revert WorkOrderWrongStatus(workOrderId);
+        if (payoutTo == address(0)) revert InvalidAddress();
+        if (bytes(approvalURI).length == 0) revert InvalidText();
+
+        order.status = WorkOrderStatus.Approved;
+        order.approvalURI = approvalURI;
+        _sendValue(payoutTo, order.amount);
+
+        emit WorkOrderApproved(workOrderId, msg.sender, payoutTo, order.amount, approvalURI);
+    }
+
+    function refundWorkOrder(bytes32 workOrderId, address payable refundTo) external {
+        WorkOrder storage order = _requireWorkOrder(workOrderId);
+        if (msg.sender != order.client && msg.sender != order.worker) revert Unauthorized();
+        if (
+            order.status != WorkOrderStatus.Created
+                && order.status != WorkOrderStatus.Accepted
+                && order.status != WorkOrderStatus.Submitted
+        ) {
+            revert WorkOrderWrongStatus(workOrderId);
+        }
+        if (refundTo == address(0)) revert InvalidAddress();
+
+        order.status = WorkOrderStatus.Refunded;
+        _sendValue(refundTo, order.amount);
+
+        emit WorkOrderRefunded(workOrderId, refundTo, order.amount);
+    }
+
     function getService(bytes32 serviceId) external view returns (Service memory) {
         return _services[serviceId];
     }
@@ -172,6 +297,10 @@ contract ArcServiceBookings {
 
     function getBookingOf(bytes32 serviceId, address client) external view returns (uint256) {
         return _bookingOf[serviceId][client];
+    }
+
+    function getWorkOrder(bytes32 workOrderId) external view returns (WorkOrder memory) {
+        return _workOrders[workOrderId];
     }
 
     function _requireService(bytes32 serviceId) private view returns (Service storage service) {
@@ -187,6 +316,11 @@ contract ArcServiceBookings {
     function _requireBooking(bytes32 serviceId, uint256 bookingId) private view returns (Booking storage booking) {
         booking = _bookings[serviceId][bookingId];
         if (booking.client == address(0)) revert BookingMissing(bookingId);
+    }
+
+    function _requireWorkOrder(bytes32 workOrderId) private view returns (WorkOrder storage order) {
+        order = _workOrders[workOrderId];
+        if (order.client == address(0)) revert WorkOrderMissing(workOrderId);
     }
 
     function _sendValue(address to, uint256 amount) private {

@@ -51,6 +51,19 @@ type BookingSummary = {
   completionURI: string;
 };
 
+type WorkOrderStatus = "none" | "created" | "accepted" | "submitted" | "approved" | "refunded";
+
+type WorkOrderSummary = {
+  client: Address;
+  worker: Address;
+  amount: bigint;
+  status: number;
+  title: string;
+  briefURI: string;
+  submissionURI: string;
+  approvalURI: string;
+};
+
 const ARC_TESTNET = {
   chainId: "0x4cef52",
   chainName: "Arc Testnet",
@@ -126,6 +139,56 @@ const arcServiceBookingsAbi = [
     type: "function",
   },
   {
+    inputs: [
+      { internalType: "bytes32", name: "workOrderId", type: "bytes32" },
+      { internalType: "address", name: "worker", type: "address" },
+      { internalType: "string", name: "title", type: "string" },
+      { internalType: "string", name: "briefURI", type: "string" },
+    ],
+    name: "createWorkOrder",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "bytes32", name: "workOrderId", type: "bytes32" }],
+    name: "acceptWorkOrder",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "bytes32", name: "workOrderId", type: "bytes32" },
+      { internalType: "string", name: "submissionURI", type: "string" },
+    ],
+    name: "submitWorkOrder",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "bytes32", name: "workOrderId", type: "bytes32" },
+      { internalType: "address payable", name: "payoutTo", type: "address" },
+      { internalType: "string", name: "approvalURI", type: "string" },
+    ],
+    name: "approveWorkOrder",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "bytes32", name: "workOrderId", type: "bytes32" },
+      { internalType: "address payable", name: "refundTo", type: "address" },
+    ],
+    name: "refundWorkOrder",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [{ internalType: "bytes32", name: "serviceId", type: "bytes32" }],
     name: "getService",
     outputs: [
@@ -186,6 +249,29 @@ const arcServiceBookingsAbi = [
     stateMutability: "view",
     type: "function",
   },
+  {
+    inputs: [{ internalType: "bytes32", name: "workOrderId", type: "bytes32" }],
+    name: "getWorkOrder",
+    outputs: [
+      {
+        components: [
+          { internalType: "address", name: "client", type: "address" },
+          { internalType: "address", name: "worker", type: "address" },
+          { internalType: "uint256", name: "amount", type: "uint256" },
+          { internalType: "enum ArcServiceBookings.WorkOrderStatus", name: "status", type: "uint8" },
+          { internalType: "string", name: "title", type: "string" },
+          { internalType: "string", name: "briefURI", type: "string" },
+          { internalType: "string", name: "submissionURI", type: "string" },
+          { internalType: "string", name: "approvalURI", type: "string" },
+        ],
+        internalType: "struct ArcServiceBookings.WorkOrder",
+        name: "",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
 ] as const;
 
 const publicClient = createPublicClient({
@@ -200,15 +286,21 @@ let contractAddress = (localStorage.getItem(CONTRACT_KEY) ?? "") as Address | ""
 let currentService: ServiceSummary | null = null;
 let currentBooking: BookingSummary | null = null;
 let currentBookingId = 0n;
+let currentWorkOrder: WorkOrderSummary | null = null;
 
 const el = {
   buyBooking: document.querySelector<HTMLButtonElement>("#buyBooking")!,
+  acceptWorkOrder: document.querySelector<HTMLButtonElement>("#acceptWorkOrder")!,
+  approveWorkOrder: document.querySelector<HTMLButtonElement>("#approveWorkOrder")!,
+  briefURI: document.querySelector<HTMLInputElement>("#briefURI")!,
   connect: document.querySelector<HTMLButtonElement>("#connect")!,
   contractAddress: document.querySelector<HTMLInputElement>("#contractAddress")!,
   createService: document.querySelector<HTMLButtonElement>("#createService")!,
+  createWorkOrder: document.querySelector<HTMLButtonElement>("#createWorkOrder")!,
   deployContract: document.querySelector<HTMLButtonElement>("#deployContract")!,
   completeBooking: document.querySelector<HTMLButtonElement>("#completeBooking")!,
   completionURI: document.querySelector<HTMLInputElement>("#completionURI")!,
+  approvalURI: document.querySelector<HTMLInputElement>("#approvalURI")!,
   serviceId: document.querySelector<HTMLElement>("#serviceId")!,
   serviceStatus: document.querySelector<HTMLElement>("#serviceStatus")!,
   maxBookings: document.querySelector<HTMLInputElement>("#maxBookings")!,
@@ -220,18 +312,29 @@ const el = {
   refresh: document.querySelector<HTMLButtonElement>("#refresh")!,
   refundBooking: document.querySelector<HTMLButtonElement>("#refundBooking")!,
   refundTo: document.querySelector<HTMLInputElement>("#refundTo")!,
+  refundWorkOrder: document.querySelector<HTMLButtonElement>("#refundWorkOrder")!,
+  refreshWorkOrder: document.querySelector<HTMLButtonElement>("#refreshWorkOrder")!,
   saveContract: document.querySelector<HTMLButtonElement>("#saveContract")!,
   providerAddress: document.querySelector<HTMLElement>("#providerAddress")!,
   settleService: document.querySelector<HTMLButtonElement>("#settleService")!,
   settlementTo: document.querySelector<HTMLInputElement>("#settlementTo")!,
   statusLine: document.querySelector<HTMLElement>("#statusLine")!,
+  submitWorkOrder: document.querySelector<HTMLButtonElement>("#submitWorkOrder")!,
+  submissionURI: document.querySelector<HTMLInputElement>("#submissionURI")!,
   supplyStatus: document.querySelector<HTMLElement>("#supplyStatus")!,
   title: document.querySelector<HTMLInputElement>("#title")!,
   treasury: document.querySelector<HTMLInputElement>("#treasury")!,
   walletAddress: document.querySelector<HTMLElement>("#walletAddress")!,
+  workAmount: document.querySelector<HTMLInputElement>("#workAmount")!,
+  worker: document.querySelector<HTMLInputElement>("#worker")!,
+  workOrderId: document.querySelector<HTMLElement>("#workOrderId")!,
+  workOrderStatus: document.querySelector<HTMLElement>("#workOrderStatus")!,
+  workTitle: document.querySelector<HTMLInputElement>("#workTitle")!,
 };
 
 const today = new Date().toISOString().slice(0, 10);
+el.approvalURI.value = `local:arc-work-order-${today}:approved`;
+el.briefURI.value = `local:arc-work-order-${today}:brief`;
 el.contractAddress.value = contractAddress;
 el.completionURI.value = `local:arc-service-booking-${today}:completed`;
 el.maxBookings.value = "5";
@@ -239,8 +342,12 @@ el.metadataURI.value = `local:arc-service-${today}`;
 el.price.value = "0.005";
 el.refundTo.value = DEFAULT_ACCOUNT;
 el.settlementTo.value = DEFAULT_ACCOUNT;
+el.submissionURI.value = `local:arc-work-order-${today}:submitted`;
 el.title.value = `arc-service-${today}`;
 el.treasury.value = DEFAULT_ACCOUNT;
+el.workAmount.value = "0.004";
+el.worker.value = DEFAULT_ACCOUNT;
+el.workTitle.value = `arc-work-order-${today}`;
 
 function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (char) => {
@@ -286,6 +393,22 @@ function serviceId(): Hash {
   return keccak256(toBytes(`${provider}:${title}`));
 }
 
+function workOrderId(): Hash {
+  const title = el.workTitle.value.trim();
+  if (!title) throw new Error("Work title is required.");
+  const client = account?.toLowerCase() ?? DEFAULT_ACCOUNT.toLowerCase();
+  return keccak256(toBytes(`work-order:${client}:${title}`));
+}
+
+function workOrderStatusLabel(status: number): WorkOrderStatus {
+  if (status === 1) return "created";
+  if (status === 2) return "accepted";
+  if (status === 3) return "submitted";
+  if (status === 4) return "approved";
+  if (status === 5) return "refunded";
+  return "none";
+}
+
 function serviceFromRaw(value: unknown): ServiceSummary {
   if (!Array.isArray(value)) {
     const object = value as Partial<ServiceSummary>;
@@ -321,6 +444,33 @@ function serviceFromRaw(value: unknown): ServiceSummary {
   };
 }
 
+function workOrderFromRaw(value: unknown): WorkOrderSummary {
+  if (!Array.isArray(value)) {
+    const object = value as Partial<WorkOrderSummary>;
+    return {
+      client: object.client ?? ZERO_ADDRESS,
+      worker: object.worker ?? ZERO_ADDRESS,
+      amount: object.amount ?? 0n,
+      status: object.status ?? 0,
+      title: object.title ?? "",
+      briefURI: object.briefURI ?? "",
+      submissionURI: object.submissionURI ?? "",
+      approvalURI: object.approvalURI ?? "",
+    };
+  }
+
+  return {
+    client: value[0] as Address,
+    worker: value[1] as Address,
+    amount: value[2] as bigint,
+    status: Number(value[3]),
+    title: value[4] as string,
+    briefURI: value[5] as string,
+    submissionURI: value[6] as string,
+    approvalURI: value[7] as string,
+  };
+}
+
 function bookingFromRaw(value: unknown): BookingSummary {
   if (!Array.isArray(value)) {
     const object = value as Partial<BookingSummary>;
@@ -349,6 +499,12 @@ function updateServiceIdDisplay(): void {
     el.serviceId.textContent = serviceId();
   } catch {
     el.serviceId.textContent = "-";
+  }
+
+  try {
+    el.workOrderId.textContent = workOrderId();
+  } catch {
+    el.workOrderId.textContent = "-";
   }
 }
 
@@ -385,6 +541,21 @@ function renderService(): void {
   updateActions();
 }
 
+function renderWorkOrder(): void {
+  updateServiceIdDisplay();
+
+  if (!currentWorkOrder || currentWorkOrder.client === ZERO_ADDRESS) {
+    el.workOrderStatus.textContent = "none";
+    updateActions();
+    return;
+  }
+
+  el.workOrderStatus.textContent = `${workOrderStatusLabel(currentWorkOrder.status)} / ${formatEther(
+    currentWorkOrder.amount,
+  )} USDC`;
+  updateActions();
+}
+
 function updateActions(): void {
   const hasWallet = Boolean(walletClient && account);
   const hasContract = Boolean(contractAddress && isAddress(contractAddress));
@@ -394,14 +565,22 @@ function updateActions(): void {
   const canComplete = active && hasBooking && !currentBooking?.completed && !currentBooking?.refunded;
   const gross = currentService ? currentService.price * currentService.booked : 0n;
   const available = currentService ? gross - currentService.refunded - currentService.settledAmount : 0n;
+  const workStatus = currentWorkOrder?.status ?? 0;
+  const hasWorkOrder = Boolean(currentWorkOrder && currentWorkOrder.client !== ZERO_ADDRESS);
 
   el.buyBooking.disabled = !hasWallet || !hasContract || !active || hasBooking;
+  el.acceptWorkOrder.disabled = !hasWallet || !hasContract || !hasWorkOrder || workStatus !== 1;
+  el.approveWorkOrder.disabled = !hasWallet || !hasContract || !hasWorkOrder || workStatus !== 3;
   el.createService.disabled = !hasWallet || !hasContract || hasService;
+  el.createWorkOrder.disabled = !hasWallet || !hasContract || hasWorkOrder;
   el.deployContract.disabled = !hasWallet;
   el.completeBooking.disabled = !hasWallet || !hasContract || !canComplete;
   el.refresh.disabled = !hasContract;
   el.refundBooking.disabled = !hasWallet || !hasContract || !active || !hasBooking || Boolean(currentBooking?.completed);
+  el.refreshWorkOrder.disabled = !hasContract;
+  el.refundWorkOrder.disabled = !hasWallet || !hasContract || !hasWorkOrder || workStatus === 4 || workStatus === 5;
   el.settleService.disabled = !hasWallet || !hasContract || !hasService || available === 0n;
+  el.submitWorkOrder.disabled = !hasWallet || !hasContract || !hasWorkOrder || workStatus !== 2;
 }
 
 async function getEthereumProvider(): Promise<EIP1193Provider> {
@@ -476,6 +655,7 @@ async function connect(): Promise<void> {
     el.refundTo.value = account;
     el.settlementTo.value = account;
     el.treasury.value = account;
+    el.worker.value = account;
     el.connect.textContent = "Connected";
     updateServiceIdDisplay();
     await refreshBalance();
@@ -525,7 +705,9 @@ function saveContract(): void {
     currentService = null;
     currentBooking = null;
     currentBookingId = 0n;
+    currentWorkOrder = null;
     renderService();
+    renderWorkOrder();
     setStatus("Contract address cleared.");
     return;
   }
@@ -585,6 +767,28 @@ async function refreshService(): Promise<void> {
   }
 }
 
+async function refreshWorkOrder(): Promise<void> {
+  if (!contractAddress || !isAddress(contractAddress)) {
+    setStatus("Deploy or paste a valid contract address first.");
+    return;
+  }
+
+  try {
+    setStatus("Reading work order state...");
+    const rawWorkOrder = await publicClient.readContract({
+      address: contractAddress,
+      abi: arcServiceBookingsAbi,
+      functionName: "getWorkOrder",
+      args: [workOrderId()],
+    });
+    currentWorkOrder = workOrderFromRaw(rawWorkOrder);
+    renderWorkOrder();
+    setStatus("Work order state refreshed.");
+  } catch (error) {
+    setStatus(errorMessage(error));
+  }
+}
+
 async function createService(): Promise<void> {
   if (!walletClient || !account) await connect();
   if (!walletClient || !account || !contractAddress) return;
@@ -613,6 +817,159 @@ async function createService(): Promise<void> {
     await publicClient.waitForTransactionReceipt({ hash });
     await refreshService();
     setStatus("Service created:", hash);
+  } catch (error) {
+    setStatus(errorMessage(error));
+  } finally {
+    updateActions();
+  }
+}
+
+async function createWorkOrder(): Promise<void> {
+  if (!walletClient || !account) await connect();
+  if (!walletClient || !account || !contractAddress) return;
+
+  try {
+    el.createWorkOrder.disabled = true;
+    const title = el.workTitle.value.trim();
+    const briefURI = el.briefURI.value.trim();
+    const worker = el.worker.value.trim();
+    if (!title) throw new Error("Work title is required.");
+    if (!briefURI) throw new Error("Brief URI is required.");
+    if (!isAddress(worker)) throw new Error("Worker must be a valid EVM address.");
+    const amount = parseEther(el.workAmount.value.trim());
+
+    setStatus("Creating work order...");
+    const hash = await walletClient.writeContract({
+      address: contractAddress,
+      abi: arcServiceBookingsAbi,
+      functionName: "createWorkOrder",
+      args: [workOrderId(), worker as Address, title, briefURI],
+      account,
+      chain: arcTestnet,
+      value: amount,
+    });
+    setStatus("Work order submitted:", hash);
+    await publicClient.waitForTransactionReceipt({ hash });
+    await refreshBalance();
+    await refreshWorkOrder();
+    setStatus("Work order created:", hash);
+  } catch (error) {
+    setStatus(errorMessage(error));
+  } finally {
+    updateActions();
+  }
+}
+
+async function acceptWorkOrder(): Promise<void> {
+  if (!walletClient || !account) await connect();
+  if (!walletClient || !account || !contractAddress) return;
+
+  try {
+    el.acceptWorkOrder.disabled = true;
+    setStatus("Accepting work order...");
+    const hash = await walletClient.writeContract({
+      address: contractAddress,
+      abi: arcServiceBookingsAbi,
+      functionName: "acceptWorkOrder",
+      args: [workOrderId()],
+      account,
+      chain: arcTestnet,
+    });
+    setStatus("Accept submitted:", hash);
+    await publicClient.waitForTransactionReceipt({ hash });
+    await refreshWorkOrder();
+    setStatus("Work order accepted:", hash);
+  } catch (error) {
+    setStatus(errorMessage(error));
+  } finally {
+    updateActions();
+  }
+}
+
+async function submitWorkOrder(): Promise<void> {
+  if (!walletClient || !account) await connect();
+  if (!walletClient || !account || !contractAddress) return;
+
+  try {
+    el.submitWorkOrder.disabled = true;
+    const submissionURI = el.submissionURI.value.trim();
+    if (!submissionURI) throw new Error("Submission URI is required.");
+
+    setStatus("Submitting work order...");
+    const hash = await walletClient.writeContract({
+      address: contractAddress,
+      abi: arcServiceBookingsAbi,
+      functionName: "submitWorkOrder",
+      args: [workOrderId(), submissionURI],
+      account,
+      chain: arcTestnet,
+    });
+    setStatus("Submission tx sent:", hash);
+    await publicClient.waitForTransactionReceipt({ hash });
+    await refreshWorkOrder();
+    setStatus("Work order submitted:", hash);
+  } catch (error) {
+    setStatus(errorMessage(error));
+  } finally {
+    updateActions();
+  }
+}
+
+async function approveWorkOrder(): Promise<void> {
+  if (!walletClient || !account) await connect();
+  if (!walletClient || !account || !contractAddress) return;
+
+  try {
+    el.approveWorkOrder.disabled = true;
+    const payoutTo = el.worker.value.trim();
+    const approvalURI = el.approvalURI.value.trim();
+    if (!isAddress(payoutTo)) throw new Error("Worker/payout address must be a valid EVM address.");
+    if (!approvalURI) throw new Error("Approval URI is required.");
+
+    setStatus("Approving work order payout...");
+    const hash = await walletClient.writeContract({
+      address: contractAddress,
+      abi: arcServiceBookingsAbi,
+      functionName: "approveWorkOrder",
+      args: [workOrderId(), payoutTo as Address, approvalURI],
+      account,
+      chain: arcTestnet,
+    });
+    setStatus("Approval tx sent:", hash);
+    await publicClient.waitForTransactionReceipt({ hash });
+    await refreshBalance();
+    await refreshWorkOrder();
+    setStatus("Work order approved and paid:", hash);
+  } catch (error) {
+    setStatus(errorMessage(error));
+  } finally {
+    updateActions();
+  }
+}
+
+async function refundWorkOrder(): Promise<void> {
+  if (!walletClient || !account) await connect();
+  if (!walletClient || !account || !contractAddress) return;
+
+  try {
+    el.refundWorkOrder.disabled = true;
+    const refundTo = el.refundTo.value.trim();
+    if (!isAddress(refundTo)) throw new Error("Refund address must be a valid EVM address.");
+
+    setStatus("Refunding work order...");
+    const hash = await walletClient.writeContract({
+      address: contractAddress,
+      abi: arcServiceBookingsAbi,
+      functionName: "refundWorkOrder",
+      args: [workOrderId(), refundTo as Address],
+      account,
+      chain: arcTestnet,
+    });
+    setStatus("Work order refund submitted:", hash);
+    await publicClient.waitForTransactionReceipt({ hash });
+    await refreshBalance();
+    await refreshWorkOrder();
+    setStatus("Work order refunded:", hash);
   } catch (error) {
     setStatus(errorMessage(error));
   } finally {
@@ -738,21 +1095,32 @@ async function settleService(): Promise<void> {
 }
 
 el.buyBooking.addEventListener("click", () => void buyBooking());
+el.acceptWorkOrder.addEventListener("click", () => void acceptWorkOrder());
+el.approveWorkOrder.addEventListener("click", () => void approveWorkOrder());
 el.connect.addEventListener("click", () => void connect());
 el.contractAddress.addEventListener("input", updateActions);
 el.createService.addEventListener("click", () => void createService());
+el.createWorkOrder.addEventListener("click", () => void createWorkOrder());
 el.deployContract.addEventListener("click", () => void deployContract());
 el.completeBooking.addEventListener("click", () => void completeBooking());
 el.refresh.addEventListener("click", () => void refreshService());
+el.refreshWorkOrder.addEventListener("click", () => void refreshWorkOrder());
 el.refundBooking.addEventListener("click", () => void refundBooking());
+el.refundWorkOrder.addEventListener("click", () => void refundWorkOrder());
 el.saveContract.addEventListener("click", saveContract);
 el.settleService.addEventListener("click", () => void settleService());
+el.submitWorkOrder.addEventListener("click", () => void submitWorkOrder());
 el.title.addEventListener("input", () => {
   currentService = null;
   currentBooking = null;
   currentBookingId = 0n;
   renderService();
 });
+el.workTitle.addEventListener("input", () => {
+  currentWorkOrder = null;
+  renderWorkOrder();
+});
 
 renderService();
+renderWorkOrder();
 

@@ -140,6 +140,9 @@ type ProductPlan = {
   servicePrice: string;
   serviceMaxBookings: string;
   serviceCompletion: string;
+  workOrderAmount: string;
+  workOrderSubmission: string;
+  workOrderApproval: string;
   donationGoal: string;
   donationAmount: string;
   donationMessage: string;
@@ -348,6 +351,9 @@ const productPlans: ProductPlan[] = [
     servicePrice: "0.0035",
     serviceMaxBookings: "5",
     serviceCompletion: "completed-weekly-service-booking",
+    workOrderAmount: "0.002",
+    workOrderSubmission: "submitted-weekly-work-order",
+    workOrderApproval: "approved-weekly-work-order",
     donationGoal: "0.02",
     donationAmount: "0.003",
     donationMessage: "supports-weekly-build",
@@ -432,6 +438,9 @@ const productPlans: ProductPlan[] = [
     servicePrice: "0.0045",
     serviceMaxBookings: "6",
     serviceCompletion: "completed-product-service-booking",
+    workOrderAmount: "0.0022",
+    workOrderSubmission: "submitted-product-work-order",
+    workOrderApproval: "approved-product-work-order",
     donationGoal: "0.025",
     donationAmount: "0.004",
     donationMessage: "supports-product-loop",
@@ -516,6 +525,9 @@ const productPlans: ProductPlan[] = [
     servicePrice: "0.0055",
     serviceMaxBookings: "7",
     serviceCompletion: "completed-ops-service-booking",
+    workOrderAmount: "0.0024",
+    workOrderSubmission: "submitted-ops-work-order",
+    workOrderApproval: "approved-ops-work-order",
     donationGoal: "0.03",
     donationAmount: "0.005",
     donationMessage: "supports-ops-proof",
@@ -600,6 +612,9 @@ const productPlans: ProductPlan[] = [
     servicePrice: "0.0065",
     serviceMaxBookings: "8",
     serviceCompletion: "completed-alt-service-booking",
+    workOrderAmount: "0.0026",
+    workOrderSubmission: "submitted-alt-work-order",
+    workOrderApproval: "approved-alt-work-order",
     donationGoal: "0.035",
     donationAmount: "0.006",
     donationMessage: "supports-alt-route",
@@ -684,6 +699,9 @@ const productPlans: ProductPlan[] = [
     servicePrice: "0.0075",
     serviceMaxBookings: "9",
     serviceCompletion: "completed-release-service-booking",
+    workOrderAmount: "0.0028",
+    workOrderSubmission: "submitted-release-work-order",
+    workOrderApproval: "approved-release-work-order",
     donationGoal: "0.04",
     donationAmount: "0.007",
     donationMessage: "supports-release-check",
@@ -768,6 +786,9 @@ const productPlans: ProductPlan[] = [
     servicePrice: "0.0085",
     serviceMaxBookings: "10",
     serviceCompletion: "completed-abstain-service-booking",
+    workOrderAmount: "0.003",
+    workOrderSubmission: "submitted-abstain-work-order",
+    workOrderApproval: "approved-abstain-work-order",
     donationGoal: "0.045",
     donationAmount: "0.008",
     donationMessage: "supports-abstain-week",
@@ -852,6 +873,9 @@ const productPlans: ProductPlan[] = [
     servicePrice: "0.004",
     serviceMaxBookings: "4",
     serviceCompletion: "completed-final-service-booking",
+    workOrderAmount: "0.0018",
+    workOrderSubmission: "submitted-final-work-order",
+    workOrderApproval: "approved-final-work-order",
     donationGoal: "0.022",
     donationAmount: "0.0035",
     donationMessage: "supports-final-variant",
@@ -971,6 +995,10 @@ const marketplaceTitle = `arc-market-${cycleDate}-v${planIndex + 1}`;
 const marketplaceFulfillmentURI = `local:${marketplaceTitle}:${productPlan.marketplaceFulfillment}`;
 const serviceTitle = `arc-service-${cycleDate}-v${planIndex + 1}`;
 const serviceCompletionURI = `local:${serviceTitle}:${productPlan.serviceCompletion}`;
+const workOrderTitle = `arc-work-order-${cycleDate}-v${planIndex + 1}`;
+const workOrderBriefURI = `local:${workOrderTitle}:brief`;
+const workOrderSubmissionURI = `local:${workOrderTitle}:${productPlan.workOrderSubmission}`;
+const workOrderApprovalURI = `local:${workOrderTitle}:${productPlan.workOrderApproval}`;
 const donationTitle = `arc-donation-${cycleDate}-v${planIndex + 1}`;
 const donationMessage = `local:${donationTitle}:${productPlan.donationMessage}`;
 const preorderTitle = `arc-preorder-${cycleDate}-v${planIndex + 1}`;
@@ -1755,6 +1783,54 @@ const steps: Step[] = [
       "Click Settle Service after completion.",
     ],
     proof: "Save settleService txHash/explorer link and final contract balance = 0.",
+  },
+  {
+    title: "59A. ArcWorkOrder Create",
+    url: `${BASE_URL}/public/arc-service-bookings.html`,
+    fields: [
+      `Contract: ${arcServiceBookingsContract || "deploy a newer ArcServiceBookings contract with WorkOrder support"}`,
+      "Requires the newer ArcServiceBookings deployment with work order functions.",
+      `Work title: ${workOrderTitle}`,
+      `Worker: ${metamaskAddress}`,
+      `Amount: ${productPlan.workOrderAmount} native USDC`,
+      `Brief URI: ${workOrderBriefURI}`,
+      "Create Work Order and save the workOrderId.",
+    ],
+    proof: "Save createWorkOrder txHash/explorer link and workOrderId.",
+  },
+  {
+    title: "59B. ArcWorkOrder Accept",
+    url: `${BASE_URL}/public/arc-service-bookings.html`,
+    fields: [
+      `Contract: ${arcServiceBookingsContract || "use the saved ArcServiceBookings contract from step 59A"}`,
+      `Work title: ${workOrderTitle}`,
+      "Click Refresh Work Order, then Accept.",
+    ],
+    proof: "Save acceptWorkOrder txHash/explorer link and status = accepted.",
+  },
+  {
+    title: "59C. ArcWorkOrder Submit",
+    url: `${BASE_URL}/public/arc-service-bookings.html`,
+    fields: [
+      `Contract: ${arcServiceBookingsContract || "use the saved ArcServiceBookings contract from step 59A"}`,
+      `Work title: ${workOrderTitle}`,
+      `Submission URI: ${workOrderSubmissionURI}`,
+      "Click Submit after acceptance confirms.",
+    ],
+    proof: "Save submitWorkOrder txHash/explorer link and submission URI.",
+  },
+  {
+    title: "59D. ArcWorkOrder Approve Payout",
+    url: `${BASE_URL}/public/arc-service-bookings.html`,
+    fields: [
+      `Contract: ${arcServiceBookingsContract || "use the saved ArcServiceBookings contract from step 59A"}`,
+      `Work title: ${workOrderTitle}`,
+      `Payout to worker: ${metamaskAddress}`,
+      `Approval URI: ${workOrderApprovalURI}`,
+      `Expected payout: ${productPlan.workOrderAmount} native USDC`,
+      "Click Approve Payout after submission confirms.",
+    ],
+    proof: "Save approveWorkOrder txHash/explorer link and final status = approved.",
   },
   {
     title: "60. ArcDonation Create Campaign",

@@ -42,7 +42,7 @@ $env:PORT="4174"; npm.cmd run cycle:today
 $env:PORT="4174"; npm.cmd run start-deployer
 ```
 
-The checklist changes slightly by date. It rotates small amounts, swap direction, bridge destination, raw CCTP destination, issued token, Dev Wallet amount, memo receipt amount, batch payout rows, ArcInvoice amount, token allowance amount, delegated transfer amount, ArcEscrow amount, escrow settlement outcome, ArcEscrow dispute evidence/resolution, ArcSubscription price/cadence, ArcMembership pass price/renewal days, ArcSavingsVault goal/deposit/withdraw amounts, ArcPoll vote choices/reasons, ArcAirdrop campaign allocations, ArcBounty rewards/submissions, ArcMilestone funding/submissions, ArcExpense contribution/withdraw amounts, ArcEvent ticket pricing/supply, ArcMarketplace order pricing/fulfillment, ArcService booking pricing/completion, ArcDonation campaign goals/messages, ArcPreorder pricing/fulfillment, ArcPayroll claim receipts, ArcRefundableDeposit outcomes, ArcInstallment staged payments, ArcVesting unlock claims, ArcGiftCard voucher redemptions, ArcReward claim receipts, ArcCoupon claim receipts, ArcReferral claim receipts, ArcCashback claim receipts, ArcAuction bid receipts, ArcRental deposit returns, zero-value ArcWarranty claim receipts, zero-value ArcSupport ticket receipts, and zero-value ArcAccess approval receipts.
+The checklist changes slightly by date. It rotates small amounts, swap direction, bridge destination, raw CCTP destination, issued token, Dev Wallet amount, memo receipt amount, batch payout rows, ArcInvoice amount, token allowance amount, delegated transfer amount, ArcEscrow amount, escrow settlement outcome, ArcEscrow dispute evidence/resolution, ArcSubscription price/cadence, ArcMembership pass price/renewal days, ArcSavingsVault goal/deposit/withdraw amounts, ArcPoll vote choices/reasons, ArcAirdrop campaign allocations, ArcBounty rewards/submissions, ArcMilestone funding/submissions, ArcExpense contribution/withdraw amounts, ArcEvent ticket pricing/supply, ArcMarketplace order pricing/fulfillment, ArcService booking pricing/completion, ArcWorkOrder submission/approval receipts, ArcDonation campaign goals/messages, ArcPreorder pricing/fulfillment, ArcPayroll claim receipts, ArcRefundableDeposit outcomes, ArcInstallment staged payments, ArcVesting unlock claims, ArcGiftCard voucher redemptions, ArcReward claim receipts, ArcCoupon claim receipts, ArcReferral claim receipts, ArcCashback claim receipts, ArcAuction bid receipts, ArcRental deposit returns, zero-value ArcWarranty claim receipts, zero-value ArcSupport ticket receipts, and zero-value ArcAccess approval receipts.
 
 Fast order:
 
@@ -109,6 +109,10 @@ Fast order:
 57. ArcService Book Service: book one service slot from the MetaMask wallet.
 58. ArcService Complete Booking: record the completion URI for the booked service.
 59. ArcService Settle Service: settle service revenue to the MetaMask wallet.
+59A. ArcWorkOrder Create: create a funded work order on `ArcServiceBookings`.
+59B. ArcWorkOrder Accept: accept the funded work order as the worker.
+59C. ArcWorkOrder Submit: submit completion evidence for the order.
+59D. ArcWorkOrder Approve Payout: approve the submitted work and pay the worker.
 60. ArcDonation Create Campaign: deploy once if needed, then create a native-USDC donation campaign.
 61. ArcDonation Donate: donate the printed native-USDC amount with the printed message.
 62. ArcDonation Withdraw: withdraw the donation amount back to the MetaMask wallet.
