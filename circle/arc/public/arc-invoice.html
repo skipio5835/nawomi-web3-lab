@@ -488,6 +488,49 @@
               </div>
             </div>
           </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <h2>Arc Quote</h2>
+              <span id="quoteStatus" class="pill">none</span>
+            </div>
+            <div class="panel-body">
+              <div class="fields">
+                <label class="wide">
+                  Quote title
+                  <input id="quoteTitle" />
+                </label>
+                <label>
+                  Buyer
+                  <input id="quoteBuyer" />
+                </label>
+                <label>
+                  Amount
+                  <input id="quoteAmount" inputmode="decimal" />
+                </label>
+                <label class="wide">
+                  Metadata URI
+                  <input id="quoteMetadataURI" />
+                </label>
+                <label class="wide">
+                  Acceptance URI
+                  <input id="quoteAcceptanceURI" />
+                </label>
+                <label class="wide">
+                  Settlement to
+                  <input id="quoteSettlementTo" />
+                </label>
+              </div>
+              <div class="actions">
+                <button id="createQuote" type="button" disabled>Create Quote</button>
+                <button id="acceptQuote" class="warn" type="button" disabled>Accept Quote</button>
+                <button id="settleQuote" class="secondary" type="button" disabled>Settle Quote</button>
+                <button id="cancelQuote" class="ghost" type="button" disabled>Cancel Quote</button>
+                <button id="refreshQuote" class="ghost" type="button" disabled>Refresh Quote</button>
+              </div>
+              <code id="quoteId">-</code>
+            </div>
+          </section>
         </div>
 
         <div class="stack">

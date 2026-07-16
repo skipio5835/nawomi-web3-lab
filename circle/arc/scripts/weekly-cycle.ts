@@ -103,6 +103,9 @@ type ProductPlan = {
   batchCircleAmount: string;
   batchSelfAmount: string;
   invoiceAmount: string;
+  quoteAmount: string;
+  quoteAcceptance: string;
+  quoteSettlement: string;
   escrowAmount: string;
   escrowOutcome: "release" | "refund";
   escrowDisputeAmount: string;
@@ -314,6 +317,9 @@ const productPlans: ProductPlan[] = [
     batchCircleAmount: "0.002",
     batchSelfAmount: "0.001",
     invoiceAmount: "0.01",
+    quoteAmount: "0.002",
+    quoteAcceptance: "accepted-weekly-quote",
+    quoteSettlement: "settled-weekly-quote",
     escrowAmount: "0.004",
     escrowOutcome: "release",
     escrowDisputeAmount: "0.0015",
@@ -401,6 +407,9 @@ const productPlans: ProductPlan[] = [
     batchCircleAmount: "0.002",
     batchSelfAmount: "0.002",
     invoiceAmount: "0.02",
+    quoteAmount: "0.0025",
+    quoteAcceptance: "accepted-product-quote",
+    quoteSettlement: "settled-product-quote",
     escrowAmount: "0.005",
     escrowOutcome: "refund",
     escrowDisputeAmount: "0.0016",
@@ -488,6 +497,9 @@ const productPlans: ProductPlan[] = [
     batchCircleAmount: "0.003",
     batchSelfAmount: "0.002",
     invoiceAmount: "0.01",
+    quoteAmount: "0.003",
+    quoteAcceptance: "accepted-ops-quote",
+    quoteSettlement: "settled-ops-quote",
     escrowAmount: "0.006",
     escrowOutcome: "release",
     escrowDisputeAmount: "0.0017",
@@ -575,6 +587,9 @@ const productPlans: ProductPlan[] = [
     batchCircleAmount: "0.004",
     batchSelfAmount: "0.002",
     invoiceAmount: "0.03",
+    quoteAmount: "0.0035",
+    quoteAcceptance: "accepted-alt-quote",
+    quoteSettlement: "settled-alt-quote",
     escrowAmount: "0.007",
     escrowOutcome: "refund",
     escrowDisputeAmount: "0.0018",
@@ -662,6 +677,9 @@ const productPlans: ProductPlan[] = [
     batchCircleAmount: "0.004",
     batchSelfAmount: "0.003",
     invoiceAmount: "0.02",
+    quoteAmount: "0.004",
+    quoteAcceptance: "accepted-release-quote",
+    quoteSettlement: "settled-release-quote",
     escrowAmount: "0.008",
     escrowOutcome: "release",
     escrowDisputeAmount: "0.0019",
@@ -749,6 +767,9 @@ const productPlans: ProductPlan[] = [
     batchCircleAmount: "0.005",
     batchSelfAmount: "0.003",
     invoiceAmount: "0.01",
+    quoteAmount: "0.0045",
+    quoteAcceptance: "accepted-abstain-quote",
+    quoteSettlement: "settled-abstain-quote",
     escrowAmount: "0.009",
     escrowOutcome: "refund",
     escrowDisputeAmount: "0.002",
@@ -836,6 +857,9 @@ const productPlans: ProductPlan[] = [
     batchCircleAmount: "0.006",
     batchSelfAmount: "0.003",
     invoiceAmount: "0.02",
+    quoteAmount: "0.0022",
+    quoteAcceptance: "accepted-final-quote",
+    quoteSettlement: "settled-final-quote",
     escrowAmount: "0.01",
     escrowOutcome: "release",
     escrowDisputeAmount: "0.0014",
@@ -975,6 +999,10 @@ const productPlan = productPlans[planIndex];
 const memoReference = `arc-receipt-${cycleDate}-v${planIndex + 1}`;
 const invoiceLabel = `Arc Daily Invoice ${cycleDate} v${planIndex + 1}`;
 const cancelInvoiceLabel = `Arc Cancel Invoice ${cycleDate} v${planIndex + 1}`;
+const quoteTitle = `arc-quote-${cycleDate}-v${planIndex + 1}`;
+const quoteMetadataURI = `local:${quoteTitle}:metadata`;
+const quoteAcceptanceURI = `local:${quoteTitle}:${productPlan.quoteAcceptance}`;
+const quoteSettlementURI = `local:${quoteTitle}:${productPlan.quoteSettlement}`;
 const escrowReference = `arc-escrow-${cycleDate}-v${planIndex + 1}`;
 const escrowDisputeReference = `arc-escrow-dispute-${cycleDate}-v${planIndex + 1}`;
 const escrowDisputeURI = `local:${escrowDisputeReference}:opened`;
@@ -1177,6 +1205,45 @@ const steps: Step[] = [
       "Click Register on Arc, then click Cancel Invoice before paying it.",
     ],
     proof: "Save register txHash and cancelInvoice txHash/explorer link.",
+  },
+  {
+    title: "11A. ArcQuote Create",
+    url: `${BASE_URL}/public/arc-invoice.html`,
+    fields: [
+      `Contract: ${arcInvoiceContract || "deploy a newer ArcInvoice contract with Quote support"}`,
+      "Requires the newer ArcInvoice deployment with quote functions.",
+      `Quote title: ${quoteTitle}`,
+      `Buyer: ${metamaskAddress}`,
+      `Amount: ${productPlan.quoteAmount} native USDC`,
+      `Metadata URI: ${quoteMetadataURI}`,
+      "Click Create Quote and save the quoteId.",
+    ],
+    proof: "Save createQuote txHash/explorer link and quoteId.",
+  },
+  {
+    title: "11B. ArcQuote Accept",
+    url: `${BASE_URL}/public/arc-invoice.html`,
+    fields: [
+      `Contract: ${arcInvoiceContract || "use the saved ArcInvoice contract from step 11A"}`,
+      `Quote title: ${quoteTitle}`,
+      `Acceptance URI: ${quoteAcceptanceURI}`,
+      `Payment amount: ${productPlan.quoteAmount} native USDC`,
+      "Click Refresh Quote, then Accept Quote.",
+    ],
+    proof: "Save acceptQuote txHash/explorer link and status = accepted.",
+  },
+  {
+    title: "11C. ArcQuote Settle",
+    url: `${BASE_URL}/public/arc-invoice.html`,
+    fields: [
+      `Contract: ${arcInvoiceContract || "use the saved ArcInvoice contract from step 11A"}`,
+      `Quote title: ${quoteTitle}`,
+      `Settlement to: ${metamaskAddress}`,
+      `Settlement note: ${quoteSettlementURI}`,
+      `Expected settlement: ${productPlan.quoteAmount} native USDC`,
+      "Click Settle Quote after acceptance confirms.",
+    ],
+    proof: "Save settleQuote txHash/explorer link and final status = settled.",
   },
   {
     title: "12. Issued Token Approve",
