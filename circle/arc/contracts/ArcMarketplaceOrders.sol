@@ -26,8 +26,28 @@ contract ArcMarketplaceOrders {
         string fulfillmentURI;
     }
 
+    struct ReturnCase {
+        address requester;
+        uint64 requestedAt;
+        uint64 reviewedAt;
+        uint64 closedAt;
+        bool accepted;
+        string reasonURI;
+        string reviewURI;
+        string closeURI;
+        ReturnStatus status;
+    }
+
+    enum ReturnStatus {
+        Unknown,
+        Requested,
+        Reviewed,
+        Closed
+    }
+
     mapping(bytes32 listingId => Listing listing) private _listings;
     mapping(bytes32 listingId => mapping(uint256 orderId => Order order)) private _orders;
+    mapping(bytes32 listingId => mapping(uint256 orderId => ReturnCase returnCase)) private _returns;
     mapping(bytes32 listingId => mapping(address buyer => uint256 orderId)) private _orderOf;
 
     event ListingCreated(
@@ -42,6 +62,9 @@ contract ArcMarketplaceOrders {
     event OrderPurchased(bytes32 indexed listingId, uint256 indexed orderId, address indexed buyer, uint256 amount);
     event OrderFulfilled(bytes32 indexed listingId, uint256 indexed orderId, address indexed buyer, string fulfillmentURI);
     event OrderRefunded(bytes32 indexed listingId, uint256 indexed orderId, address indexed buyer, uint256 amount);
+    event ReturnRequested(bytes32 indexed listingId, uint256 indexed orderId, address indexed requester, string reasonURI);
+    event ReturnReviewed(bytes32 indexed listingId, uint256 indexed orderId, bool accepted, string reviewURI);
+    event ReturnClosed(bytes32 indexed listingId, uint256 indexed orderId, string closeURI);
     event ListingSettled(bytes32 indexed listingId, address indexed seller, address indexed to, uint256 amount);
 
     error InvalidAddress();
@@ -52,8 +75,13 @@ contract ArcMarketplaceOrders {
     error ListingMissing(bytes32 listingId);
     error OrderAlreadyExists(address buyer);
     error OrderFulfilledAlready(uint256 orderId);
+    error OrderNotFulfilled(uint256 orderId);
     error OrderMissing(uint256 orderId);
     error OrderRefundedAlready(uint256 orderId);
+    error ReturnAlreadyExists(uint256 orderId);
+    error ReturnMissing(uint256 orderId);
+    error ReturnNotClosable(uint256 orderId);
+    error ReturnNotReviewable(uint256 orderId);
     error SoldOut();
     error TransferFailed();
     error Unauthorized();
@@ -141,6 +169,64 @@ contract ArcMarketplaceOrders {
         emit OrderRefunded(listingId, orderId, order.buyer, order.amount);
     }
 
+    function requestReturn(bytes32 listingId, uint256 orderId, string calldata reasonURI) external {
+        Order storage order = _requireOrder(listingId, orderId);
+        if (msg.sender != order.buyer) revert Unauthorized();
+        if (!order.fulfilled) revert OrderNotFulfilled(orderId);
+        if (order.refunded) revert OrderRefundedAlready(orderId);
+        if (_returns[listingId][orderId].status != ReturnStatus.Unknown) revert ReturnAlreadyExists(orderId);
+        if (bytes(reasonURI).length == 0) revert InvalidText();
+
+        _returns[listingId][orderId] = ReturnCase({
+            requester: msg.sender,
+            requestedAt: uint64(block.timestamp),
+            reviewedAt: 0,
+            closedAt: 0,
+            accepted: false,
+            reasonURI: reasonURI,
+            reviewURI: "",
+            closeURI: "",
+            status: ReturnStatus.Requested
+        });
+
+        emit ReturnRequested(listingId, orderId, msg.sender, reasonURI);
+    }
+
+    function reviewReturn(
+        bytes32 listingId,
+        uint256 orderId,
+        bool accepted,
+        string calldata reviewURI
+    ) external {
+        Listing storage listing = _requireListing(listingId);
+        if (msg.sender != listing.seller) revert Unauthorized();
+        if (bytes(reviewURI).length == 0) revert InvalidText();
+
+        ReturnCase storage returnCase = _requireReturn(listingId, orderId);
+        if (returnCase.status != ReturnStatus.Requested) revert ReturnNotReviewable(orderId);
+
+        returnCase.accepted = accepted;
+        returnCase.reviewedAt = uint64(block.timestamp);
+        returnCase.reviewURI = reviewURI;
+        returnCase.status = ReturnStatus.Reviewed;
+
+        emit ReturnReviewed(listingId, orderId, accepted, reviewURI);
+    }
+
+    function closeReturn(bytes32 listingId, uint256 orderId, string calldata closeURI) external {
+        Listing storage listing = _requireListing(listingId);
+        ReturnCase storage returnCase = _requireReturn(listingId, orderId);
+        if (msg.sender != listing.seller && msg.sender != returnCase.requester) revert Unauthorized();
+        if (returnCase.status != ReturnStatus.Reviewed) revert ReturnNotClosable(orderId);
+        if (bytes(closeURI).length == 0) revert InvalidText();
+
+        returnCase.closedAt = uint64(block.timestamp);
+        returnCase.closeURI = closeURI;
+        returnCase.status = ReturnStatus.Closed;
+
+        emit ReturnClosed(listingId, orderId, closeURI);
+    }
+
     function settleListing(bytes32 listingId, address payable to) external {
         Listing storage listing = _requireListing(listingId);
         if (msg.sender != listing.seller) revert Unauthorized();
@@ -170,6 +256,10 @@ contract ArcMarketplaceOrders {
         return _orders[listingId][orderId];
     }
 
+    function getReturnCase(bytes32 listingId, uint256 orderId) external view returns (ReturnCase memory) {
+        return _returns[listingId][orderId];
+    }
+
     function getOrderOf(bytes32 listingId, address buyer) external view returns (uint256) {
         return _orderOf[listingId][buyer];
     }
@@ -187,6 +277,11 @@ contract ArcMarketplaceOrders {
     function _requireOrder(bytes32 listingId, uint256 orderId) private view returns (Order storage order) {
         order = _orders[listingId][orderId];
         if (order.buyer == address(0)) revert OrderMissing(orderId);
+    }
+
+    function _requireReturn(bytes32 listingId, uint256 orderId) private view returns (ReturnCase storage returnCase) {
+        returnCase = _returns[listingId][orderId];
+        if (returnCase.status == ReturnStatus.Unknown) revert ReturnMissing(orderId);
     }
 
     function _sendValue(address to, uint256 amount) private {

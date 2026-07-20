@@ -16,7 +16,7 @@ const DEFAULT_ARCBOUNTY_CONTRACT = "0x46d942923e3d1ffd4edbab4a66c2e819e5382635";
 const DEFAULT_ARCMILESTONE_CONTRACT = "0xb922ea1d992078226365e793f5ace4c08858e4d0";
 const DEFAULT_ARCEXPENSE_CONTRACT = "0xccd4bad1f974fda2167a7060942916bf3c148d93";
 const DEFAULT_ARCEVENTTICKETS_CONTRACT = "0xca0ef47f4ab7be8d0a290186666f8b37af9856d7";
-const DEFAULT_ARCMARKETPLACE_CONTRACT = "0x6b074ac5ec367008e323d9480b208b07f5cbc1cd";
+const DEFAULT_ARCMARKETPLACE_CONTRACT = "";
 const DEFAULT_ARCSERVICEBOOKINGS_CONTRACT = "0x1f99c4b86918d1b3ae6635392800dd1ecadf6352";
 const DEFAULT_ARCDONATION_CONTRACT = "0x9a677c873ca846c55175aad7c0be8a299e325870";
 const DEFAULT_ARCPREORDER_CONTRACT = "0x7c97d3eff8681ea4c7bb3354d1b4d827141934e9";
@@ -51,7 +51,7 @@ const arcBountyContract = process.env.ARCBOUNTY_CONTRACT?.trim() || DEFAULT_ARCB
 const arcMilestoneContract = process.env.ARCMILESTONE_CONTRACT?.trim() || DEFAULT_ARCMILESTONE_CONTRACT;
 const arcExpenseContract = process.env.ARCEXPENSE_CONTRACT?.trim() || DEFAULT_ARCEXPENSE_CONTRACT;
 const arcEventTicketsContract = process.env.ARCEVENTTICKETS_CONTRACT?.trim() || DEFAULT_ARCEVENTTICKETS_CONTRACT;
-const arcMarketplaceContract = process.env.ARCMARKETPLACE_CONTRACT?.trim() || DEFAULT_ARCMARKETPLACE_CONTRACT;
+const arcMarketplaceContract = process.env.ARCMARKETPLACE_V2_CONTRACT?.trim() || DEFAULT_ARCMARKETPLACE_CONTRACT;
 const arcServiceBookingsContract =
   process.env.ARCSERVICEBOOKINGS_CONTRACT?.trim() || DEFAULT_ARCSERVICEBOOKINGS_CONTRACT;
 const arcDonationContract = process.env.ARCDONATION_CONTRACT?.trim() || DEFAULT_ARCDONATION_CONTRACT;
@@ -1021,6 +1021,12 @@ const expenseTitle = `arc-expense-${cycleDate}-v${planIndex + 1}`;
 const eventTitle = `arc-event-${cycleDate}-v${planIndex + 1}`;
 const marketplaceTitle = `arc-market-${cycleDate}-v${planIndex + 1}`;
 const marketplaceFulfillmentURI = `local:${marketplaceTitle}:${productPlan.marketplaceFulfillment}`;
+const marketplaceReturnAccepted = planIndex % 4 !== 2;
+const marketplaceReturnReasonURI = `local:${marketplaceTitle}:return-request-v${planIndex + 1}`;
+const marketplaceReturnReviewURI = `local:${marketplaceTitle}:return-${
+  marketplaceReturnAccepted ? "approved" : "rejected"
+}-v${planIndex + 1}`;
+const marketplaceReturnCloseURI = `local:${marketplaceTitle}:return-closed-v${planIndex + 1}`;
 const serviceTitle = `arc-service-${cycleDate}-v${planIndex + 1}`;
 const serviceCompletionURI = `local:${serviceTitle}:${productPlan.serviceCompletion}`;
 const workOrderTitle = `arc-work-order-${cycleDate}-v${planIndex + 1}`;
@@ -1759,7 +1765,7 @@ const steps: Step[] = [
     title: "52. ArcMarketplace Create Listing",
     url: `${BASE_URL}/public/arc-marketplace.html`,
     fields: [
-      `Contract: ${arcMarketplaceContract || "deploy once, then save address and set ARCMARKETPLACE_CONTRACT in .env"}`,
+      `Contract: ${arcMarketplaceContract || "deploy once, then save address and set ARCMARKETPLACE_V2_CONTRACT in .env"}`,
       `Title: ${marketplaceTitle}`,
       `Treasury: ${metamaskAddress}`,
       `Metadata URI: local:${marketplaceTitle}`,
@@ -1790,6 +1796,42 @@ const steps: Step[] = [
       "Click Fulfill Order after the purchase confirms.",
     ],
     proof: "Save fulfillOrder txHash/explorer link and fulfillment URI.",
+  },
+  {
+    title: "54A. ArcMarketplace Request Return",
+    url: `${BASE_URL}/public/arc-marketplace.html`,
+    fields: [
+      `Contract: ${arcMarketplaceContract || "use the saved ArcMarketplaceOrders contract from step 52"}`,
+      "Requires the newer ArcMarketplaceOrders deployment with return functions.",
+      `Title: ${marketplaceTitle}`,
+      "Order ID: use the purchased order shown on the page.",
+      `Return reason URI: ${marketplaceReturnReasonURI}`,
+      "Click Request Return after fulfillment confirms.",
+    ],
+    proof: "Save requestReturn txHash/explorer link and return status = requested.",
+  },
+  {
+    title: "54B. ArcMarketplace Review Return",
+    url: `${BASE_URL}/public/arc-marketplace.html`,
+    fields: [
+      `Contract: ${arcMarketplaceContract || "use the saved ArcMarketplaceOrders contract from step 52"}`,
+      `Title: ${marketplaceTitle}`,
+      `Review result: ${marketplaceReturnAccepted ? "approve" : "reject"}`,
+      `Review URI: ${marketplaceReturnReviewURI}`,
+      "Click Review Return after the request confirms.",
+    ],
+    proof: "Save reviewReturn txHash/explorer link and return status = approved/rejected.",
+  },
+  {
+    title: "54C. ArcMarketplace Close Return",
+    url: `${BASE_URL}/public/arc-marketplace.html`,
+    fields: [
+      `Contract: ${arcMarketplaceContract || "use the saved ArcMarketplaceOrders contract from step 52"}`,
+      `Title: ${marketplaceTitle}`,
+      `Close URI: ${marketplaceReturnCloseURI}`,
+      "Click Close Return after review confirms.",
+    ],
+    proof: "Save closeReturn txHash/explorer link and final return status = closed.",
   },
   {
     title: "55. ArcMarketplace Settle Listing",

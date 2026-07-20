@@ -51,6 +51,18 @@ type OrderSummary = {
   fulfillmentURI: string;
 };
 
+type ReturnSummary = {
+  requester: Address;
+  requestedAt: bigint;
+  reviewedAt: bigint;
+  closedAt: bigint;
+  accepted: boolean;
+  reasonURI: string;
+  reviewURI: string;
+  closeURI: string;
+  status: number;
+};
+
 const ARC_TESTNET = {
   chainId: "0x4cef52",
   chainName: "Arc Testnet",
@@ -67,7 +79,7 @@ const arcTestnet = {
   blockExplorers: { default: { name: "ArcScan", url: "https://testnet.arcscan.app" } },
 } as const;
 
-const CONTRACT_KEY = "arcMarketplace.contractAddress";
+const CONTRACT_KEY = "arcMarketplace.v2.contractAddress";
 const DEFAULT_ACCOUNT = "0x0000000000000000000000000000000000000000" as Address;
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000" as Address;
 
@@ -111,6 +123,40 @@ const arcMarketplaceAbi = [
       { internalType: "address payable", name: "refundTo", type: "address" },
     ],
     name: "refundOrder",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "bytes32", name: "listingId", type: "bytes32" },
+      { internalType: "uint256", name: "orderId", type: "uint256" },
+      { internalType: "string", name: "reasonURI", type: "string" },
+    ],
+    name: "requestReturn",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "bytes32", name: "listingId", type: "bytes32" },
+      { internalType: "uint256", name: "orderId", type: "uint256" },
+      { internalType: "bool", name: "accepted", type: "bool" },
+      { internalType: "string", name: "reviewURI", type: "string" },
+    ],
+    name: "reviewReturn",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "bytes32", name: "listingId", type: "bytes32" },
+      { internalType: "uint256", name: "orderId", type: "uint256" },
+      { internalType: "string", name: "closeURI", type: "string" },
+    ],
+    name: "closeReturn",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -179,6 +225,33 @@ const arcMarketplaceAbi = [
   {
     inputs: [
       { internalType: "bytes32", name: "listingId", type: "bytes32" },
+      { internalType: "uint256", name: "orderId", type: "uint256" },
+    ],
+    name: "getReturnCase",
+    outputs: [
+      {
+        components: [
+          { internalType: "address", name: "requester", type: "address" },
+          { internalType: "uint64", name: "requestedAt", type: "uint64" },
+          { internalType: "uint64", name: "reviewedAt", type: "uint64" },
+          { internalType: "uint64", name: "closedAt", type: "uint64" },
+          { internalType: "bool", name: "accepted", type: "bool" },
+          { internalType: "string", name: "reasonURI", type: "string" },
+          { internalType: "string", name: "reviewURI", type: "string" },
+          { internalType: "string", name: "closeURI", type: "string" },
+          { internalType: "enum ArcMarketplaceOrders.ReturnStatus", name: "status", type: "uint8" },
+        ],
+        internalType: "struct ArcMarketplaceOrders.ReturnCase",
+        name: "",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      { internalType: "bytes32", name: "listingId", type: "bytes32" },
       { internalType: "address", name: "buyer", type: "address" },
     ],
     name: "getOrderOf",
@@ -200,9 +273,11 @@ let contractAddress = (localStorage.getItem(CONTRACT_KEY) ?? "") as Address | ""
 let currentListing: ListingSummary | null = null;
 let currentOrder: OrderSummary | null = null;
 let currentOrderId = 0n;
+let currentReturn: ReturnSummary | null = null;
 
 const el = {
   buyOrder: document.querySelector<HTMLButtonElement>("#buyOrder")!,
+  closeReturn: document.querySelector<HTMLButtonElement>("#closeReturn")!,
   connect: document.querySelector<HTMLButtonElement>("#connect")!,
   contractAddress: document.querySelector<HTMLInputElement>("#contractAddress")!,
   createListing: document.querySelector<HTMLButtonElement>("#createListing")!,
@@ -215,11 +290,19 @@ const el = {
   metadataURI: document.querySelector<HTMLInputElement>("#metadataURI")!,
   nativeBalance: document.querySelector<HTMLElement>("#nativeBalance")!,
   orderId: document.querySelector<HTMLElement>("#orderId")!,
+  orderIdOverride: document.querySelector<HTMLInputElement>("#orderIdOverride")!,
   orderStatus: document.querySelector<HTMLElement>("#orderStatus")!,
   price: document.querySelector<HTMLInputElement>("#price")!,
   refresh: document.querySelector<HTMLButtonElement>("#refresh")!,
   refundOrder: document.querySelector<HTMLButtonElement>("#refundOrder")!,
   refundTo: document.querySelector<HTMLInputElement>("#refundTo")!,
+  requestReturn: document.querySelector<HTMLButtonElement>("#requestReturn")!,
+  returnAccepted: document.querySelector<HTMLInputElement>("#returnAccepted")!,
+  returnCloseURI: document.querySelector<HTMLInputElement>("#returnCloseURI")!,
+  returnReasonURI: document.querySelector<HTMLInputElement>("#returnReasonURI")!,
+  returnReviewURI: document.querySelector<HTMLInputElement>("#returnReviewURI")!,
+  returnStatus: document.querySelector<HTMLElement>("#returnStatus")!,
+  reviewReturn: document.querySelector<HTMLButtonElement>("#reviewReturn")!,
   saveContract: document.querySelector<HTMLButtonElement>("#saveContract")!,
   sellerAddress: document.querySelector<HTMLElement>("#sellerAddress")!,
   settleListing: document.querySelector<HTMLButtonElement>("#settleListing")!,
@@ -237,7 +320,12 @@ el.fulfillmentURI.value = `local:arc-market-order-${today}:fulfilled`;
 el.maxOrders.value = "5";
 el.metadataURI.value = `local:arc-market-${today}`;
 el.price.value = "0.005";
+el.orderIdOverride.value = "";
 el.refundTo.value = DEFAULT_ACCOUNT;
+el.returnAccepted.checked = true;
+el.returnCloseURI.value = `local:arc-market-return-${today}:closed`;
+el.returnReasonURI.value = `local:arc-market-return-${today}:requested`;
+el.returnReviewURI.value = `local:arc-market-return-${today}:approved`;
 el.settlementTo.value = DEFAULT_ACCOUNT;
 el.title.value = `arc-market-${today}`;
 el.treasury.value = DEFAULT_ACCOUNT;
@@ -284,6 +372,22 @@ function listingId(): Hash {
   if (!title) throw new Error("Title is required.");
   const seller = account?.toLowerCase() ?? DEFAULT_ACCOUNT.toLowerCase();
   return keccak256(toBytes(`${seller}:${title}`));
+}
+
+async function waitForSuccess(hash: Hash): Promise<void> {
+  const receipt = await publicClient.waitForTransactionReceipt({ hash });
+  if (receipt.status !== "success") {
+    throw new Error(`Transaction reverted: ${hash}`);
+  }
+}
+
+function selectedOrderId(): bigint {
+  if (currentOrderId > 0n) return currentOrderId;
+  const raw = el.orderIdOverride.value.trim();
+  if (!raw) return 0n;
+  const parsed = BigInt(raw);
+  if (parsed < 1n) throw new Error("Order ID must be positive.");
+  return parsed;
 }
 
 function listingFromRaw(value: unknown): ListingSummary {
@@ -344,6 +448,43 @@ function orderFromRaw(value: unknown): OrderSummary {
   };
 }
 
+function returnFromRaw(value: unknown): ReturnSummary {
+  if (!Array.isArray(value)) {
+    const object = value as Partial<ReturnSummary>;
+    return {
+      requester: object.requester ?? ZERO_ADDRESS,
+      requestedAt: object.requestedAt ?? 0n,
+      reviewedAt: object.reviewedAt ?? 0n,
+      closedAt: object.closedAt ?? 0n,
+      accepted: Boolean(object.accepted),
+      reasonURI: object.reasonURI ?? "",
+      reviewURI: object.reviewURI ?? "",
+      closeURI: object.closeURI ?? "",
+      status: object.status ?? 0,
+    };
+  }
+
+  return {
+    requester: value[0] as Address,
+    requestedAt: value[1] as bigint,
+    reviewedAt: value[2] as bigint,
+    closedAt: value[3] as bigint,
+    accepted: Boolean(value[4]),
+    reasonURI: value[5] as string,
+    reviewURI: value[6] as string,
+    closeURI: value[7] as string,
+    status: Number(value[8]),
+  };
+}
+
+function returnStatusLabel(value: ReturnSummary | null): string {
+  if (!value || value.status === 0) return "none";
+  if (value.status === 1) return "requested";
+  if (value.status === 2) return value.accepted ? "approved" : "rejected";
+  if (value.status === 3) return value.accepted ? "closed / approved" : "closed / rejected";
+  return "unknown";
+}
+
 function updateListingIdDisplay(): void {
   try {
     el.listingId.textContent = listingId();
@@ -359,6 +500,7 @@ function renderListing(): void {
     el.listingStatus.textContent = "not created";
     el.orderId.textContent = "-";
     el.orderStatus.textContent = "none";
+    el.returnStatus.textContent = "none";
     el.sellerAddress.textContent = "-";
     el.supplyStatus.textContent = "0 / 0";
     updateActions();
@@ -382,6 +524,7 @@ function renderListing(): void {
         ? "fulfilled"
         : "purchased"
     : "none";
+  el.returnStatus.textContent = returnStatusLabel(currentReturn);
   updateActions();
 }
 
@@ -391,16 +534,35 @@ function updateActions(): void {
   const hasListing = Boolean(currentListing && currentListing.seller !== ZERO_ADDRESS);
   const active = hasListing && Boolean(currentListing?.active);
   const hasOrder = Boolean(currentOrder && currentOrder.buyer !== ZERO_ADDRESS);
-  const canFulfill = active && hasOrder && !currentOrder?.fulfilled && !currentOrder?.refunded;
+  const manualOrderId = (() => {
+    try {
+      return selectedOrderId();
+    } catch {
+      return 0n;
+    }
+  })();
+  const hasSelectedOrder = hasOrder || manualOrderId > 0n;
+  const canFulfill =
+    active && hasSelectedOrder && (!currentOrder || (!currentOrder.fulfilled && !currentOrder.refunded));
+  const returnStatus = currentReturn?.status ?? 0;
   const gross = currentListing ? currentListing.price * currentListing.sold : 0n;
   const available = currentListing ? gross - currentListing.refunded - currentListing.settledAmount : 0n;
 
   el.buyOrder.disabled = !hasWallet || !hasContract || !active || hasOrder;
+  el.closeReturn.disabled = !hasWallet || !hasContract || !hasSelectedOrder || (currentReturn ? returnStatus !== 2 : false);
   el.createListing.disabled = !hasWallet || !hasContract || hasListing;
   el.deployContract.disabled = !hasWallet;
   el.fulfillOrder.disabled = !hasWallet || !hasContract || !canFulfill;
   el.refresh.disabled = !hasContract;
   el.refundOrder.disabled = !hasWallet || !hasContract || !active || !hasOrder || Boolean(currentOrder?.fulfilled);
+  el.requestReturn.disabled =
+    !hasWallet ||
+    !hasContract ||
+    !hasSelectedOrder ||
+    Boolean(currentOrder?.refunded) ||
+    (currentOrder ? !currentOrder.fulfilled : false) ||
+    returnStatus !== 0;
+  el.reviewReturn.disabled = !hasWallet || !hasContract || !hasSelectedOrder || (currentReturn ? returnStatus !== 1 : false);
   el.settleListing.disabled = !hasWallet || !hasContract || !hasListing || available === 0n;
 }
 
@@ -525,6 +687,7 @@ function saveContract(): void {
     currentListing = null;
     currentOrder = null;
     currentOrderId = 0n;
+    currentReturn = null;
     renderListing();
     setStatus("Contract address cleared.");
     return;
@@ -559,22 +722,39 @@ async function refreshListing(): Promise<void> {
 
     currentOrderId = 0n;
     currentOrder = null;
+    currentReturn = null;
     if (account) {
-      currentOrderId = await publicClient.readContract({
-        address: contractAddress,
-        abi: arcMarketplaceAbi,
-        functionName: "getOrderOf",
-        args: [id, account],
-      });
-
-      if (currentOrderId > 0n) {
-        const rawOrder = await publicClient.readContract({
+      try {
+        currentOrderId = await publicClient.readContract({
           address: contractAddress,
           abi: arcMarketplaceAbi,
-          functionName: "getOrder",
-          args: [id, currentOrderId],
+          functionName: "getOrderOf",
+          args: [id, account],
         });
-        currentOrder = orderFromRaw(rawOrder);
+
+        if (currentOrderId > 0n) {
+          const rawOrder = await publicClient.readContract({
+            address: contractAddress,
+            abi: arcMarketplaceAbi,
+            functionName: "getOrder",
+            args: [id, currentOrderId],
+          });
+          currentOrder = orderFromRaw(rawOrder);
+
+          try {
+            const rawReturn = await publicClient.readContract({
+              address: contractAddress,
+              abi: arcMarketplaceAbi,
+              functionName: "getReturnCase",
+              args: [id, currentOrderId],
+            });
+            currentReturn = returnFromRaw(rawReturn);
+          } catch {
+            currentReturn = null;
+          }
+        }
+      } catch {
+        currentOrderId = selectedOrderId();
       }
     }
 
@@ -610,7 +790,7 @@ async function createListing(): Promise<void> {
       chain: arcTestnet,
     });
     setStatus("Create submitted:", hash);
-    await publicClient.waitForTransactionReceipt({ hash });
+    await waitForSuccess(hash);
     await refreshListing();
     setStatus("Listing created:", hash);
   } catch (error) {
@@ -637,7 +817,7 @@ async function buyOrder(): Promise<void> {
       value: currentListing.price,
     });
     setStatus("Purchase submitted:", hash);
-    await publicClient.waitForTransactionReceipt({ hash });
+    await waitForSuccess(hash);
     await refreshBalance();
     await refreshListing();
     setStatus("Order purchased:", hash);
@@ -650,7 +830,8 @@ async function buyOrder(): Promise<void> {
 
 async function fulfillOrder(): Promise<void> {
   if (!walletClient || !account) await connect();
-  if (!walletClient || !account || !contractAddress || currentOrderId === 0n) return;
+  const orderId = selectedOrderId();
+  if (!walletClient || !account || !contractAddress || orderId === 0n) return;
 
   try {
     el.fulfillOrder.disabled = true;
@@ -662,12 +843,12 @@ async function fulfillOrder(): Promise<void> {
       address: contractAddress,
       abi: arcMarketplaceAbi,
       functionName: "fulfillOrder",
-      args: [listingId(), currentOrderId, fulfillmentURI],
+      args: [listingId(), orderId, fulfillmentURI],
       account,
       chain: arcTestnet,
     });
     setStatus("Fulfill submitted:", hash);
-    await publicClient.waitForTransactionReceipt({ hash });
+    await waitForSuccess(hash);
     await refreshListing();
     setStatus("Order fulfilled:", hash);
   } catch (error) {
@@ -679,7 +860,8 @@ async function fulfillOrder(): Promise<void> {
 
 async function refundOrder(): Promise<void> {
   if (!walletClient || !account) await connect();
-  if (!walletClient || !account || !contractAddress || currentOrderId === 0n) return;
+  const orderId = selectedOrderId();
+  if (!walletClient || !account || !contractAddress || orderId === 0n) return;
 
   try {
     el.refundOrder.disabled = true;
@@ -691,15 +873,105 @@ async function refundOrder(): Promise<void> {
       address: contractAddress,
       abi: arcMarketplaceAbi,
       functionName: "refundOrder",
-      args: [listingId(), currentOrderId, refundTo as Address],
+      args: [listingId(), orderId, refundTo as Address],
       account,
       chain: arcTestnet,
     });
     setStatus("Refund submitted:", hash);
-    await publicClient.waitForTransactionReceipt({ hash });
+    await waitForSuccess(hash);
     await refreshBalance();
     await refreshListing();
     setStatus("Order refunded:", hash);
+  } catch (error) {
+    setStatus(errorMessage(error));
+  } finally {
+    updateActions();
+  }
+}
+
+async function requestReturn(): Promise<void> {
+  if (!walletClient || !account) await connect();
+  const orderId = selectedOrderId();
+  if (!walletClient || !account || !contractAddress || orderId === 0n) return;
+
+  try {
+    el.requestReturn.disabled = true;
+    const reasonURI = el.returnReasonURI.value.trim();
+    if (!reasonURI) throw new Error("Return reason URI is required.");
+
+    setStatus("Requesting order return...");
+    const hash = await walletClient.writeContract({
+      address: contractAddress,
+      abi: arcMarketplaceAbi,
+      functionName: "requestReturn",
+      args: [listingId(), orderId, reasonURI],
+      account,
+      chain: arcTestnet,
+    });
+    setStatus("Return request submitted:", hash);
+    await waitForSuccess(hash);
+    await refreshListing();
+    setStatus("Return requested:", hash);
+  } catch (error) {
+    setStatus(errorMessage(error));
+  } finally {
+    updateActions();
+  }
+}
+
+async function reviewReturn(): Promise<void> {
+  if (!walletClient || !account) await connect();
+  const orderId = selectedOrderId();
+  if (!walletClient || !account || !contractAddress || orderId === 0n) return;
+
+  try {
+    el.reviewReturn.disabled = true;
+    const reviewURI = el.returnReviewURI.value.trim();
+    if (!reviewURI) throw new Error("Return review URI is required.");
+
+    setStatus("Reviewing order return...");
+    const hash = await walletClient.writeContract({
+      address: contractAddress,
+      abi: arcMarketplaceAbi,
+      functionName: "reviewReturn",
+      args: [listingId(), orderId, el.returnAccepted.checked, reviewURI],
+      account,
+      chain: arcTestnet,
+    });
+    setStatus("Return review submitted:", hash);
+    await waitForSuccess(hash);
+    await refreshListing();
+    setStatus("Return reviewed:", hash);
+  } catch (error) {
+    setStatus(errorMessage(error));
+  } finally {
+    updateActions();
+  }
+}
+
+async function closeReturn(): Promise<void> {
+  if (!walletClient || !account) await connect();
+  const orderId = selectedOrderId();
+  if (!walletClient || !account || !contractAddress || orderId === 0n) return;
+
+  try {
+    el.closeReturn.disabled = true;
+    const closeURI = el.returnCloseURI.value.trim();
+    if (!closeURI) throw new Error("Return close URI is required.");
+
+    setStatus("Closing order return...");
+    const hash = await walletClient.writeContract({
+      address: contractAddress,
+      abi: arcMarketplaceAbi,
+      functionName: "closeReturn",
+      args: [listingId(), orderId, closeURI],
+      account,
+      chain: arcTestnet,
+    });
+    setStatus("Return close submitted:", hash);
+    await waitForSuccess(hash);
+    await refreshListing();
+    setStatus("Return closed:", hash);
   } catch (error) {
     setStatus(errorMessage(error));
   } finally {
@@ -726,7 +998,7 @@ async function settleListing(): Promise<void> {
       chain: arcTestnet,
     });
     setStatus("Settle submitted:", hash);
-    await publicClient.waitForTransactionReceipt({ hash });
+    await waitForSuccess(hash);
     await refreshBalance();
     await refreshListing();
     setStatus("Listing settled:", hash);
@@ -738,6 +1010,7 @@ async function settleListing(): Promise<void> {
 }
 
 el.buyOrder.addEventListener("click", () => void buyOrder());
+el.closeReturn.addEventListener("click", () => void closeReturn());
 el.connect.addEventListener("click", () => void connect());
 el.contractAddress.addEventListener("input", updateActions);
 el.createListing.addEventListener("click", () => void createListing());
@@ -745,12 +1018,15 @@ el.deployContract.addEventListener("click", () => void deployContract());
 el.fulfillOrder.addEventListener("click", () => void fulfillOrder());
 el.refresh.addEventListener("click", () => void refreshListing());
 el.refundOrder.addEventListener("click", () => void refundOrder());
+el.requestReturn.addEventListener("click", () => void requestReturn());
+el.reviewReturn.addEventListener("click", () => void reviewReturn());
 el.saveContract.addEventListener("click", saveContract);
 el.settleListing.addEventListener("click", () => void settleListing());
 el.title.addEventListener("input", () => {
   currentListing = null;
   currentOrder = null;
   currentOrderId = 0n;
+  currentReturn = null;
   renderListing();
 });
 
