@@ -5,6 +5,7 @@ import solc from "solc";
 const root = process.cwd();
 const contractsToCompile = [
   { sourceName: "contracts/ArcInvoice.sol", filePath: "circle/arc/contracts/ArcInvoice.sol", name: "ArcInvoice" },
+  { sourceName: "contracts/ArcPayLink.sol", filePath: "circle/arc/contracts/ArcPayLink.sol", name: "ArcPayLink" },
   { sourceName: "contracts/ArcEscrow.sol", filePath: "circle/arc/contracts/ArcEscrow.sol", name: "ArcEscrow" },
   {
     sourceName: "contracts/ArcSubscription.sol",

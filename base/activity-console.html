@@ -577,7 +577,7 @@
         blockExplorerUrls: ["https://basescan.org", "https://base.blockscout.com"],
       };
 
-      const ACTIVITY_FUNCTIONS = [
+      const ACTIVITY_FUNCTIONS_V1 = [
         "ping",
         "touch",
         "check",
@@ -598,6 +598,9 @@
         "cycle",
         "anchor",
         "attest",
+      ];
+
+      const ACTIVITY_FUNCTIONS_V2_EXTRA = [
         "sync",
         "shift",
         "route",
@@ -643,11 +646,13 @@
         "traceA",
         "probeA",
       ];
+      const ACTIVITY_FUNCTIONS = [...ACTIVITY_FUNCTIONS_V1, ...ACTIVITY_FUNCTIONS_V2_EXTRA];
 
       const ACTIVITY_ABI = [
         ...ACTIVITY_FUNCTIONS.map((name) => `function ${name}() external`),
         "function countPing() external",
         "function logActivity(string action) external",
+        "function version() external view returns (string)",
       ];
       const USDC_ABI = ["function transfer(address to, uint256 amount) external returns (bool)"];
       const USDC_BASE = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
@@ -681,13 +686,15 @@
         signer: null,
         account: "",
         roundIndex: Math.min(
-          ACTIVITY_FUNCTIONS.length,
+          ACTIVITY_FUNCTIONS_V1.length,
           Math.max(0, Number(localStorage.getItem("baseActivityRoundIndex") ?? "0")),
         ),
         running: false,
         stopRequested: false,
         routineDate: storedRoutine.date,
         routine: storedRoutine.items,
+        activityFunctions: ACTIVITY_FUNCTIONS_V1,
+        contractVersion: "",
       };
 
       const els = {
@@ -734,8 +741,12 @@
         return value ? `${value.slice(0, 6)}...${value.slice(-4)}` : "-";
       }
 
+      function sanitizeStatusMessage(message) {
+        return String(message).replace(/0x[a-fA-F0-9]{40}/g, (value) => shortAddress(value));
+      }
+
       function setStatus(message, kind = "") {
-        els.status.textContent = message;
+        els.status.textContent = sanitizeStatusMessage(message);
         els.status.className = `status ${kind}`.trim();
       }
 
@@ -788,11 +799,48 @@
         localStorage.setItem("baseActivityRoutine", JSON.stringify({ date: state.routineDate, items: state.routine }));
       }
 
+      function getActivityFunctions() {
+        return state.activityFunctions ?? ACTIVITY_FUNCTIONS_V1;
+      }
+
+      function syncRoutineWithActivityFunctions() {
+        const supported = new Set(getActivityFunctions());
+        const filtered = state.routine.filter((item) => item.type !== "call" || supported.has(item.functionName));
+        if (filtered.length !== state.routine.length) {
+          state.routine = filtered;
+          persistRoutine();
+        }
+      }
+
+      function renderFunctionGrid() {
+        els.functionGrid.replaceChildren();
+        getActivityFunctions().forEach((name, index) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.textContent = name;
+          button.addEventListener("click", async () => {
+            if (!state.account) return;
+            try {
+              await callActivityFunction(name);
+              if (index === state.roundIndex) {
+                state.roundIndex = (state.roundIndex + 1) % getActivityFunctions().length;
+                persistRoundIndex();
+                updateRoundUI();
+              }
+            } catch (error) {
+              setStatus(error.message ?? String(error), "warn");
+            }
+          });
+          els.functionGrid.append(button);
+        });
+      }
+
       function updateRoundUI() {
-        els.roundCount.textContent = `${state.roundIndex}/${ACTIVITY_FUNCTIONS.length}`;
+        const activityFunctions = getActivityFunctions();
+        els.roundCount.textContent = `${state.roundIndex}/${activityFunctions.length}`;
         [...els.functionGrid.querySelectorAll("button")].forEach((button, index) => {
           button.classList.toggle("done", index < state.roundIndex);
-          button.classList.toggle("next", state.roundIndex < ACTIVITY_FUNCTIONS.length && index === state.roundIndex);
+          button.classList.toggle("next", state.roundIndex < activityFunctions.length && index === state.roundIndex);
         });
       }
 
@@ -872,9 +920,10 @@
       }
 
       function generateRoutine() {
-        const count = clamp(Number(els.routineCallCount.value || "16"), 4, ACTIVITY_FUNCTIONS.length);
+        const activityFunctions = getActivityFunctions();
+        const count = clamp(Number(els.routineCallCount.value || "16"), 4, activityFunctions.length);
         els.routineCallCount.value = String(count);
-        const selected = shuffle(ACTIVITY_FUNCTIONS).slice(0, count);
+        const selected = shuffle(activityFunctions).slice(0, count);
         const items = selected.map((name) =>
           makeRoutineItem("call", `${name}()`, "Empty BaseActivityPing contract call.", { functionName: name }),
         );
@@ -955,6 +1004,46 @@
         return new Contract(address, ACTIVITY_ABI, state.signer);
       }
 
+      async function refreshActivityContractProfile() {
+        const address = els.contractAddress.value.trim();
+        localStorage.setItem(CONTRACT_ADDRESS_KEY, address);
+
+        const useV1Compatible = () => {
+          state.activityFunctions = ACTIVITY_FUNCTIONS_V1;
+          state.contractVersion = "";
+          state.roundIndex = Math.min(state.roundIndex, getActivityFunctions().length);
+          syncRoutineWithActivityFunctions();
+          persistRoundIndex();
+          renderFunctionGrid();
+          updateRoundUI();
+          renderRoutine();
+        };
+
+        if (!address || !state.provider) {
+          useV1Compatible();
+          return;
+        }
+
+        try {
+          const contract = new Contract(address, ACTIVITY_ABI, state.provider);
+          const version = await contract.version();
+          state.contractVersion = String(version);
+          state.activityFunctions = state.contractVersion.toLowerCase().includes("v2")
+            ? ACTIVITY_FUNCTIONS
+            : ACTIVITY_FUNCTIONS_V1;
+          state.roundIndex = Math.min(state.roundIndex, getActivityFunctions().length);
+          syncRoutineWithActivityFunctions();
+          persistRoundIndex();
+          renderFunctionGrid();
+          updateRoundUI();
+          renderRoutine();
+          setStatus(`Activity contract detected: ${state.contractVersion}.`, "ok");
+        } catch {
+          useV1Compatible();
+          setStatus("Activity contract version not detected; using v1-compatible functions.", "warn");
+        }
+      }
+
       async function ensureBase() {
         const chainId = await window.ethereum.request({ method: "eth_chainId" });
         if (chainId === BASE.chainId) return;
@@ -987,9 +1076,10 @@
         els.ethTo.value ||= state.account;
         els.usdcTo.value ||= state.account;
         els.walletExplorer.href = `https://base.blockscout.com/address/${state.account}`;
+        await refreshActivityContractProfile();
         setControls(true);
         renderRoutine();
-        setStatus(`Connected ${state.account}`, "ok");
+        setStatus(`Connected ${shortAddress(state.account)}`, "ok");
         await refreshCount();
       }
 
@@ -1069,14 +1159,15 @@
       }
 
       async function callNextFunction() {
-        if (state.roundIndex >= ACTIVITY_FUNCTIONS.length) {
+        const activityFunctions = getActivityFunctions();
+        if (state.roundIndex >= activityFunctions.length) {
           state.roundIndex = 0;
           updateRoundUI();
         }
 
-        const name = ACTIVITY_FUNCTIONS[state.roundIndex];
+        const name = activityFunctions[state.roundIndex];
         await callActivityFunction(name);
-        state.roundIndex = Math.min(ACTIVITY_FUNCTIONS.length, state.roundIndex + 1);
+        state.roundIndex = Math.min(activityFunctions.length, state.roundIndex + 1);
         persistRoundIndex();
         updateRoundUI();
       }
@@ -1086,19 +1177,20 @@
         state.stopRequested = false;
         setControls(Boolean(state.account));
         try {
-          if (state.roundIndex >= ACTIVITY_FUNCTIONS.length) {
+          const activityFunctions = getActivityFunctions();
+          if (state.roundIndex >= activityFunctions.length) {
             state.roundIndex = 0;
             persistRoundIndex();
             updateRoundUI();
           }
 
-          while (state.roundIndex < ACTIVITY_FUNCTIONS.length) {
+          while (state.roundIndex < activityFunctions.length) {
             if (state.stopRequested) break;
             await callNextFunction();
             const delay = Math.max(0, Number(els.delayMs.value || "0"));
             if (delay > 0) await sleep(delay);
           }
-          setStatus(state.stopRequested ? "Round stopped." : "20-call round finished.", "ok");
+          setStatus(state.stopRequested ? "Round stopped." : `${activityFunctions.length}-call round finished.`, "ok");
         } catch (error) {
           setStatus(error.message ?? String(error), "warn");
         } finally {
@@ -1179,26 +1271,6 @@
         }
       }
 
-      ACTIVITY_FUNCTIONS.forEach((name, index) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.textContent = name;
-        button.addEventListener("click", async () => {
-          if (!state.account) return;
-          try {
-            await callActivityFunction(name);
-            if (index === state.roundIndex) {
-              state.roundIndex = (state.roundIndex + 1) % ACTIVITY_FUNCTIONS.length;
-              persistRoundIndex();
-              updateRoundUI();
-            }
-          } catch (error) {
-            setStatus(error.message ?? String(error), "warn");
-          }
-        });
-        els.functionGrid.append(button);
-      });
-
       els.connect.addEventListener("click", () => connect().catch((error) => setStatus(error.message ?? String(error), "warn")));
       els.refresh.addEventListener("click", () => refreshCount().catch((error) => setStatus(error.message ?? String(error), "warn")));
       els.generateRoutine.addEventListener("click", generateRoutine);
@@ -1246,7 +1318,10 @@
       els.contractAddress.value = localStorage.getItem(CONTRACT_ADDRESS_KEY) ?? "";
       els.contractAddress.addEventListener("change", () => {
         localStorage.setItem(CONTRACT_ADDRESS_KEY, els.contractAddress.value.trim());
+        refreshActivityContractProfile().catch((error) => setStatus(error.message ?? String(error), "warn"));
       });
+      syncRoutineWithActivityFunctions();
+      renderFunctionGrid();
       updateRoundUI();
       renderRoutine();
       setControls(false);
