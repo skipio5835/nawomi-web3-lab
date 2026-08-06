@@ -56,11 +56,12 @@ const el = {
   result: document.querySelector<HTMLElement>("#result")!,
 };
 
+function localDateTimeValue(date: Date): string { const pad = (value: number) => String(value).padStart(2, "0"); return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`; }
 el.contract.value = contract;
 const today = new Date().toISOString().slice(0, 10);
 el.linkId.value = `arc-pay-link-${today}`;
 el.amount.value = "0.01";
-el.expiry.value = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
+el.expiry.value = localDateTimeValue(new Date(Date.now() + 24 * 60 * 60 * 1000));
 el.metadata.value = `local:arc-pay-link:${today}`;
 
 function setStatus(message: string, hash?: Hash): void {

@@ -18,9 +18,9 @@ var __export = (target, all) => {
 };
 var __copyProps = (to, from14, except, desc) => {
   if (from14 && typeof from14 === "object" || typeof from14 === "function") {
-    for (let key2 of __getOwnPropNames(from14))
-      if (!__hasOwnProp.call(to, key2) && key2 !== except)
-        __defProp(to, key2, { get: () => from14[key2], enumerable: !(desc = __getOwnPropDesc(from14, key2)) || desc.enumerable });
+    for (let key of __getOwnPropNames(from14))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from14[key], enumerable: !(desc = __getOwnPropDesc(from14, key)) || desc.enumerable });
   }
   return to;
 };
@@ -4016,18 +4016,18 @@ var init_lru = __esm({
         });
         this.maxSize = size5;
       }
-      get(key2) {
-        const value = super.get(key2);
-        if (super.has(key2)) {
-          super.delete(key2);
-          super.set(key2, value);
+      get(key) {
+        const value = super.get(key);
+        if (super.has(key)) {
+          super.delete(key);
+          super.set(key, value);
         }
         return value;
       }
-      set(key2, value) {
-        if (super.has(key2))
-          super.delete(key2);
-        super.set(key2, value);
+      set(key, value) {
+        if (super.has(key))
+          super.delete(key);
+        super.set(key, value);
         if (this.maxSize && this.size > this.maxSize) {
           const firstKey = super.keys().next().value;
           if (firstKey !== void 0)
@@ -5144,9 +5144,9 @@ var stringify;
 var init_stringify = __esm({
   "node_modules/viem/_esm/utils/stringify.js"() {
     init_browser_buffer_global();
-    stringify = (value, replacer, space) => JSON.stringify(value, (key2, value_) => {
+    stringify = (value, replacer, space) => JSON.stringify(value, (key, value_) => {
       const value2 = typeof value_ === "bigint" ? value_.toString() : value_;
-      return typeof replacer === "function" ? replacer(key2, value2) : value2;
+      return typeof replacer === "function" ? replacer(key, value2) : value2;
     }, space);
   }
 });
@@ -5283,13 +5283,13 @@ var init_stateOverride = __esm({
 
 // node_modules/viem/_esm/errors/transaction.js
 function prettyPrint(args) {
-  const entries = Object.entries(args).map(([key2, value]) => {
+  const entries = Object.entries(args).map(([key, value]) => {
     if (value === void 0 || value === false)
       return null;
-    return [key2, value];
+    return [key, value];
   }).filter(Boolean);
-  const maxLength = entries.reduce((acc, [key2]) => Math.max(acc, key2.length), 0);
-  return entries.map(([key2, value]) => `  ${`${key2}:`.padEnd(maxLength + 1)}  ${value}`).join("\n");
+  const maxLength = entries.reduce((acc, [key]) => Math.max(acc, key.length), 0);
+  return entries.map(([key, value]) => `  ${`${key}:`.padEnd(maxLength + 1)}  ${value}`).join("\n");
 }
 var InvalidSerializableTransactionError, TransactionExecutionError, TransactionNotFoundError, TransactionReceiptNotFoundError, TransactionReceiptRevertedError, WaitForTransactionReceiptTimeoutError;
 var init_transaction = __esm({
@@ -6534,7 +6534,7 @@ var init_hmac = __esm({
         this.finished = false;
         this.destroyed = false;
         ahash(hash3);
-        const key2 = toBytes2(_key);
+        const key = toBytes2(_key);
         this.iHash = hash3.create();
         if (typeof this.iHash.update !== "function")
           throw new Error("Expected instance of class which extends utils.Hash");
@@ -6542,7 +6542,7 @@ var init_hmac = __esm({
         this.outputLen = this.iHash.outputLen;
         const blockLen = this.blockLen;
         const pad4 = new Uint8Array(blockLen);
-        pad4.set(key2.length > blockLen ? hash3.create().update(key2).digest() : key2);
+        pad4.set(key.length > blockLen ? hash3.create().update(key).digest() : key);
         for (let i = 0; i < pad4.length; i++)
           pad4[i] ^= 54;
         this.iHash.update(pad4);
@@ -6592,8 +6592,8 @@ var init_hmac = __esm({
         this.iHash.destroy();
       }
     };
-    hmac = (hash3, key2, message) => new HMAC(hash3, key2).update(message).digest();
-    hmac.create = (hash3, key2) => new HMAC(hash3, key2);
+    hmac = (hash3, key, message) => new HMAC(hash3, key).update(message).digest();
+    hmac.create = (hash3, key) => new HMAC(hash3, key);
   }
 });
 
@@ -7064,13 +7064,13 @@ function getMinHashLength(fieldOrder) {
   const length = getFieldBytesLength(fieldOrder);
   return length + Math.ceil(length / 2);
 }
-function mapHashToField(key2, fieldOrder, isLE3 = false) {
-  const len = key2.length;
+function mapHashToField(key, fieldOrder, isLE3 = false) {
+  const len = key.length;
   const fieldLen = getFieldBytesLength(fieldOrder);
   const minLen = getMinHashLength(fieldOrder);
   if (len < 16 || len < minLen || len > 1024)
     throw new Error("expected " + minLen + "-1024 bytes of input, got " + len);
-  const num2 = isLE3 ? bytesToNumberLE(key2) : bytesToNumberBE(key2);
+  const num2 = isLE3 ? bytesToNumberLE(key) : bytesToNumberBE(key);
   const reduced = mod(num2, fieldOrder - _1n3) + _1n3;
   return isLE3 ? numberToBytesLE(reduced, fieldLen) : numberToBytesBE(reduced, fieldLen);
 }
@@ -7420,20 +7420,20 @@ function weierstrassPoints(opts) {
   function isWithinCurveOrder(num2) {
     return inRange(num2, _1n5, CURVE.n);
   }
-  function normPrivateKeyToScalar(key2) {
+  function normPrivateKeyToScalar(key) {
     const { allowedPrivateKeyLengths: lengths, nByteLength, wrapPrivateKey, n: N } = CURVE;
-    if (lengths && typeof key2 !== "bigint") {
-      if (isBytes2(key2))
-        key2 = bytesToHex2(key2);
-      if (typeof key2 !== "string" || !lengths.includes(key2.length))
+    if (lengths && typeof key !== "bigint") {
+      if (isBytes2(key))
+        key = bytesToHex2(key);
+      if (typeof key !== "string" || !lengths.includes(key.length))
         throw new Error("invalid private key");
-      key2 = key2.padStart(nByteLength * 2, "0");
+      key = key.padStart(nByteLength * 2, "0");
     }
     let num2;
     try {
-      num2 = typeof key2 === "bigint" ? key2 : bytesToNumberBE(ensureBytes("private key", key2, nByteLength));
+      num2 = typeof key === "bigint" ? key : bytesToNumberBE(ensureBytes("private key", key, nByteLength));
     } catch (error) {
-      throw new Error("invalid private key, expected hex or " + nByteLength + " bytes, got " + typeof key2);
+      throw new Error("invalid private key, expected hex or " + nByteLength + " bytes, got " + typeof key);
     }
     if (wrapPrivateKey)
       num2 = mod(num2, N);
@@ -8350,7 +8350,7 @@ var init_weierstrass = __esm({
 function getHash(hash3) {
   return {
     hash: hash3,
-    hmac: (key2, ...msgs) => hmac(hash3, key2, concatBytes(...msgs)),
+    hmac: (key, ...msgs) => hmac(hash3, key, concatBytes(...msgs)),
     randomBytes
   };
 }
@@ -9007,11 +9007,11 @@ function extract(value_, { format }) {
   const value = {};
   function extract_(formatted2) {
     const keys = Object.keys(formatted2);
-    for (const key2 of keys) {
-      if (key2 in value_)
-        value[key2] = value_[key2];
-      if (formatted2[key2] && typeof formatted2[key2] === "object" && !Array.isArray(formatted2[key2]))
-        extract_(formatted2[key2]);
+    for (const key of keys) {
+      if (key in value_)
+        value[key] = value_[key];
+      if (formatted2[key] && typeof formatted2[key] === "object" && !Array.isArray(formatted2[key]))
+        extract_(formatted2[key]);
     }
   }
   const formatted = format(value_ || {});
@@ -9882,9 +9882,9 @@ var init_hex = __esm({
 
 // node_modules/ox/_esm/core/Json.js
 function stringify2(value, replacer, space) {
-  return JSON.stringify(value, (key2, value2) => {
+  return JSON.stringify(value, (key, value2) => {
     if (typeof replacer === "function")
-      return replacer(key2, value2);
+      return replacer(key, value2);
     if (typeof value2 === "bigint")
       return value2.toString() + bigIntSuffix;
     return value2;
@@ -11430,7 +11430,7 @@ async function scheduleMulticall(client, args) {
   });
   const blockId = typeof block === "string" ? block : JSON.stringify(block);
   const stateOverrideKey = rpcStateOverride ? `.${JSON.stringify(rpcStateOverride)}` : "";
-  const { schedule } = createBatchScheduler({
+  const { schedule: schedule2 } = createBatchScheduler({
     id: `${client.uid}.${blockId}.${getRequestOptionsId(requestOptions)}${stateOverrideKey}`,
     wait: wait2,
     shouldSplitBatch(args2) {
@@ -11468,7 +11468,7 @@ async function scheduleMulticall(client, args) {
       });
     }
   });
-  const [{ returnData, success }] = await schedule({ data, to });
+  const [{ returnData, success }] = await schedule2({ data, to });
   if (!success)
     throw new RawContractError({ data: returnData });
   if (returnData === "0x")
@@ -11545,7 +11545,7 @@ var init_call = __esm({
   }
 });
 
-// circle/arc/src/arc-pay-link.ts
+// circle/arc/src/arc-streaming-payroll.ts
 init_browser_buffer_global();
 
 // node_modules/viem/_esm/index.js
@@ -13156,14 +13156,14 @@ function includesArgs(parameters) {
     });
   }
   if (typeof args === "object" && !Array.isArray(args) && typeof matchArgs === "object" && !Array.isArray(matchArgs))
-    return Object.entries(matchArgs).every(([key2, value]) => {
+    return Object.entries(matchArgs).every(([key, value]) => {
       if (value === null || value === void 0)
         return true;
-      const input = inputs.find((input2) => input2.name === key2);
+      const input = inputs.find((input2) => input2.name === key);
       if (!input)
         return false;
       const value_ = Array.isArray(value) ? value : [value];
-      return value_.some((value2) => isEqual2(input, value2, args[key2]));
+      return value_.some((value2) => isEqual2(input, value2, args[key]));
     });
   return false;
 }
@@ -13359,13 +13359,13 @@ function observe(observerId, callbacks, fn) {
   if (listeners && listeners.length > 0)
     return unwatch;
   const emit = {};
-  for (const key2 in callbacks) {
-    emit[key2] = ((...args) => {
+  for (const key in callbacks) {
+    emit[key] = ((...args) => {
       const listeners2 = getListeners();
       if (listeners2.length === 0)
         return;
       for (const listener of listeners2)
-        listener.fns[key2]?.(...args);
+        listener.fns[key]?.(...args);
     });
   }
   const cleanup = fn(emit);
@@ -14312,7 +14312,7 @@ function uid(length = 11) {
 
 // node_modules/viem/_esm/clients/createClient.js
 function createClient(parameters) {
-  const { batch, chain, ccipRead, dataSuffix, key: key2 = "base", name = "Base Client", type = "base" } = parameters;
+  const { batch, chain, ccipRead, dataSuffix, key = "base", name = "Base Client", type = "base" } = parameters;
   const experimental_blockTag = parameters.experimental_blockTag ?? (typeof chain?.experimental_preconfirmationTime === "number" ? "pending" : void 0);
   const blockTime = chain?.blockTime ?? 12e3;
   const defaultPollingInterval = Math.min(Math.max(Math.floor(blockTime / 2), 500), 4e3);
@@ -14332,7 +14332,7 @@ function createClient(parameters) {
     ccipRead,
     chain,
     dataSuffix,
-    key: key2,
+    key,
     name,
     pollingInterval,
     request,
@@ -14344,8 +14344,8 @@ function createClient(parameters) {
   function extend(base) {
     return (extendFn) => {
       const extended = extendFn(base);
-      for (const key3 in client)
-        delete extended[key3];
+      for (const key2 in client)
+        delete extended[key2];
       const combined = { ...base, ...extended };
       return Object.assign(combined, { extend: extend(combined) });
     };
@@ -14807,7 +14807,7 @@ init_getChainContractAddress();
 init_toHex();
 init_localBatchGatewayRequest();
 async function getEnsText(client, parameters) {
-  const { blockNumber, blockTag, key: key2, name, gatewayUrls, strict } = parameters;
+  const { blockNumber, blockTag, key, name, gatewayUrls, strict } = parameters;
   const { chain } = client;
   const universalResolverAddress = (() => {
     if (parameters.universalResolverAddress)
@@ -14832,7 +14832,7 @@ async function getEnsText(client, parameters) {
         encodeFunctionData({
           abi: textResolverAbi,
           functionName: "text",
-          args: [namehash(name), key2]
+          args: [namehash(name), key]
         }),
         gatewayUrls ?? [localBatchGatewayUrl]
       ],
@@ -15735,50 +15735,50 @@ function createNonceManager(parameters) {
   const nonceMap = new LruMap(8192);
   const promiseMap = /* @__PURE__ */ new Map();
   const getKey = ({ address, chainId: chainId2 }) => `${address}.${chainId2}`;
-  const resetCache = (key2) => {
-    deltaMap.delete(key2);
-    promiseMap.delete(key2);
+  const resetCache = (key) => {
+    deltaMap.delete(key);
+    promiseMap.delete(key);
   };
   return {
     async consume({ address, chainId: chainId2, client }) {
-      const key2 = getKey({ address, chainId: chainId2 });
+      const key = getKey({ address, chainId: chainId2 });
       const promise = this.get({ address, chainId: chainId2, client });
       this.increment({ address, chainId: chainId2 });
       const nonce = await promise;
       await source.set({ address, chainId: chainId2 }, nonce);
-      nonceMap.set(key2, nonce);
+      nonceMap.set(key, nonce);
       return nonce;
     },
     async increment({ address, chainId: chainId2 }) {
-      const key2 = getKey({ address, chainId: chainId2 });
-      const delta = deltaMap.get(key2) ?? 0;
-      deltaMap.set(key2, delta + 1);
+      const key = getKey({ address, chainId: chainId2 });
+      const delta = deltaMap.get(key) ?? 0;
+      deltaMap.set(key, delta + 1);
     },
     async get({ address, chainId: chainId2, client }) {
-      const key2 = getKey({ address, chainId: chainId2 });
-      let promise = promiseMap.get(key2);
+      const key = getKey({ address, chainId: chainId2 });
+      let promise = promiseMap.get(key);
       if (!promise) {
         promise = (async () => {
           try {
             const nonce = await source.get({ address, chainId: chainId2, client });
-            const previousNonce = nonceMap.get(key2) ?? 0;
+            const previousNonce = nonceMap.get(key) ?? 0;
             if (previousNonce > 0 && nonce <= previousNonce)
               return previousNonce + 1;
-            nonceMap.delete(key2);
+            nonceMap.delete(key);
             return nonce;
           } finally {
-            resetCache(key2);
+            resetCache(key);
           }
         })();
-        promiseMap.set(key2, promise);
+        promiseMap.set(key, promise);
       }
-      const delta = deltaMap.get(key2) ?? 0;
+      const delta = deltaMap.get(key) ?? 0;
       return delta + await promise;
     },
     reset({ address, chainId: chainId2 }) {
-      const key2 = getKey({ address, chainId: chainId2 });
-      nonceMap.delete(key2);
-      resetCache(key2);
+      const key = getKey({ address, chainId: chainId2 });
+      nonceMap.delete(key);
+      resetCache(key);
     }
   };
 }
@@ -17131,16 +17131,16 @@ var LruMap2 = class extends Map {
     });
     this.maxSize = size5;
   }
-  get(key2) {
-    const value = super.get(key2);
-    if (super.has(key2) && value !== void 0) {
-      this.delete(key2);
-      super.set(key2, value);
+  get(key) {
+    const value = super.get(key);
+    if (super.has(key) && value !== void 0) {
+      this.delete(key);
+      super.set(key, value);
     }
     return value;
   }
-  set(key2, value) {
-    super.set(key2, value);
+  set(key, value) {
+    super.set(key, value);
     if (this.maxSize && this.size > this.maxSize) {
       const firstKey = this.keys().next().value;
       if (firstKey)
@@ -17283,7 +17283,7 @@ var HMAC2 = class extends Hash2 {
     this.finished = false;
     this.destroyed = false;
     ahash2(hash3);
-    const key2 = toBytes3(_key);
+    const key = toBytes3(_key);
     this.iHash = hash3.create();
     if (typeof this.iHash.update !== "function")
       throw new Error("Expected instance of class which extends utils.Hash");
@@ -17291,7 +17291,7 @@ var HMAC2 = class extends Hash2 {
     this.outputLen = this.iHash.outputLen;
     const blockLen = this.blockLen;
     const pad4 = new Uint8Array(blockLen);
-    pad4.set(key2.length > blockLen ? hash3.create().update(key2).digest() : key2);
+    pad4.set(key.length > blockLen ? hash3.create().update(key).digest() : key);
     for (let i = 0; i < pad4.length; i++)
       pad4[i] ^= 54;
     this.iHash.update(pad4);
@@ -17341,8 +17341,8 @@ var HMAC2 = class extends Hash2 {
     this.iHash.destroy();
   }
 };
-var hmac2 = (hash3, key2, message) => new HMAC2(hash3, key2).update(message).digest();
-hmac2.create = (hash3, key2) => new HMAC2(hash3, key2);
+var hmac2 = (hash3, key, message) => new HMAC2(hash3, key).update(message).digest();
+hmac2.create = (hash3, key) => new HMAC2(hash3, key);
 
 // node_modules/ox/node_modules/@noble/hashes/esm/ripemd160.js
 init_browser_buffer_global();
@@ -19372,13 +19372,13 @@ function getMinHashLength2(fieldOrder) {
   const length = getFieldBytesLength2(fieldOrder);
   return length + Math.ceil(length / 2);
 }
-function mapHashToField2(key2, fieldOrder, isLE3 = false) {
-  const len = key2.length;
+function mapHashToField2(key, fieldOrder, isLE3 = false) {
+  const len = key.length;
   const fieldLen = getFieldBytesLength2(fieldOrder);
   const minLen = getMinHashLength2(fieldOrder);
   if (len < 16 || len < minLen || len > 1024)
     throw new Error("expected " + minLen + "-1024 bytes of input, got " + len);
-  const num2 = isLE3 ? bytesToNumberLE2(key2) : bytesToNumberBE2(key2);
+  const num2 = isLE3 ? bytesToNumberLE2(key) : bytesToNumberBE2(key);
   const reduced = mod2(num2, fieldOrder - _1n9) + _1n9;
   return isLE3 ? numberToBytesLE2(reduced, fieldLen) : numberToBytesBE2(reduced, fieldLen);
 }
@@ -19798,20 +19798,20 @@ function weierstrassPoints2(opts) {
   function isWithinCurveOrder(num2) {
     return inRange2(num2, _1n11, CURVE.n);
   }
-  function normPrivateKeyToScalar(key2) {
+  function normPrivateKeyToScalar(key) {
     const { allowedPrivateKeyLengths: lengths, nByteLength, wrapPrivateKey, n: N } = CURVE;
-    if (lengths && typeof key2 !== "bigint") {
-      if (isBytes3(key2))
-        key2 = bytesToHex3(key2);
-      if (typeof key2 !== "string" || !lengths.includes(key2.length))
+    if (lengths && typeof key !== "bigint") {
+      if (isBytes3(key))
+        key = bytesToHex3(key);
+      if (typeof key !== "string" || !lengths.includes(key.length))
         throw new Error("invalid private key");
-      key2 = key2.padStart(nByteLength * 2, "0");
+      key = key.padStart(nByteLength * 2, "0");
     }
     let num2;
     try {
-      num2 = typeof key2 === "bigint" ? key2 : bytesToNumberBE2(ensureBytes2("private key", key2, nByteLength));
+      num2 = typeof key === "bigint" ? key : bytesToNumberBE2(ensureBytes2("private key", key, nByteLength));
     } catch (error) {
-      throw new Error("invalid private key, expected hex or " + nByteLength + " bytes, got " + typeof key2);
+      throw new Error("invalid private key, expected hex or " + nByteLength + " bytes, got " + typeof key);
     }
     if (wrapPrivateKey)
       num2 = mod2(num2, N);
@@ -20509,7 +20509,7 @@ function weierstrass2(curveDef) {
 function getHash2(hash3) {
   return {
     hash: hash3,
-    hmac: (key2, ...msgs) => hmac2(hash3, key2, concatBytes5(...msgs)),
+    hmac: (key, ...msgs) => hmac2(hash3, key, concatBytes5(...msgs)),
     randomBytes: randomBytes2
   };
 }
@@ -23041,10 +23041,10 @@ function publicActions(client) {
 
 // node_modules/viem/_esm/clients/createPublicClient.js
 function createPublicClient(parameters) {
-  const { key: key2 = "public", name = "Public Client" } = parameters;
+  const { key = "public", name = "Public Client" } = parameters;
   const client = createClient({
     ...parameters,
-    key: key2,
+    key,
     name,
     type: "publicClient"
   });
@@ -23222,10 +23222,10 @@ async function getCapabilities(client, parameters = {}) {
   const capabilities = {};
   for (const [chainId3, capabilities_] of Object.entries(capabilities_raw)) {
     capabilities[Number(chainId3)] = {};
-    for (let [key2, value] of Object.entries(capabilities_)) {
-      if (key2 === "addSubAccount")
-        key2 = "unstable_addSubAccount";
-      capabilities[Number(chainId3)][key2] = value;
+    for (let [key, value] of Object.entries(capabilities_)) {
+      if (key === "addSubAccount")
+        key = "unstable_addSubAccount";
+      capabilities[Number(chainId3)][key] = value;
     }
   }
   return typeof chainId2 === "number" ? capabilities[chainId2] : capabilities;
@@ -23673,10 +23673,10 @@ function walletActions(client) {
 
 // node_modules/viem/_esm/clients/createWalletClient.js
 function createWalletClient(parameters) {
-  const { key: key2 = "wallet", name = "Wallet Client", transport } = parameters;
+  const { key = "wallet", name = "Wallet Client", transport } = parameters;
   const client = createClient({
     ...parameters,
-    key: key2,
+    key,
     name,
     transport,
     type: "walletClient"
@@ -23686,11 +23686,11 @@ function createWalletClient(parameters) {
 
 // node_modules/viem/_esm/clients/transports/createTransport.js
 init_browser_buffer_global();
-function createTransport({ key: key2, methods, name, request, retryCount = 3, retryDelay = 150, timeout, type }, value) {
+function createTransport({ key, methods, name, request, retryCount = 3, retryDelay = 150, timeout, type }, value) {
   const uid2 = uid();
   return {
     config: {
-      key: key2,
+      key,
       methods,
       name,
       request,
@@ -23707,9 +23707,9 @@ function createTransport({ key: key2, methods, name, request, retryCount = 3, re
 // node_modules/viem/_esm/clients/transports/custom.js
 init_browser_buffer_global();
 function custom(provider2, config = {}) {
-  const { key: key2 = "custom", methods, name = "Custom Provider", retryDelay } = config;
+  const { key = "custom", methods, name = "Custom Provider", retryDelay } = config;
   return ({ retryCount: defaultRetryCount }) => createTransport({
-    key: key2,
+    key,
     methods,
     name,
     request: provider2.request.bind(provider2),
@@ -23755,7 +23755,7 @@ function getSignalId(signal) {
   return nextId;
 }
 function http(url, config = {}) {
-  const { batch, fetchFn, fetchOptions, key: key2 = "http", methods, name = "HTTP JSON-RPC", onFetchRequest, onFetchResponse, retryDelay, raw } = config;
+  const { batch, fetchFn, fetchOptions, key = "http", methods, name = "HTTP JSON-RPC", onFetchRequest, onFetchResponse, retryDelay, raw } = config;
   return ({ chain, retryCount: retryCount_, timeout: timeout_ }) => {
     const { batchSize = 1e3, wait: wait2 = 0 } = typeof batch === "object" ? batch : {};
     const retryCount = config.retryCount ?? retryCount_;
@@ -23771,13 +23771,13 @@ function http(url, config = {}) {
       timeout
     });
     return createTransport({
-      key: key2,
+      key,
       methods,
       name,
       async request({ method, params }, options) {
         const body = { method, params };
         const fetchOptions2 = options?.signal ? { signal: options.signal } : void 0;
-        const { schedule } = createBatchScheduler({
+        const { schedule: schedule2 } = createBatchScheduler({
           id: `${url_}.${getSignalId(options?.signal)}`,
           wait: wait2,
           shouldSplitBatch(requests) {
@@ -23789,7 +23789,7 @@ function http(url, config = {}) {
           }),
           sort: (a, b) => a.id - b.id
         });
-        const fn = async (body2) => batch ? schedule(body2) : [
+        const fn = async (body2) => batch ? schedule2(body2) : [
           await rpcClient.request({
             body: body2,
             fetchOptions: fetchOptions2
@@ -23939,23 +23939,16 @@ init_formatEther();
 init_formatGwei();
 init_formatUnits();
 
-// circle/arc/src/arc-pay-link.ts
-var arc = {
-  id: 5042002,
-  name: "Arc Testnet",
-  nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
-  rpcUrls: { default: { http: ["https://rpc.testnet.arc.network"] } },
-  blockExplorers: { default: { name: "ArcScan", url: "https://testnet.arcscan.app" } }
-};
-var chainId = "0x4cef52";
-var key = "ArcPayLink.contractAddress";
+// circle/arc/src/arc-streaming-payroll.ts
+var arc = { id: 5042002, name: "Arc Testnet", nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 }, rpcUrls: { default: { http: ["https://rpc.testnet.arc.network"] } }, blockExplorers: { default: { name: "ArcScan", url: "https://testnet.arcscan.app" } } };
 var publicClient = createPublicClient({ chain: arc, transport: http() });
+var chainId = "0x4cef52";
+var storageKey = "ArcStreamingPayroll.v2.contractAddress";
+var provider = null;
 var wallet = null;
 var account = null;
-var provider = null;
 var artifact = null;
-var contract = localStorage.getItem(key) ?? "";
-var currentId = null;
+var contract = localStorage.getItem(storageKey) ?? "";
 var el = {
   connect: document.querySelector("#connect"),
   wallet: document.querySelector("#wallet"),
@@ -23963,13 +23956,15 @@ var el = {
   contract: document.querySelector("#contract"),
   save: document.querySelector("#save"),
   deploy: document.querySelector("#deploy"),
-  linkId: document.querySelector("#linkId"),
+  streamId: document.querySelector("#streamId"),
+  recipient: document.querySelector("#recipient"),
   amount: document.querySelector("#amount"),
-  expiry: document.querySelector("#expiry"),
+  start: document.querySelector("#start"),
+  end: document.querySelector("#end"),
   metadata: document.querySelector("#metadata"),
   create: document.querySelector("#create"),
   load: document.querySelector("#load"),
-  pay: document.querySelector("#pay"),
+  withdraw: document.querySelector("#withdraw"),
   cancel: document.querySelector("#cancel"),
   status: document.querySelector("#status"),
   result: document.querySelector("#result")
@@ -23979,138 +23974,119 @@ function localDateTimeValue(date) {
   return `${date.getFullYear()}-${pad4(date.getMonth() + 1)}-${pad4(date.getDate())}T${pad4(date.getHours())}:${pad4(date.getMinutes())}`;
 }
 el.contract.value = contract;
-var today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
-el.linkId.value = `arc-pay-link-${today}`;
-el.amount.value = "0.01";
-el.expiry.value = localDateTimeValue(new Date(Date.now() + 24 * 60 * 60 * 1e3));
-el.metadata.value = `local:arc-pay-link:${today}`;
+var now = Date.now();
+var minute = 6e4;
+var roundedNow = Math.ceil(now / minute) * minute;
+var today = new Date(now).toISOString().slice(0, 10);
+el.streamId.value = `arc-stream-${today}`;
+el.amount.value = "0.02";
+el.start.value = localDateTimeValue(new Date(roundedNow + 2 * minute));
+el.end.value = localDateTimeValue(new Date(roundedNow + 10 * minute));
+el.metadata.value = `local:arc-stream:${today}`;
 function setStatus(message, hash3) {
   el.status.innerHTML = hash3 ? `${message} <a href="https://testnet.arcscan.app/tx/${hash3}" target="_blank" rel="noreferrer">ArcScan</a>` : message;
 }
 function requireContract() {
-  if (!isAddress(contract)) throw new Error("Set a valid ArcPayLink contract address first.");
+  if (!isAddress(contract)) throw new Error("Set a valid ArcStreamingPayroll contract address first.");
   return contract;
 }
-async function loadArtifact() {
-  artifact ??= await fetch("./artifacts/ArcPayLink.json").then((response) => response.json());
+async function getArtifact() {
+  artifact ??= await fetch("./artifacts/ArcStreamingPayroll.json").then((response) => response.json());
   return artifact;
 }
 async function connect() {
-  const injected = window.ethereum;
-  if (!injected) throw new Error("MetaMask was not found.");
-  provider = injected;
+  provider = window.ethereum ?? null;
+  if (!provider) throw new Error("MetaMask was not found.");
   await provider.request({ method: "wallet_switchEthereumChain", params: [{ chainId }] });
   const accounts = await provider.request({ method: "eth_requestAccounts" });
   account = accounts[0];
   wallet = createWalletClient({ account, chain: arc, transport: custom(provider) });
   el.wallet.textContent = account;
+  el.recipient.value = account;
   el.balance.textContent = `${formatEther(await publicClient.getBalance({ address: account }))} USDC`;
-  setStatus("Wallet connected.");
+  setStatus("Wallet connected. Self-stream is enabled for testing.");
 }
 async function ensureWallet() {
   if (!wallet || !account) await connect();
   if (!wallet || !account) throw new Error("Wallet connection failed.");
 }
-function idHash() {
-  const value = el.linkId.value.trim();
-  if (!value) throw new Error("Link ID is required.");
+function streamHash() {
+  const value = el.streamId.value.trim();
+  if (!value) throw new Error("Stream ID is required.");
   return keccak256(toBytes(value));
 }
-async function createLink() {
-  await ensureWallet();
-  const compiled = await loadArtifact();
-  const address = requireContract();
-  const expiresAt = BigInt(Math.floor(new Date(el.expiry.value).getTime() / 1e3));
-  if (!Number.isFinite(Number(expiresAt)) || expiresAt <= BigInt(Math.floor(Date.now() / 1e3))) throw new Error("Expiry must be in the future.");
-  setStatus("Waiting for MetaMask: create payment link...");
-  const hash3 = await wallet.writeContract({
-    address,
-    abi: compiled.abi,
-    functionName: "createLink",
-    args: [idHash(), parseEther(el.amount.value), expiresAt, el.metadata.value.trim()]
-  });
-  await publicClient.waitForTransactionReceipt({ hash: hash3 });
-  currentId = idHash();
-  setStatus("Payment link created.", hash3);
-  await loadLink();
-}
-async function loadLink() {
-  const compiled = await loadArtifact();
-  const address = requireContract();
-  const id = idHash();
-  const link = await publicClient.readContract({ address, abi: compiled.abi, functionName: "getLink", args: [id] });
-  currentId = id;
-  const statuses = ["unknown", "open", "paid", "cancelled"];
-  el.result.textContent = JSON.stringify({
-    linkId: id,
-    merchant: link.merchant,
-    payer: link.payer,
-    amount: `${formatEther(link.amount)} USDC`,
-    expiresAt: new Date(Number(link.expiresAt) * 1e3).toISOString(),
-    status: statuses[link.status] ?? "unknown",
-    metadataURI: link.metadataURI
-  }, null, 2);
-  el.pay.disabled = link.status !== 1 || Number(link.expiresAt) <= Math.floor(Date.now() / 1e3);
-  el.cancel.disabled = link.status !== 1;
-  setStatus("Payment link loaded.");
-}
-async function payLink() {
-  await ensureWallet();
-  const compiled = await loadArtifact();
-  const address = requireContract();
-  if (!currentId) await loadLink();
-  setStatus("Waiting for MetaMask: pay payment link...");
-  const hash3 = await wallet.writeContract({
-    address,
-    abi: compiled.abi,
-    functionName: "payLink",
-    args: [currentId],
-    value: parseEther(el.amount.value)
-  });
-  await publicClient.waitForTransactionReceipt({ hash: hash3 });
-  setStatus("Payment completed and settled to merchant.", hash3);
-  await loadLink();
-}
-async function cancelLink() {
-  await ensureWallet();
-  const compiled = await loadArtifact();
-  const hash3 = await wallet.writeContract({ address: requireContract(), abi: compiled.abi, functionName: "cancelLink", args: [currentId ?? idHash()] });
-  await publicClient.waitForTransactionReceipt({ hash: hash3 });
-  setStatus("Payment link cancelled.", hash3);
-  await loadLink();
+function schedule() {
+  const startMs = new Date(el.start.value).getTime();
+  const endMs = new Date(el.end.value).getTime();
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) throw new Error("Enter both start and end times.");
+  const start = BigInt(Math.floor(startMs / 1e3));
+  const end = BigInt(Math.floor(endMs / 1e3));
+  const now2 = BigInt(Math.floor(Date.now() / 1e3));
+  if (start <= now2 + 30n || end <= start) throw new Error("Start must be at least 30 seconds from now, and end must be later.");
+  return [start, end];
 }
 async function deploy() {
   await ensureWallet();
-  const compiled = await loadArtifact();
-  setStatus("Waiting for MetaMask: deploy ArcPayLink...");
-  const hash3 = await wallet.deployContract({ abi: compiled.abi, bytecode: compiled.bytecode, args: [] });
+  const compiled = await getArtifact();
+  setStatus("Waiting for MetaMask: deploy ArcStreamingPayroll...");
+  const hash3 = await wallet.deployContract({ abi: compiled.abi, bytecode: compiled.bytecode });
   const receipt = await publicClient.waitForTransactionReceipt({ hash: hash3 });
   if (!receipt.contractAddress) throw new Error("Deployment receipt did not include a contract address.");
   contract = receipt.contractAddress;
   el.contract.value = contract;
-  localStorage.setItem(key, contract);
-  setStatus("ArcPayLink deployed.", hash3);
+  localStorage.setItem(storageKey, contract);
+  setStatus("ArcStreamingPayroll deployed.", hash3);
+}
+async function createStream() {
+  await ensureWallet();
+  const compiled = await getArtifact();
+  if (!isAddress(el.recipient.value.trim())) throw new Error("Recipient must be a valid address.");
+  const [start, end] = schedule();
+  setStatus("Waiting for MetaMask: fund streaming payroll...");
+  const hash3 = await wallet.writeContract({ address: requireContract(), abi: compiled.abi, functionName: "createStream", args: [streamHash(), el.recipient.value.trim(), start, end, el.metadata.value.trim()], value: parseEther(el.amount.value) });
+  await publicClient.waitForTransactionReceipt({ hash: hash3 });
+  setStatus("Streaming payroll created.", hash3);
+  await loadStream();
+}
+async function loadStream() {
+  const compiled = await getArtifact();
+  const stream = await publicClient.readContract({ address: requireContract(), abi: compiled.abi, functionName: "getStream", args: [streamHash()] });
+  const vested = await publicClient.readContract({ address: requireContract(), abi: compiled.abi, functionName: "vestedAmount", args: [streamHash()] });
+  const status = ["unknown", "active", "completed", "cancelled"];
+  el.result.textContent = JSON.stringify({ streamId: streamHash(), sender: stream.sender ?? stream[0], recipient: stream.recipient ?? stream[1], totalAmount: `${formatEther(stream.totalAmount ?? stream[2])} USDC`, withdrawn: `${formatEther(stream.withdrawn ?? stream[3])} USDC`, currentlyVested: `${formatEther(vested)} USDC`, startTime: new Date(Number(stream.startTime ?? stream[4]) * 1e3).toISOString(), endTime: new Date(Number(stream.endTime ?? stream[5]) * 1e3).toISOString(), status: status[Number(stream.status ?? stream[7])] ?? "unknown", metadataURI: stream.metadataURI ?? stream[6] }, null, 2);
+  const state = Number(stream.status ?? stream[7]);
+  el.withdraw.disabled = state !== 1;
+  el.cancel.disabled = state !== 1;
+  setStatus("Stream loaded.");
+}
+async function withdraw() {
+  await ensureWallet();
+  const compiled = await getArtifact();
+  const hash3 = await wallet.writeContract({ address: requireContract(), abi: compiled.abi, functionName: "withdraw", args: [streamHash()] });
+  await publicClient.waitForTransactionReceipt({ hash: hash3 });
+  setStatus("Vested amount withdrawn.", hash3);
+  await loadStream();
+}
+async function cancel() {
+  await ensureWallet();
+  const compiled = await getArtifact();
+  const hash3 = await wallet.writeContract({ address: requireContract(), abi: compiled.abi, functionName: "cancel", args: [streamHash()] });
+  await publicClient.waitForTransactionReceipt({ hash: hash3 });
+  setStatus("Stream cancelled and balances settled.", hash3);
+  await loadStream();
 }
 el.connect.addEventListener("click", () => void connect().catch((error) => setStatus(error instanceof Error ? error.message : "Connection failed.")));
 el.save.addEventListener("click", () => {
   contract = el.contract.value.trim();
-  localStorage.setItem(key, contract);
+  localStorage.setItem(storageKey, contract);
   setStatus("Contract address saved.");
 });
 el.deploy.addEventListener("click", () => void deploy().catch((error) => setStatus(error instanceof Error ? error.message : "Deployment failed.")));
-el.create.addEventListener("click", () => void createLink().catch((error) => setStatus(error instanceof Error ? error.message : "Create failed.")));
-el.load.addEventListener("click", () => void loadLink().catch((error) => setStatus(error instanceof Error ? error.message : "Load failed.")));
-el.pay.addEventListener("click", () => void payLink().catch((error) => setStatus(error instanceof Error ? error.message : "Payment failed.")));
-el.cancel.addEventListener("click", () => void cancelLink().catch((error) => setStatus(error instanceof Error ? error.message : "Cancel failed.")));
-var queryContract = new URLSearchParams(window.location.search).get("contract");
-var queryId = new URLSearchParams(window.location.search).get("id");
-if (queryContract && isAddress(queryContract)) {
-  contract = queryContract;
-  el.contract.value = contract;
-  localStorage.setItem(key, contract);
-}
-if (queryId) el.linkId.value = queryId;
-el.pay.disabled = true;
+el.create.addEventListener("click", () => void createStream().catch((error) => setStatus(error instanceof Error ? error.message : "Create failed.")));
+el.load.addEventListener("click", () => void loadStream().catch((error) => setStatus(error instanceof Error ? error.message : "Load failed.")));
+el.withdraw.addEventListener("click", () => void withdraw().catch((error) => setStatus(error instanceof Error ? error.message : "Withdraw failed.")));
+el.cancel.addEventListener("click", () => void cancel().catch((error) => setStatus(error instanceof Error ? error.message : "Cancel failed.")));
+el.withdraw.disabled = true;
 el.cancel.disabled = true;
 /*! Bundled license information:
 
