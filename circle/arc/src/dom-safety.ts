@@ -1,4 +1,6 @@
 const ARC_SCAN_ORIGIN = "https://testnet.arcscan.app";
+const ARC_ADDRESS_PATTERN = /^0x[a-fA-F0-9]{40}$/;
+const ARC_TRANSACTION_PATTERN = /^0x[a-fA-F0-9]{64}$/;
 
 type SafeContent = Node | string;
 
@@ -7,13 +9,16 @@ function appendContent(parent: Element, content: SafeContent): void {
 }
 
 export function arcScanLink(path: "address" | "tx", value: string, label = value): HTMLAnchorElement | Text {
-  const expectedLength = path === "address" ? 40 : 64;
-  if (!new RegExp(`^0x[a-fA-F0-9]{${expectedLength}}$`).test(value)) {
+  const isValid = path === "address" ? ARC_ADDRESS_PATTERN.test(value) : ARC_TRANSACTION_PATTERN.test(value);
+  if (!isValid) {
     return document.createTextNode(label);
   }
 
   const anchor = document.createElement("a");
-  anchor.href = `${ARC_SCAN_ORIGIN}/${path}/${value}`;
+  const encodedValue = encodeURIComponent(value);
+  anchor.href = path === "address"
+    ? `${ARC_SCAN_ORIGIN}/address/${encodedValue}`
+    : `${ARC_SCAN_ORIGIN}/tx/${encodedValue}`;
   anchor.target = "_blank";
   anchor.rel = "noreferrer";
   anchor.textContent = label;

@@ -23951,13 +23951,16 @@ init_formatUnits();
 // circle/arc/src/dom-safety.ts
 init_browser_buffer_global();
 var ARC_SCAN_ORIGIN = "https://testnet.arcscan.app";
+var ARC_ADDRESS_PATTERN = /^0x[a-fA-F0-9]{40}$/;
+var ARC_TRANSACTION_PATTERN = /^0x[a-fA-F0-9]{64}$/;
 function arcScanLink(path, value, label = value) {
-  const expectedLength = path === "address" ? 40 : 64;
-  if (!new RegExp(`^0x[a-fA-F0-9]{${expectedLength}}$`).test(value)) {
+  const isValid = path === "address" ? ARC_ADDRESS_PATTERN.test(value) : ARC_TRANSACTION_PATTERN.test(value);
+  if (!isValid) {
     return document.createTextNode(label);
   }
   const anchor = document.createElement("a");
-  anchor.href = `${ARC_SCAN_ORIGIN}/${path}/${value}`;
+  const encodedValue = encodeURIComponent(value);
+  anchor.href = path === "address" ? `${ARC_SCAN_ORIGIN}/address/${encodedValue}` : `${ARC_SCAN_ORIGIN}/tx/${encodedValue}`;
   anchor.target = "_blank";
   anchor.rel = "noreferrer";
   anchor.textContent = label;
@@ -24051,9 +24054,10 @@ async function deploy() {
   const hash3 = await wallet.deployContract({ abi: compiled.abi, bytecode: compiled.bytecode });
   const receipt = await publicClient.waitForTransactionReceipt({ hash: hash3 });
   if (!receipt.contractAddress) throw new Error("Deployment receipt did not include a contract address.");
-  contract = receipt.contractAddress;
-  el.contract.value = contract;
-  localStorage.setItem(storageKey, contract);
+  const deployedContract = receipt.contractAddress;
+  contract = deployedContract;
+  el.contract.value = deployedContract;
+  localStorage.setItem(storageKey, deployedContract);
   setStatus("ArcUsageBilling deployed.", hash3);
 }
 async function createCharge() {
@@ -24097,19 +24101,18 @@ async function cancelCharge() {
   setStatus("Usage charge cancelled.", hash3);
   await loadCharge();
 }
-function saveContract() {
+function useContract() {
   const nextContract = el.contract.value.trim();
   if (!isAddress(nextContract)) throw new Error("Enter a valid contract address.");
   contract = nextContract;
-  localStorage.setItem(storageKey, nextContract);
-  setStatus("Contract address saved.");
+  setStatus("Contract address selected for this session.");
 }
 el.connect.addEventListener("click", () => void connect().catch((error) => setStatus(error instanceof Error ? error.message : "Connection failed.")));
 el.save.addEventListener("click", () => {
   try {
-    saveContract();
+    useContract();
   } catch (error) {
-    setStatus(error instanceof Error ? error.message : "Save failed.");
+    setStatus(error instanceof Error ? error.message : "Selection failed.");
   }
 });
 el.deploy.addEventListener("click", () => void deploy().catch((error) => setStatus(error instanceof Error ? error.message : "Deployment failed.")));

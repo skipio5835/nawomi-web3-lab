@@ -23951,16 +23951,19 @@ init_formatUnits();
 // circle/arc/src/dom-safety.ts
 init_browser_buffer_global();
 var ARC_SCAN_ORIGIN = "https://testnet.arcscan.app";
+var ARC_ADDRESS_PATTERN = /^0x[a-fA-F0-9]{40}$/;
+var ARC_TRANSACTION_PATTERN = /^0x[a-fA-F0-9]{64}$/;
 function appendContent(parent, content) {
   parent.append(typeof content === "string" ? document.createTextNode(content) : content);
 }
 function arcScanLink(path, value, label = value) {
-  const expectedLength = path === "address" ? 40 : 64;
-  if (!new RegExp(`^0x[a-fA-F0-9]{${expectedLength}}$`).test(value)) {
+  const isValid = path === "address" ? ARC_ADDRESS_PATTERN.test(value) : ARC_TRANSACTION_PATTERN.test(value);
+  if (!isValid) {
     return document.createTextNode(label);
   }
   const anchor = document.createElement("a");
-  anchor.href = `${ARC_SCAN_ORIGIN}/${path}/${value}`;
+  const encodedValue = encodeURIComponent(value);
+  anchor.href = path === "address" ? `${ARC_SCAN_ORIGIN}/address/${encodedValue}` : `${ARC_SCAN_ORIGIN}/tx/${encodedValue}`;
   anchor.target = "_blank";
   anchor.rel = "noreferrer";
   anchor.textContent = label;
