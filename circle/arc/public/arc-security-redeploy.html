@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Arc Security Redeploy</title>
+    <style>
+      :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, sans-serif; color: #17211d; background: #f5f8f6; --line: #d6dfda; --green: #145c49; --blue: #126981; --muted: #62706a; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; background: linear-gradient(180deg, #eaf5ef 0, transparent 240px), #f5f8f6; }
+      main { width: min(1180px, 100%); margin: 0 auto; padding: 24px; display: grid; gap: 18px; }
+      header { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 70px; }
+      h1, p { margin: 0; } h1 { font-size: 28px; letter-spacing: 0; }
+      .subtle { color: var(--muted); font-size: 13px; }
+      .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+      button { min-height: 42px; border: 1px solid var(--green); border-radius: 6px; padding: 0 14px; background: var(--green); color: white; font: inherit; font-weight: 720; cursor: pointer; }
+      button.secondary { background: white; color: var(--green); } button:disabled { opacity: .5; cursor: not-allowed; }
+      .pill { display: inline-flex; min-height: 32px; align-items: center; border: 1px solid #c7d7ce; border-radius: 999px; padding: 0 10px; background: white; font-size: 12px; font-weight: 700; overflow-wrap: anywhere; }
+      section { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: rgba(255,255,255,.88); padding: 18px 0; }
+      .inner { padding: 0 18px; display: grid; gap: 14px; }
+      .table-wrap { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; min-width: 760px; } th, td { padding: 12px 10px; border-bottom: 1px solid #e2e8e4; text-align: left; font-size: 13px; } th { color: var(--muted); font-size: 12px; }
+      a { color: var(--blue); font-weight: 700; } .state { font-size: 12px; font-weight: 760; } .state.deployed { color: #14724f; } .state.next { color: #996b08; }
+      textarea { width: 100%; min-height: 150px; resize: vertical; border: 1px solid #c9d4ce; border-radius: 6px; padding: 12px; font: 12px Consolas, monospace; }
+      #status { min-height: 24px; overflow-wrap: anywhere; }
+      @media (max-width: 760px) { main { padding: 16px; } header { display: grid; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div><h1>Arc Security Redeploy</h1><p class="subtle">Hardened contracts, one signed deployment at a time</p></div>
+        <div class="actions"><span id="account" class="pill">Not connected</span><span id="balance" class="pill">-</span><button id="connect" type="button">Connect MetaMask</button></div>
+      </header>
+      <section><div class="inner"><div class="table-wrap"><table><thead><tr><th>#</th><th>Contract</th><th>Old</th><th>New</th><th>Status</th></tr></thead><tbody id="deploymentRows"></tbody></table></div></div></section>
+      <section><div class="inner"><div class="actions"><button id="deployNext" type="button" disabled>Deploy next</button><button id="exportManifest" class="secondary" type="button" disabled>Download manifest</button></div><p id="status"></p></div></section>
+      <section><div class="inner"><label for="envOutput"><strong>Environment addresses</strong></label><textarea id="envOutput" readonly></textarea></div></section>
+    </main>
+    <script type="module" src="./arc-security-redeploy.bundle.js"></script>
+  </body>
+</html>

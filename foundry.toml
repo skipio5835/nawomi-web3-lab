@@ -1,0 +1,17 @@
+[profile.default]
+src = "src"
+script = "script"
+out = "out"
+libs = ["lib"]
+optimizer = true
+optimizer_runs = 200
+
+[profile.security]
+src = "circle/arc/contracts"
+test = "circle/arc/test"
+out = "circle/arc/out"
+libs = ["node_modules"]
+optimizer = true
+optimizer_runs = 200
+remappings = ["@openzeppelin/=node_modules/@openzeppelin/"]
+solc = "0.8.35"

@@ -1,0 +1,15 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "03:00"
+      timezone: Asia/Seoul
+    open-pull-requests-limit: 5
+    groups:
+      circle-sdk:
+        patterns:
+          - "@circle-fin/*"
