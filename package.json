@@ -5,6 +5,7 @@
   "scripts": {
     "build-arc-radar": "node circle/arc/scripts/build-browser.mjs arc-radar",
     "test-arc-radar": "tsx --test circle/arc/test/arc-radar-core.test.ts",
+    "test-security-js": "tsx --test circle/arc/test/server-security.test.ts",
     "start-arc-radar": "npm run build-arc-radar && cross-env ARC_RADAR_ONLY=1 tsx --env-file-if-exists=.env circle/arc/scripts/serve-deployer.ts",
     "generate-entity-secret": "tsx circle/arc/scripts/generate-entity-secret.ts",
     "register-entity-secret": "tsx --env-file-if-exists=.env circle/arc/scripts/register-entity-secret.ts",
@@ -12,7 +13,6 @@
     "start-deployer": "tsx --env-file-if-exists=.env circle/arc/scripts/serve-deployer.ts",
     "verify-skipio": "tsx circle/arc/scripts/verify-skipio-arcscan.ts",
     "verify-skipio-legacy": "tsx circle/arc/scripts/verify-skipio-legacy.ts",
-    "verify-skipio-sourcify": "tsx circle/arc/scripts/verify-skipio-sourcify.ts",
     "verify-skipio-arcscan-sourcify": "tsx circle/arc/scripts/verify-skipio-arcscan-sourcify.ts",
     "verify-security-deployments": "tsx circle/arc/scripts/verify-security-deployments.ts",
     "build-appkit-send": "node circle/arc/scripts/build-browser.mjs appkit-send",

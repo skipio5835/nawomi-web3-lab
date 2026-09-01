@@ -337,9 +337,17 @@
       el.spender.value = CIRCLE_WALLET;
 
       function setStatus(message, link) {
-        el.status.innerHTML = link
-          ? `${message} <a href="${link}" target="_blank" rel="noreferrer">${link}</a>`
-          : message;
+        el.status.replaceChildren(document.createTextNode(message));
+        if (!link) return;
+
+        const url = new URL(link);
+        if (url.protocol !== "https:" || url.hostname !== "testnet.arcscan.app") return;
+        const anchor = document.createElement("a");
+        anchor.href = url.toString();
+        anchor.target = "_blank";
+        anchor.rel = "noreferrer";
+        anchor.textContent = url.toString();
+        el.status.append(document.createTextNode(" "), anchor);
       }
 
       function tokenContract(runner) {

@@ -1,5 +1,6 @@
 import { createPublicClient, createWalletClient, custom, formatEther, formatUnits, http, isAddress, parseUnits } from "viem";
 import type { Address, EIP1193Provider, Hash } from "viem";
+import { arcScanLink, renderStatus } from "./dom-safety.js";
 
 declare global { interface Window { ethereum?: EIP1193Provider; } }
 const arc = { id: 5042002, name: "Arc Testnet", nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 }, rpcUrls: { default: { http: ["https://rpc.testnet.arc.network"] } }, blockExplorers: { default: { name: "ArcScan", url: "https://testnet.arcscan.app" } } } as const;
@@ -16,9 +17,32 @@ const el = {
   connect: document.querySelector<HTMLButtonElement>("#connect")!, wallet: document.querySelector<HTMLElement>("#wallet")!, native: document.querySelector<HTMLElement>("#native")!, usdc: document.querySelector<HTMLElement>("#usdc")!, eurc: document.querySelector<HTMLElement>("#eurc")!,
   merchant: document.querySelector<HTMLInputElement>("#merchant")!, token: document.querySelector<HTMLSelectElement>("#token")!, amount: document.querySelector<HTMLInputElement>("#amount")!, reference: document.querySelector<HTMLInputElement>("#reference")!, kind: document.querySelector<HTMLSelectElement>("#kind")!, submit: document.querySelector<HTMLButtonElement>("#submit")!, status: document.querySelector<HTMLElement>("#status")!, ledger: document.querySelector<HTMLElement>("#ledger")!,
 };
-function setStatus(message: string, hash?: Hash): void { el.status.innerHTML = hash ? `${message} <a href="https://testnet.arcscan.app/tx/${hash}" target="_blank" rel="noreferrer">ArcScan receipt</a>` : message; }
+function setStatus(message: string, hash?: Hash): void { renderStatus(el.status, message, hash, "ArcScan receipt"); }
 function ledger(): Entry[] { return JSON.parse(localStorage.getItem(activityKey) ?? "[]") as Entry[]; }
-function renderLedger(): void { const rows = ledger(); el.ledger.innerHTML = rows.length ? rows.map((row) => `<li><strong>${row.kind} · ${row.token} ${row.amount}</strong><span>${row.reference} · ${row.counterparty}</span><a href="https://testnet.arcscan.app/tx/${row.hash}" target="_blank" rel="noreferrer">${row.hash}</a><small>${new Date(row.at).toLocaleString()}</small></li>`).join("") : "<li class=\"empty\">No settlement receipts recorded.</li>"; }
+function renderLedger(): void {
+  const rows = ledger();
+  if (rows.length === 0) {
+    const empty = document.createElement("li");
+    empty.className = "empty";
+    empty.textContent = "No settlement receipts recorded.";
+    el.ledger.replaceChildren(empty);
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  for (const row of rows) {
+    const item = document.createElement("li");
+    const heading = document.createElement("strong");
+    const detail = document.createElement("span");
+    const timestamp = document.createElement("small");
+    heading.textContent = `${row.kind} · ${row.token} ${row.amount}`;
+    detail.textContent = `${row.reference} · ${row.counterparty}`;
+    timestamp.textContent = new Date(row.at).toLocaleString();
+    item.append(heading, detail, arcScanLink("tx", row.hash), timestamp);
+    fragment.append(item);
+  }
+  el.ledger.replaceChildren(fragment);
+}
 async function connect(): Promise<void> { provider = window.ethereum ?? null; if (!provider) throw new Error("MetaMask was not found."); await provider.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x4cef52" }] }); const accounts = await provider.request({ method: "eth_requestAccounts" }) as string[]; account = accounts[0] as Address; wallet = createWalletClient({ account, chain: arc, transport: custom(provider) }); el.wallet.textContent = account; el.merchant.value = account; setStatus("Merchant wallet connected."); await refresh(); }
 async function refresh(): Promise<void> { if (!account) throw new Error("Connect MetaMask first."); const [native, usdc, eurc] = await Promise.all([publicClient.getBalance({ address: account }), ...Object.values(tokens).map((token) => publicClient.readContract({ address: token.address, abi, functionName: "balanceOf", args: [account!] }))]); el.native.textContent = `${formatEther(native)} USDC`; el.usdc.textContent = `${formatUnits(usdc, 6)} USDC`; el.eurc.textContent = `${formatUnits(eurc, 6)} EURC`; }
 async function submitSettlement(): Promise<void> {

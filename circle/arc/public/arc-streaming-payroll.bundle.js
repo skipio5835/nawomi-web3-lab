@@ -23948,6 +23948,27 @@ init_formatEther();
 init_formatGwei();
 init_formatUnits();
 
+// circle/arc/src/dom-safety.ts
+init_browser_buffer_global();
+var ARC_SCAN_ORIGIN = "https://testnet.arcscan.app";
+function arcScanLink(path, value, label = value) {
+  const expectedLength = path === "address" ? 40 : 64;
+  if (!new RegExp(`^0x[a-fA-F0-9]{${expectedLength}}$`).test(value)) {
+    return document.createTextNode(label);
+  }
+  const anchor = document.createElement("a");
+  anchor.href = `${ARC_SCAN_ORIGIN}/${path}/${value}`;
+  anchor.target = "_blank";
+  anchor.rel = "noreferrer";
+  anchor.textContent = label;
+  return anchor;
+}
+function renderStatus(container, message, hash3, linkLabel = "ArcScan") {
+  container.replaceChildren(document.createTextNode(message));
+  if (!hash3) return;
+  container.append(document.createTextNode(" "), arcScanLink("tx", hash3, linkLabel));
+}
+
 // circle/arc/src/arc-streaming-payroll.ts
 var arc = { id: 5042002, name: "Arc Testnet", nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 }, rpcUrls: { default: { http: ["https://rpc.testnet.arc.network"] } }, blockExplorers: { default: { name: "ArcScan", url: "https://testnet.arcscan.app" } } };
 var publicClient = createPublicClient({ chain: arc, transport: http() });
@@ -23993,7 +24014,7 @@ el.start.value = localDateTimeValue(new Date(roundedNow + 2 * minute));
 el.end.value = localDateTimeValue(new Date(roundedNow + 10 * minute));
 el.metadata.value = `local:arc-stream:${today}`;
 function setStatus(message, hash3) {
-  el.status.innerHTML = hash3 ? `${message} <a href="https://testnet.arcscan.app/tx/${hash3}" target="_blank" rel="noreferrer">ArcScan</a>` : message;
+  renderStatus(el.status, message, hash3);
 }
 function requireContract() {
   if (!isAddress(contract)) throw new Error("Set a valid ArcStreamingPayroll contract address first.");

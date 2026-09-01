@@ -10,6 +10,7 @@ import {
   toBytes,
 } from "viem";
 import type { Address, EIP1193Provider, Hash } from "viem";
+import { arcScanLink, receiptField, tableCell } from "./dom-safety.js";
 
 declare global {
   interface Window {
@@ -245,30 +246,9 @@ el.quoteMetadataURI.value = `local:arc-quote-${today}:metadata`;
 el.quoteAcceptanceURI.value = `local:arc-quote-${today}:accepted`;
 el.quoteSettlementTo.value = ZERO_ADDRESS;
 
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (char) => {
-    const entities: Record<string, string> = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    };
-    return entities[char] ?? char;
-  });
-}
-
 function shortHash(value?: string): string {
   if (!value) return "-";
   return `${value.slice(0, 6)}...${value.slice(-4)}`;
-}
-
-function txUrl(hash: string): string {
-  return `https://testnet.arcscan.app/tx/${hash}`;
-}
-
-function addressUrl(address: string): string {
-  return `https://testnet.arcscan.app/address/${address}`;
 }
 
 function setStatus(message: string): void {
@@ -451,24 +431,29 @@ function statusLabel(status: InvoiceStatus): string {
 }
 
 function renderRows(): void {
-  el.invoiceRows.innerHTML = invoices
-    .map((invoice) => {
-      const selected = invoice.id === selectedId ? "true" : "false";
-      return `
-        <tr data-selected="${selected}">
-          <td>${escapeHtml(invoice.id)}</td>
-          <td>${escapeHtml(invoice.customerName)}</td>
-          <td>${escapeHtml(invoice.totalDue)} USDC</td>
-          <td><span class="${statusClass(invoice.status)}">${statusLabel(invoice.status)}</span></td>
-          <td><button class="select-row secondary" data-id="${escapeHtml(invoice.id)}" type="button">Select</button></td>
-        </tr>
-      `;
-    })
-    .join("");
-
-  document.querySelectorAll<HTMLButtonElement>(".select-row").forEach((button) => {
+  const fragment = document.createDocumentFragment();
+  for (const invoice of invoices) {
+    const row = document.createElement("tr");
+    const state = document.createElement("span");
+    const button = document.createElement("button");
+    row.dataset.selected = invoice.id === selectedId ? "true" : "false";
+    state.className = statusClass(invoice.status);
+    state.textContent = statusLabel(invoice.status);
+    button.className = "select-row secondary";
+    button.type = "button";
+    button.textContent = "Select";
+    button.dataset.id = invoice.id;
     button.addEventListener("click", () => selectInvoice(button.dataset.id ?? ""));
-  });
+    row.append(
+      tableCell(invoice.id),
+      tableCell(invoice.customerName),
+      tableCell(`${invoice.totalDue} USDC`),
+      tableCell(state),
+      tableCell(button),
+    );
+    fragment.append(row);
+  }
+  el.invoiceRows.replaceChildren(fragment);
 
   const open = invoices.filter((invoice) => invoice.status !== "paid" && invoice.status !== "cancelled").length;
   el.invoiceCount.textContent = `${open} open`;
@@ -478,46 +463,34 @@ function renderRows(): void {
   el.paidVolume.textContent = `${volume.toFixed(2)} USDC`;
 }
 
-function receiptField(label: string, value: string): string {
-  return `<div><dt>${escapeHtml(label)}</dt><dd>${value}</dd></div>`;
-}
-
 function renderReceipt(): void {
   const invoice = selectedInvoice();
   if (!invoice) {
     el.selectedStatus.className = "status draft";
     el.selectedStatus.textContent = "draft";
-    el.receipt.innerHTML = receiptField("Invoice", "-") + receiptField("Amount", "-");
+    el.receipt.replaceChildren(receiptField("Invoice", "-"), receiptField("Amount", "-"));
     return;
   }
 
   el.selectedStatus.className = statusClass(invoice.status);
   el.selectedStatus.textContent = statusLabel(invoice.status);
   const contract = invoice.contractAddress ?? contractAddress;
-  const registration = invoice.registrationTxHash
-    ? `<a href="${txUrl(invoice.registrationTxHash)}" target="_blank" rel="noreferrer">${shortHash(invoice.registrationTxHash)}</a>`
-    : "-";
-  const payment = invoice.paymentTxHash
-    ? `<a href="${txUrl(invoice.paymentTxHash)}" target="_blank" rel="noreferrer">${shortHash(invoice.paymentTxHash)}</a>`
-    : "-";
-  const cancellation = invoice.cancellationTxHash
-    ? `<a href="${txUrl(invoice.cancellationTxHash)}" target="_blank" rel="noreferrer">${shortHash(invoice.cancellationTxHash)}</a>`
-    : "-";
-  const contractLink = contract
-    ? `<a href="${addressUrl(contract)}" target="_blank" rel="noreferrer">${shortHash(contract)}</a>`
-    : "-";
+  const registration = invoice.registrationTxHash ? arcScanLink("tx", invoice.registrationTxHash, shortHash(invoice.registrationTxHash)) : "-";
+  const payment = invoice.paymentTxHash ? arcScanLink("tx", invoice.paymentTxHash, shortHash(invoice.paymentTxHash)) : "-";
+  const cancellation = invoice.cancellationTxHash ? arcScanLink("tx", invoice.cancellationTxHash, shortHash(invoice.cancellationTxHash)) : "-";
+  const contractLink = contract ? arcScanLink("address", contract, shortHash(contract)) : "-";
 
-  el.receipt.innerHTML = [
-    receiptField("Invoice", escapeHtml(invoice.id)),
-    receiptField("Total due", `${escapeHtml(invoice.totalDue)} USDC`),
-    receiptField("Merchant", escapeHtml(invoice.merchantName)),
-    receiptField("Customer", escapeHtml(invoice.customerName)),
-    receiptField("Chain invoice id", escapeHtml(shortHash(invoice.chainInvoiceId))),
+  el.receipt.replaceChildren(
+    receiptField("Invoice", invoice.id),
+    receiptField("Total due", `${invoice.totalDue} USDC`),
+    receiptField("Merchant", invoice.merchantName),
+    receiptField("Customer", invoice.customerName),
+    receiptField("Chain invoice id", shortHash(invoice.chainInvoiceId)),
     receiptField("Contract", contractLink),
     receiptField("Register tx", registration),
     receiptField("Payment tx", payment),
     receiptField("Cancel tx", cancellation),
-  ].join("");
+  );
 
   el.stepDraft.classList.add("done");
   el.stepRegistered.classList.toggle(
@@ -547,9 +520,9 @@ function renderQuote(): void {
 function updateContractSummary(): void {
   const saved = el.contractAddress.value.trim();
   contractAddress = isAddress(saved) ? (saved as Address) : "";
-  el.contractSummary.innerHTML = contractAddress
-    ? `<a href="${addressUrl(contractAddress)}" target="_blank" rel="noreferrer">${shortHash(contractAddress)}</a>`
-    : "Not loaded";
+  el.contractSummary.replaceChildren(
+    contractAddress ? arcScanLink("address", contractAddress, shortHash(contractAddress)) : document.createTextNode("Not loaded"),
+  );
 }
 
 function updateActions(): void {

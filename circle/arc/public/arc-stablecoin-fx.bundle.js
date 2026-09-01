@@ -36,7 +36,7 @@ var __copyProps = (to2, from20, except, desc) => {
 var __toESM = (mod6, isNodeMode, target) => (target = mod6 != null ? __create(__getProtoOf(mod6)) : {}, __copyProps(
   // If the importer is in node compatibility mode or this is not an ESM
   // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then se
+  // compatible transform (i.e. "__esModule" has not been set), then set
   // "default" to the CommonJS "module.exports" for node compatibility.
   isNodeMode || !mod6 || !mod6.__esModule ? __defProp(target, "default", { value: mod6, enumerable: true }) : target,
   mod6
@@ -685,7 +685,7 @@ var require_buffer = __commonJS({
       }
       if (!Buffer6.isBuffer(target)) {
         throw new TypeError(
-          'The "target" argument must be one of type Buffer or Uint8Array. Received type ' + typeof targe
+          'The "target" argument must be one of type Buffer or Uint8Array. Received type ' + typeof target
         );
       }
       if (start === void 0) {
@@ -1520,7 +1520,7 @@ var require_buffer = __commonJS({
         Uint8Array.prototype.set.call(
           target,
           this.subarray(start, end),
-          targetStar
+          targetStart
         );
       }
       return len;
@@ -7096,7 +7096,7 @@ function Field(ORDER, bitLenOrOpts, isLE7 = false, opts = {}) {
     },
     // TODO: we don't need it here, move out to separate fn
     invertBatch: (lst) => FpInvertBatch(f2, lst),
-    // We can't move this out because Fp6, Fp12 implement i
+    // We can't move this out because Fp6, Fp12 implement it
     // and it's unclear what to return in there.
     cmov: (a, b, c) => c ? b : a
   });
@@ -7390,7 +7390,7 @@ var init_curve = __esm({
       /**
        * Implements ec unsafe (non const-time) multiplication using precomputed tables and w-ary non-adjacent form.
        * @param acc accumulator point to add result of multiplication
-       * @returns poin
+       * @returns point
        */
       wNAFUnsafe(W, precomputes, n, acc = this.ZERO) {
         const wo = calcWOpts(W, this.bits);
@@ -7649,7 +7649,7 @@ function edwards(params2, extraOpts = {}) {
       return normalizeZ(Point3, [p, f2])[0];
     }
     // Non-constant-time multiplication. Uses double-and-add algorithm.
-    // It's faster, but should only be used when you don't care abou
+    // It's faster, but should only be used when you don't care about
     // an exposed private key e.g. sig verification.
     // Does NOT allow scalars higher than CURVE.n.
     // Accepts optional accumulator to merge with multiply (important for sparse scalars)
@@ -8884,7 +8884,7 @@ var init_encoding_lib = __esm({
        * @param {Stream} stream The stream of bytes being decoded.
        * @param {number} bite The next byte read from the stream.
        * @return {?(number|!Array.<number>)} The next code point(s)
-       *     decoded, or null if not enough data exists in the inpu
+       *     decoded, or null if not enough data exists in the input
        *     stream to decode a complete code point, or |finished|.
        */
       handler: function(stream, bite) {
@@ -8938,7 +8938,7 @@ var init_encoding_lib = __esm({
             code_points.push.apply(
               code_points,
               /**@type {!Array.<number>}*/
-              resul
+              result
             );
           else
             code_points.push(result);
@@ -8954,7 +8954,7 @@ var init_encoding_lib = __esm({
               code_points.push.apply(
                 code_points,
                 /**@type {!Array.<number>}*/
-                resul
+                result
               );
             else
               code_points.push(result);
@@ -8997,7 +8997,7 @@ var init_encoding_lib = __esm({
             bytes3.push.apply(
               bytes3,
               /**@type {!Array.<number>}*/
-              resul
+              result
             );
           else
             bytes3.push(result);
@@ -9011,7 +9011,7 @@ var init_encoding_lib = __esm({
               bytes3.push.apply(
                 bytes3,
                 /**@type {!Array.<number>}*/
-                resul
+                result
               );
             else
               bytes3.push(result);
@@ -9482,7 +9482,7 @@ var require_Layout = __commonJS({
       /** Function to create an Object into which decoded properties will
        * be written.
        *
-       * Used only for layouts that {@link Layout#decode|decode} to Objec
+       * Used only for layouts that {@link Layout#decode|decode} to Object
        * instances, which means:
        * * {@link Structure}
        * * {@link Union}
@@ -9505,7 +9505,7 @@ var require_Layout = __commonJS({
        * @param {Number} [offset] - the offset at which the encoded instance
        * starts.  If absent a zero offset is inferred.
        *
-       * @return {Number} - the number of bytes covered by the layou
+       * @return {Number} - the number of bytes covered by the layout
        * instance.  If this method is not overridden in a subclass the
        * definition-time constant {@link Layout#span|span} will be
        * returned.
@@ -9522,7 +9522,7 @@ var require_Layout = __commonJS({
       /**
        * Replicate the layout using a new property.
        *
-       * This function must be used to get a structurally-equivalent layou
+       * This function must be used to get a structurally-equivalent layout
        * with a different name since all {@link Layout} instances are
        * immutable.
        *
@@ -9544,7 +9544,7 @@ var require_Layout = __commonJS({
       /**
        * Create an object from layout properties and an array of values.
        *
-       * **NOTE** This function returns `undefined` if invoked on a layou
+       * **NOTE** This function returns `undefined` if invoked on a layout
        * that does not return its value as an Object.  Objects are
        * returned for things that are a {@link Structure}, which includes
        * {@link VariantLayout|variant layouts} if they are structures, and
@@ -9613,7 +9613,7 @@ var require_Layout = __commonJS({
        * or as {@link UnionLayoutDiscriminator#layout|external union
        * discriminators}.
        *
-       * @abstrac
+       * @abstract
        */
       isCount() {
         throw new Error("ExternalLayout is abstract");
@@ -10211,7 +10211,7 @@ var require_Layout = __commonJS({
        * return value:
        * * If `src` has properties matching the Union discriminator and
        *   the default layout, `undefined` is returned regardless of the
-       *   value of the discriminator property (this ensures the defaul
+       *   value of the discriminator property (this ensures the default
        *   layout will be used);
        * * If `src` has a property matching the Union discriminator, the
        *   value of the discriminator identifies a registered variant, and
@@ -10255,8 +10255,8 @@ var require_Layout = __commonJS({
       /** Implement {@link Layout#decode|decode} for {@link Union}.
        *
        * If the variant is {@link Union#addVariant|registered} the return
-       * value is an instance of that variant, with no explici
-       * discriminator.  Otherwise the {@link Union#defaultLayout|defaul
+       * value is an instance of that variant, with no explicit
+       * discriminator.  Otherwise the {@link Union#defaultLayout|default
        * layout} is used to decode the content. */
       decode(b, offset3 = 0) {
         let dest;
@@ -10514,7 +10514,7 @@ var require_Layout = __commonJS({
         this.fields.push(bf);
         return bf;
       }
-      /** As with {@link BitStructure#addField|addField} for single-bi
+      /** As with {@link BitStructure#addField|addField} for single-bit
        * fields with `boolean` value representation.
        *
        * @param {string} property - initializer for {@link
@@ -11396,7 +11396,7 @@ var init_index_browser = __esm({
         super(message, errorOptions);
         this.context = {
           __code: code,
-          ...contex
+          ...context
         };
         this.name = "SolanaError";
       }
@@ -12732,7 +12732,7 @@ __export(esm_browser_exports, {
   v6ToV1: () => v6ToV1,
   v7: () => v7_default,
   validate: () => validate_default,
-  version: () => version_defaul
+  version: () => version_default
 });
 var init_esm_browser = __esm({
   "node_modules/uuid/dist/esm-browser/index.js"() {
@@ -13138,9 +13138,9 @@ var init_index_browser4 = __esm({
       /**
       * Sends data through a websocket connection
       * @method
-      * @param {(String|Object)} data - data to be sent via websocke
+      * @param {(String|Object)} data - data to be sent via websocket
       * @param {Object} optionsOrCallback - ws options
-      * @param {Function} callback - a callback called once the data is sen
+      * @param {Function} callback - a callback called once the data is sent
       * @return {Undefined}
       */
       send(data, optionsOrCallback, callback) {
@@ -13153,7 +13153,7 @@ var init_index_browser4 = __esm({
         }
       }
       /**
-      * Closes an underlying socke
+      * Closes an underlying socket
       * @method
       * @param {Number} code - status code explaining why the connection is being closed
       * @param {String} reason - a description why the connection is closing
@@ -13195,7 +13195,7 @@ var init_index_browser4 = __esm({
       /**
       * Instantiate a Client class.
       * @constructor
-      * @param {webSocketFactory} webSocketFactory - factory method for WebSocke
+      * @param {webSocketFactory} webSocketFactory - factory method for WebSocket
       * @param {String} address - url to a websocket server
       * @param {Object} options - ws options object with reconnect parameters
       * @param {Function} generate_request_id - custom generation request Id
@@ -13287,7 +13287,7 @@ var init_index_browser4 = __esm({
       /**
       * Logins with the other side of the connection.
       * @method
-      * @param {Object} params - Login credentials objec
+      * @param {Object} params - Login credentials object
       * @return {Promise}
       */
       async login(params2) {
@@ -13428,7 +13428,7 @@ var init_index_browser4 = __esm({
       * @method
       * @private
       * @param {String} address - WebSocket API address
-      * @param {Object} options - ws options objec
+      * @param {Object} options - ws options object
       * @return {Undefined}
       */
       _connect(address2, options) {
@@ -14138,7 +14138,7 @@ function weierstrassN(params2, extraOpts = {}) {
      * Uses precomputes when available.
      * Uses endomorphism for Koblitz curves.
      * @param scalar by which the point would be multiplied
-     * @returns New poin
+     * @returns New point
      */
     multiply(scalar) {
       const { endo: endo2 } = extraOpts;
@@ -14161,7 +14161,7 @@ function weierstrassN(params2, extraOpts = {}) {
     }
     /**
      * Non-constant-time multiplication. Uses double-and-add algorithm.
-     * It's faster, but should only be used when you don't care abou
+     * It's faster, but should only be used when you don't care about
      * an exposed secret key e.g. sig verification, which works over *public* keys.
      */
     multiplyUnsafe(sc) {
@@ -15023,7 +15023,7 @@ async function sendAndConfirmTransaction(connection, transaction, signers, optio
     skipPreflight: options.skipPreflight,
     preflightCommitment: options.preflightCommitment || options.commitment,
     maxRetries: options.maxRetries,
-    minContextSlot: options.minContextSlo
+    minContextSlot: options.minContextSlot
   };
   const signature2 = await connection.sendTransaction(transaction, signers, sendOptions);
   let status;
@@ -15032,7 +15032,7 @@ async function sendAndConfirmTransaction(connection, transaction, signers, optio
       abortSignal: options?.abortSignal,
       signature: signature2,
       blockhash: transaction.recentBlockhash,
-      lastValidBlockHeight: transaction.lastValidBlockHeigh
+      lastValidBlockHeight: transaction.lastValidBlockHeight
     }, options && options.commitment)).value;
   } else if (transaction.minNonceContextSlot != null && transaction.nonceInfo != null) {
     const {
@@ -15242,12 +15242,12 @@ function requireConstants() {
   if (hasRequiredConstants) return constants;
   hasRequiredConstants = 1;
   constants = {
-    // agen
+    // agent
     CURRENT_ID: /* @__PURE__ */ Symbol("agentkeepalive#currentId"),
     CREATE_ID: /* @__PURE__ */ Symbol("agentkeepalive#createId"),
     INIT_SOCKET: /* @__PURE__ */ Symbol("agentkeepalive#initSocket"),
     CREATE_HTTPS_CONNECTION: /* @__PURE__ */ Symbol("agentkeepalive#createHttpsConnection"),
-    // socke
+    // socket
     SOCKET_CREATED_TIME: /* @__PURE__ */ Symbol("agentkeepalive#socketCreatedTime"),
     SOCKET_NAME: /* @__PURE__ */ Symbol("agentkeepalive#socketName"),
     SOCKET_REQUEST_COUNT: /* @__PURE__ */ Symbol("agentkeepalive#socketRequestCount"),
@@ -15367,7 +15367,7 @@ function requireAgent() {
           socket[SOCKET_NAME],
           socket[SOCKET_REQUEST_COUNT],
           socket[SOCKET_REQUEST_FINISHED_COUNT],
-          customTimeou
+          customTimeout
         );
         return false;
       }
@@ -15376,7 +15376,7 @@ function requireAgent() {
       }
       return true;
     }
-    // only call on addReques
+    // only call on addRequest
     reuseSocket(...args) {
       super.reuseSocket(...args);
       const socket = args[0];
@@ -15514,7 +15514,7 @@ function requireAgent() {
         listenerCount,
         defaultTimeoutListenerCount,
         !!req,
-        reqTimeoutListenerCoun
+        reqTimeoutListenerCount
       );
       if (debug.enabled) {
         debug("timeout listeners: %s", socket.listeners("timeout").map((f2) => f2.name).join(", "));
@@ -15545,7 +15545,7 @@ function requireAgent() {
         socket[SOCKET_REQUEST_COUNT],
         socket[SOCKET_REQUEST_FINISHED_COUNT],
         err2,
-        listenerCoun
+        listenerCount
       );
       agent2.errorSocketCount++;
       if (listenerCount === 1) {
@@ -15748,12 +15748,12 @@ function makeWebsocketUrl(endpoint2) {
     // eslint-disable-line @typescript-eslint/no-unused-vars
     hostish,
     portWithColon,
-    res
+    rest
   ] = matches;
   const protocol = endpoint2.startsWith("https:") ? "wss:" : "ws:";
   const startPort = portWithColon == null ? null : parseInt(portWithColon.slice(1), 10);
   const websocketPort = (
-    // Only shift the port by +1 as a convention for ws(s) only if given endpoin
+    // Only shift the port by +1 as a convention for ws(s) only if given endpoint
     // is explicitly specifying the endpoint port (HTTP-based RPC), assuming
     // we're directly trying to connect to agave-validator's ws listening port.
     // When the endpoint omits the port, we're connecting to the protocol
@@ -15800,7 +15800,7 @@ function createRpcResult(result) {
   return union([type({
     jsonrpc: literal("2.0"),
     id: string(),
-    resul
+    result
   }), type({
     jsonrpc: literal("2.0"),
     id: string(),
@@ -16031,7 +16031,7 @@ async function sendAndConfirmRawTransaction(connection, rawTransaction, confirma
   const sendOptions = options && {
     skipPreflight: options.skipPreflight,
     preflightCommitment: options.preflightCommitment || options.commitment,
-    minContextSlot: options.minContextSlo
+    minContextSlot: options.minContextSlot
   };
   const signature2 = await connection.sendRawTransaction(rawTransaction, sendOptions);
   const commitment = options && options.commitment;
@@ -16127,7 +16127,7 @@ var init_index_esm = __esm({
     uniquePublicKeyCounter = 1;
     PublicKey = class _PublicKey2 extends Struct2 {
       /**
-       * Create a new PublicKey objec
+       * Create a new PublicKey object
        * @param value ed25519 public key as buffer or base-58 encoded string
        */
       constructor(value) {
@@ -16295,12 +16295,12 @@ var init_index_esm = __esm({
     });
     Account = class {
       /**
-       * Create a new Account objec
+       * Create a new Account object
        *
        * If the secretKey parameter is not provided a new key pair is randomly
-       * created for the accoun
+       * created for the account
        *
-       * @param secretKey Secret key for the accoun
+       * @param secretKey Secret key for the account
        */
       constructor(secretKey) {
         this._publicKey = void 0;
@@ -16318,7 +16318,7 @@ var init_index_esm = __esm({
         }
       }
       /**
-       * The public key for this accoun
+       * The public key for this account
        */
       get publicKey() {
         return new PublicKey(this._publicKey);
@@ -17017,7 +17017,7 @@ var init_index_esm = __esm({
       /**
        * The transaction fee payer
        */
-      // Construct a transaction with a blockhash and lastValidBlockHeigh
+      // Construct a transaction with a blockhash and lastValidBlockHeight
       // Construct a transaction using a durable nonce
       /**
        * @deprecated `TransactionCtorFields` has been deprecated and will be removed in a future version.
@@ -17055,7 +17055,7 @@ var init_index_esm = __esm({
         } else if (Object.prototype.hasOwnProperty.call(opts, "lastValidBlockHeight")) {
           const {
             blockhash,
-            lastValidBlockHeigh
+            lastValidBlockHeight
           } = opts;
           this.recentBlockhash = blockhash;
           this.lastValidBlockHeight = lastValidBlockHeight;
@@ -17377,7 +17377,7 @@ var init_index_esm = __esm({
         this._partialSign(message, ...uniqueSigners);
       }
       /**
-       * Partially sign a transaction with the specified accounts. All accounts mus
+       * Partially sign a transaction with the specified accounts. All accounts must
        * correspond to either the fee payer or a signer account in the transaction
        * instructions.
        *
@@ -17880,7 +17880,7 @@ Message: ${transactionMessage}.
        * Deserialize NonceAccount from the account data.
        *
        * @param buffer account data
-       * @return NonceAccoun
+       * @return NonceAccount
        */
       static fromAccountData(buffer2) {
         const nonceAccount = NonceAccountLayout.decode(toBuffer(buffer2), 0);
@@ -18197,7 +18197,7 @@ Message: ${transactionMessage}.
        * Public key that identifies the System program
        */
       /**
-       * Generate a transaction instruction that creates a new accoun
+       * Generate a transaction instruction that creates a new account
        */
       static createAccount(params2) {
         const type4 = SYSTEM_INSTRUCTION_LAYOUTS.Create;
@@ -18307,7 +18307,7 @@ Message: ${transactionMessage}.
         });
       }
       /**
-       * Generate a transaction instruction that creates a new account a
+       * Generate a transaction instruction that creates a new account at
        *   an address generated with `from`, a seed, and programId
        */
       static createAccountWithSeed(params2) {
@@ -18342,7 +18342,7 @@ Message: ${transactionMessage}.
         });
       }
       /**
-       * Generate a transaction that creates a new Nonce accoun
+       * Generate a transaction that creates a new Nonce account
        */
       static createNonceAccount(params2) {
         const transaction = new Transaction();
@@ -18373,7 +18373,7 @@ Message: ${transactionMessage}.
         return transaction;
       }
       /**
-       * Generate an instruction to initialize a Nonce accoun
+       * Generate an instruction to initialize a Nonce account
        */
       static nonceInitialize(params2) {
         const type4 = SYSTEM_INSTRUCTION_LAYOUTS.InitializeNonceAccount;
@@ -18400,7 +18400,7 @@ Message: ${transactionMessage}.
         return new TransactionInstruction(instructionData);
       }
       /**
-       * Generate an instruction to advance the nonce in a Nonce accoun
+       * Generate an instruction to advance the nonce in a Nonce account
        */
       static nonceAdvance(params2) {
         const type4 = SYSTEM_INSTRUCTION_LAYOUTS.AdvanceNonceAccount;
@@ -18425,7 +18425,7 @@ Message: ${transactionMessage}.
         return new TransactionInstruction(instructionData);
       }
       /**
-       * Generate a transaction instruction that withdraws lamports from a Nonce accoun
+       * Generate a transaction instruction that withdraws lamports from a Nonce account
        */
       static nonceWithdraw(params2) {
         const type4 = SYSTEM_INSTRUCTION_LAYOUTS.WithdrawNonceAccount;
@@ -18659,7 +18659,7 @@ Message: ${transactionMessage}.
           });
           const deployCommitment = "processed";
           const finalizeSignature = await connection.sendTransaction(transaction, [payer, program], {
-            preflightCommitment: deployCommitmen
+            preflightCommitment: deployCommitment
           });
           const {
             context,
@@ -18675,7 +18675,7 @@ Message: ${transactionMessage}.
           while (true) {
             try {
               const currentSlot = await connection.getSlot({
-                commitment: deployCommitmen
+                commitment: deployCommitment
               });
               if (currentSlot > context.slot) {
                 break;
@@ -18903,7 +18903,7 @@ Message: ${transactionMessage}.
     GetLeaderScheduleResult = record(string(), array(number()));
     TransactionErrorResult = nullable(union([type({}), string()]));
     SignatureStatusResult = type({
-      err: TransactionErrorResul
+      err: TransactionErrorResult
     });
     SignatureReceivedResult = literal("receivedSignature");
     VersionResult = type({
@@ -19011,7 +19011,7 @@ Message: ${transactionMessage}.
     });
     KeyedAccountInfoResult = type({
       pubkey: PublicKeyFromString,
-      account: AccountInfoResul
+      account: AccountInfoResult
     });
     ParsedOrRawAccountData = coerce2(union([instance(import_buffer3.Buffer), ParsedAccountDataResult]), union([RawAccountDataResult, ParsedAccountDataResult]), (value) => {
       if (Array.isArray(value)) {
@@ -19029,7 +19029,7 @@ Message: ${transactionMessage}.
     });
     KeyedParsedAccountInfoResult = type({
       pubkey: PublicKeyFromString,
-      account: ParsedAccountInfoResul
+      account: ParsedAccountInfoResult
     });
     StakeActivationResult = type({
       state: union([literal("active"), literal("inactive"), literal("activating"), literal("deactivating")]),
@@ -19056,7 +19056,7 @@ Message: ${transactionMessage}.
     });
     ProgramAccountInfoResult = type({
       pubkey: PublicKeyFromString,
-      account: AccountInfoResul
+      account: AccountInfoResult
     });
     ProgramAccountNotificationResult = type({
       subscription: number(),
@@ -19069,7 +19069,7 @@ Message: ${transactionMessage}.
     });
     SlotNotificationResult = type({
       subscription: number(),
-      result: SlotInfoResul
+      result: SlotInfoResult
     });
     SlotUpdateResult = union([type({
       type: union([literal("firstShredReceived"), literal("completed"), literal("optimisticConfirmation"), literal("root")]),
@@ -19098,7 +19098,7 @@ Message: ${transactionMessage}.
     })]);
     SlotUpdateNotificationResult = type({
       subscription: number(),
-      result: SlotUpdateResul
+      result: SlotUpdateResult
     });
     SignatureNotificationResult = type({
       subscription: number(),
@@ -19212,7 +19212,7 @@ Message: ${transactionMessage}.
       mint: string(),
       owner: optional(string()),
       programId: optional(string()),
-      uiTokenAmount: TokenAmountResul
+      uiTokenAmount: TokenAmountResult
     });
     LoadedAddressesResult = type({
       writable: array(PublicKeyFromString),
@@ -19397,8 +19397,8 @@ Message: ${transactionMessage}.
       /**
        * Establish a JSON RPC connection
        *
-       * @param endpoint URL to the fullnode JSON RPC endpoin
-       * @param commitmentOrConfig optional default commitment level or optional ConnectionConfig configuration objec
+       * @param endpoint URL to the fullnode JSON RPC endpoint
+       * @param commitmentOrConfig optional default commitment level or optional ConnectionConfig configuration object
        */
       constructor(endpoint2, _commitmentOrConfig) {
         this._commitment = void 0;
@@ -19497,13 +19497,13 @@ Message: ${transactionMessage}.
         return this._commitment;
       }
       /**
-       * The RPC endpoin
+       * The RPC endpoint
        */
       get rpcEndpoint() {
         return this._rpcEndpoint;
       }
       /**
-       * Fetch the balance for the specified public key, return with contex
+       * Fetch the balance for the specified public key, return with context
        */
       async getBalanceAndContext(publicKey4, commitmentOrConfig) {
         const {
@@ -19572,11 +19572,11 @@ Message: ${transactionMessage}.
         } else if (config) {
           configArg = {
             ...config,
-            commitment: config && config.commitment || this.commitmen
+            commitment: config && config.commitment || this.commitment
           };
         } else {
           configArg = {
-            commitment: this.commitmen
+            commitment: this.commitment
           };
         }
         const unsafeRes = await this._rpcRequest("getSupply", [configArg]);
@@ -19587,7 +19587,7 @@ Message: ${transactionMessage}.
         return res.result;
       }
       /**
-       * Fetch the current supply of a token min
+       * Fetch the current supply of a token mint
        */
       async getTokenSupply(tokenMintAddress, commitment) {
         const args = this._buildArgs([tokenMintAddress.toBase58()], commitment);
@@ -19599,7 +19599,7 @@ Message: ${transactionMessage}.
         return res.result;
       }
       /**
-       * Fetch the current balance of a token accoun
+       * Fetch the current balance of a token account
        */
       async getTokenAccountBalance(tokenAddress, commitment) {
         const args = this._buildArgs([tokenAddress.toBase58()], commitment);
@@ -19611,7 +19611,7 @@ Message: ${transactionMessage}.
         return res.result;
       }
       /**
-       * Fetch all the token accounts owned by the specified accoun
+       * Fetch all the token accounts owned by the specified account
        *
        * @return {Promise<RpcResponseAndContext<GetProgramAccountsResponse>}
        */
@@ -19639,7 +19639,7 @@ Message: ${transactionMessage}.
         return res.result;
       }
       /**
-       * Fetch parsed token accounts owned by the specified accoun
+       * Fetch parsed token accounts owned by the specified account
        *
        * @return {Promise<RpcResponseAndContext<Array<{pubkey: PublicKey, account: AccountInfo<ParsedAccountData>}>>>}
        */
@@ -19668,7 +19668,7 @@ Message: ${transactionMessage}.
       async getLargestAccounts(config) {
         const arg = {
           ...config,
-          commitment: config && config.commitment || this.commitmen
+          commitment: config && config.commitment || this.commitment
         };
         const args = arg.filter || arg.commitment ? [arg] : [];
         const unsafeRes = await this._rpcRequest("getLargestAccounts", args);
@@ -19692,7 +19692,7 @@ Message: ${transactionMessage}.
         return res.result;
       }
       /**
-       * Fetch all the account info for the specified public key, return with contex
+       * Fetch all the account info for the specified public key, return with context
        */
       async getAccountInfoAndContext(publicKey4, commitmentOrConfig) {
         const {
@@ -19735,7 +19735,7 @@ Message: ${transactionMessage}.
         }
       }
       /**
-       * Fetch all the account info for multiple accounts specified by an array of public keys, return with contex
+       * Fetch all the account info for multiple accounts specified by an array of public keys, return with context
        */
       async getMultipleParsedAccounts(publicKeys, rawConfig) {
         const {
@@ -19752,7 +19752,7 @@ Message: ${transactionMessage}.
         return res.result;
       }
       /**
-       * Fetch all the account info for multiple accounts specified by an array of public keys, return with contex
+       * Fetch all the account info for multiple accounts specified by an array of public keys, return with context
        */
       async getMultipleAccountsInfoAndContext(publicKeys, commitmentOrConfig) {
         const {
@@ -19909,7 +19909,7 @@ Message: ${transactionMessage}.
               signatureSubscriptionId = void 0;
               const response = {
                 context,
-                value: resul
+                value: result
               };
               resolve3({
                 __type: TransactionStatus.PROCESSED,
@@ -20067,10 +20067,10 @@ Message: ${transactionMessage}.
             try {
               const {
                 context,
-                value: nonceAccoun
+                value: nonceAccount
               } = await this.getNonceAndContext(nonceAccountPubkey, {
                 commitment,
-                minContextSlo
+                minContextSlot
               });
               lastCheckedSlot = context.slot;
               return nonceAccount?.nonce;
@@ -20085,7 +20085,7 @@ Message: ${transactionMessage}.
               if (nonceValue !== currentNonceValue) {
                 resolve3({
                   __type: TransactionStatus.NONCE_INVALID,
-                  slotInWhichNonceDidAdvance: lastCheckedSlo
+                  slotInWhichNonceDidAdvance: lastCheckedSlot
                 });
                 return;
               }
@@ -20270,7 +20270,7 @@ Message: ${transactionMessage}.
       /**
        * Fetch `limit` number of slot leaders starting from `startSlot`
        *
-       * @param startSlot fetch slot leaders starting from this slo
+       * @param startSlot fetch slot leaders starting from this slot
        * @param limit number of slot leaders to return
        */
       async getSlotLeaders(startSlot, limit) {
@@ -20424,7 +20424,7 @@ Message: ${transactionMessage}.
       }
       /**
        * Fetch the minimum balance needed to exempt an account of `dataLength`
-       * size from ren
+       * size from rent
        */
       async getMinimumBalanceForRentExemption(dataLength, commitment) {
         const args = this._buildArgs([dataLength], commitment);
@@ -20437,7 +20437,7 @@ Message: ${transactionMessage}.
         return res.result;
       }
       /**
-       * Fetch a recent blockhash from the cluster, return with contex
+       * Fetch a recent blockhash from the cluster, return with context
        * @return {Promise<RpcResponseAndContext<{blockhash: Blockhash, feeCalculator: FeeCalculator}>>}
        *
        * @deprecated Deprecated since RPC v1.9.0. Please use {@link getLatestBlockhash} instead.
@@ -20478,7 +20478,7 @@ Message: ${transactionMessage}.
         return res.result;
       }
       /**
-       * Fetch the fee calculator for a recent blockhash from the cluster, return with contex
+       * Fetch the fee calculator for a recent blockhash from the cluster, return with context
        *
        * @deprecated Deprecated since RPC v1.9.0. Please use {@link getFeeForMessage} instead.
        */
@@ -20499,7 +20499,7 @@ Message: ${transactionMessage}.
         };
       }
       /**
-       * Fetch the fee for a message from the cluster, return with contex
+       * Fetch the fee for a message from the cluster, return with context
        */
       async getFeeForMessage(message, commitment) {
         const wireMessage = toBuffer(message.serialize()).toString("base64");
@@ -20571,7 +20571,7 @@ Message: ${transactionMessage}.
         return res.result;
       }
       /**
-       * Returns whether a blockhash is still valid or no
+       * Returns whether a blockhash is still valid or not
        */
       async isBlockhashValid(blockhash, rawConfig) {
         const {
@@ -20663,7 +20663,7 @@ Message: ${transactionMessage}.
                 throw res.error;
               }
               const {
-                resul
+                result
               } = res;
               return result ? {
                 ...result,
@@ -20738,7 +20738,7 @@ Message: ${transactionMessage}.
         } else if (configOrCommitment) {
           const {
             commitment: c,
-            ...res
+            ...rest
           } = configOrCommitment;
           commitment = c;
           extra = rest;
@@ -21137,7 +21137,7 @@ Message: ${transactionMessage}.
         };
       }
       /**
-       * Fetch the contents of a Nonce account from the cluster, return with contex
+       * Fetch the contents of a Nonce account from the cluster, return with context
        */
       async getNonceAndContext(nonceAccount, commitmentOrConfig) {
         const {
@@ -21164,7 +21164,7 @@ Message: ${transactionMessage}.
       /**
        * Request an allocation of lamports to the specified address
        *
-       * ```typescrip
+       * ```typescript
        * import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
        *
        * (async () => {
@@ -21324,7 +21324,7 @@ Message: ${transactionMessage}.
         const encodedTransaction = wireTransaction.toString("base64");
         const config = {
           encoding: "base64",
-          commitment: this.commitmen
+          commitment: this.commitment
         };
         if (includeAccounts) {
           const addresses = (Array.isArray(includeAccounts) ? includeAccounts : message.nonProgramIds()).map((key2) => key2.toBase58());
@@ -21413,7 +21413,7 @@ Message: ${transactionMessage}.
       }
       /**
        * Send a transaction that has already been signed and serialized into the
-       * wire forma
+       * wire format
        */
       async sendRawTransaction(rawTransaction, options) {
         const encodedTransaction = toBuffer(rawTransaction).toString("base64");
@@ -21782,7 +21782,7 @@ Message: ${transactionMessage}.
         } = create(notification, ProgramAccountNotificationResult);
         this._handleServerNotification(subscription, [{
           accountId: result.value.pubkey,
-          accountInfo: result.value.accoun
+          accountInfo: result.value.account
         }, result.context]);
       }
       /**
@@ -22023,7 +22023,7 @@ Message: ${transactionMessage}.
        *
        * @param signature Transaction signature string in base 58
        * @param callback Function to invoke on signature notifications
-       * @param options Enable received notifications and set the commitmen
+       * @param options Enable received notifications and set the commitment
        *   level that signature must reach before notification
        * @return subscription id
        */
@@ -22227,7 +22227,7 @@ Message: ${transactionMessage}.
         this.checkProgramId(instruction.programId);
         this.checkKeysLength(instruction.keys, 4);
         const {
-          recentSlo
+          recentSlot
         } = decodeData$1(LOOKUP_TABLE_INSTRUCTION_LAYOUTS.CreateLookupTable, instruction.data);
         return {
           authority: instruction.keys[1].pubkey,
@@ -22790,7 +22790,7 @@ Message: ${transactionMessage}.
     STAKE_CONFIG_ID = new PublicKey("StakeConfig11111111111111111111111111111111");
     Authorized = class {
       /**
-       * Create a new Authorized objec
+       * Create a new Authorized object
        * @param staker the stake authority
        * @param withdrawer the withdraw authority
        */
@@ -22803,7 +22803,7 @@ Message: ${transactionMessage}.
     };
     Lockup = class {
       /**
-       * Create a new Lockup objec
+       * Create a new Lockup object
        */
       constructor(unixTimestamp, epoch, custodian) {
         this.unixTimestamp = void 0;
@@ -23090,7 +23090,7 @@ Message: ${transactionMessage}.
         return new TransactionInstruction(instructionData);
       }
       /**
-       * Generate a Transaction that creates a new Stake account a
+       * Generate a Transaction that creates a new Stake account at
        *   an address generated with `from`, a seed, and the Stake programId
        */
       static createAccountWithSeed(params2) {
@@ -23116,7 +23116,7 @@ Message: ${transactionMessage}.
         }));
       }
       /**
-       * Generate a Transaction that creates a new Stake accoun
+       * Generate a Transaction that creates a new Stake account
        */
       static createAccount(params2) {
         const transaction = new Transaction();
@@ -23304,7 +23304,7 @@ Message: ${transactionMessage}.
         });
       }
       /**
-       * Generate a Transaction that splits Stake tokens into another stake accoun
+       * Generate a Transaction that splits Stake tokens into another stake account
        */
       static split(params2, rentExemptReserve) {
         const transaction = new Transaction();
@@ -23318,7 +23318,7 @@ Message: ${transactionMessage}.
         return transaction.add(this.splitInstruction(params2));
       }
       /**
-       * Generate a Transaction that splits Stake tokens into another accoun
+       * Generate a Transaction that splits Stake tokens into another account
        * derived from a base public key and seed
        */
       static splitWithSeed(params2, rentExemptReserve) {
@@ -23694,7 +23694,7 @@ Message: ${transactionMessage}.
         return transaction.add(this.initializeAccount({
           votePubkey: params2.votePubkey,
           nodePubkey: params2.voteInit.nodePubkey,
-          voteInit: params2.voteIni
+          voteInit: params2.voteInit
         }));
       }
       /**
@@ -23732,7 +23732,7 @@ Message: ${transactionMessage}.
         });
       }
       /**
-       * Generate a transaction that authorizes a new Voter or Withdrawer on the Vote accoun
+       * Generate a transaction that authorizes a new Voter or Withdrawer on the Vote account
        * where the current Voter or Withdrawer authority is a derived key.
        */
       static authorizeWithSeed(params2) {
@@ -23809,7 +23809,7 @@ Message: ${transactionMessage}.
        * Generate a transaction to withdraw safely from a Vote account.
        *
        * This function was created as a safeguard for vote accounts running validators, `safeWithdraw`
-       * checks that the withdraw amount will not exceed the specified balance while leaving enough lef
+       * checks that the withdraw amount will not exceed the specified balance while leaving enough left
        * to cover rent. If you wish to close the vote account by withdrawing the full amount, call the
        * `withdraw` method directly.
        */
@@ -23951,7 +23951,7 @@ Message: ${transactionMessage}.
        * Deserialize VoteAccount from the account data.
        *
        * @param buffer account data
-       * @return VoteAccoun
+       * @return VoteAccount
        */
       static fromAccountData(buffer2) {
         const versionOffset = 4;
@@ -24240,7 +24240,7 @@ var require_Layout2 = __commonJS({
       /** Function to create an Object into which decoded properties will
        * be written.
        *
-       * Used only for layouts that {@link Layout#decode|decode} to Objec
+       * Used only for layouts that {@link Layout#decode|decode} to Object
        * instances, which means:
        * * {@link Structure}
        * * {@link Union}
@@ -24265,7 +24265,7 @@ var require_Layout2 = __commonJS({
        *
        * @returns {(Number|Array|Object)} - the value of the decoded data.
        *
-       * @abstrac
+       * @abstract
        */
       decode(b, offset3) {
         throw new Error("Layout is abstract");
@@ -24290,7 +24290,7 @@ var require_Layout2 = __commonJS({
        * producing the offset where data for the next layout would be
        * written.
        *
-       * @abstrac
+       * @abstract
        */
       encode(src, b, offset3) {
         throw new Error("Layout is abstract");
@@ -24303,7 +24303,7 @@ var require_Layout2 = __commonJS({
        * @param {Number} [offset] - the offset at which the encoded instance
        * starts.  If absent a zero offset is inferred.
        *
-       * @return {Number} - the number of bytes covered by the layou
+       * @return {Number} - the number of bytes covered by the layout
        * instance.  If this method is not overridden in a subclass the
        * definition-time constant {@link Layout#span|span} will be
        * returned.
@@ -24320,7 +24320,7 @@ var require_Layout2 = __commonJS({
       /**
        * Replicate the layout using a new property.
        *
-       * This function must be used to get a structurally-equivalent layou
+       * This function must be used to get a structurally-equivalent layout
        * with a different name since all {@link Layout} instances are
        * immutable.
        *
@@ -24342,7 +24342,7 @@ var require_Layout2 = __commonJS({
       /**
        * Create an object from layout properties and an array of values.
        *
-       * **NOTE** This function returns `undefined` if invoked on a layou
+       * **NOTE** This function returns `undefined` if invoked on a layout
        * that does not return its value as an Object.  Objects are
        * returned for things that are a {@link Structure}, which includes
        * {@link VariantLayout|variant layouts} if they are structures, and
@@ -24411,7 +24411,7 @@ var require_Layout2 = __commonJS({
        * or as {@link UnionLayoutDiscriminator#layout|external union
        * discriminators}.
        *
-       * @abstrac
+       * @abstract
        */
       isCount() {
         throw new Error("ExternalLayout is abstract");
@@ -25083,7 +25083,7 @@ var require_Layout2 = __commonJS({
        * return value:
        * * If `src` has properties matching the Union discriminator and
        *   the default layout, `undefined` is returned regardless of the
-       *   value of the discriminator property (this ensures the defaul
+       *   value of the discriminator property (this ensures the default
        *   layout will be used);
        * * If `src` has a property matching the Union discriminator, the
        *   value of the discriminator identifies a registered variant, and
@@ -25127,8 +25127,8 @@ var require_Layout2 = __commonJS({
       /** Implement {@link Layout#decode|decode} for {@link Union}.
        *
        * If the variant is {@link Union#addVariant|registered} the return
-       * value is an instance of that variant, with no explici
-       * discriminator.  Otherwise the {@link Union#defaultLayout|defaul
+       * value is an instance of that variant, with no explicit
+       * discriminator.  Otherwise the {@link Union#defaultLayout|default
        * layout} is used to decode the content. */
       decode(b, offset3) {
         if (void 0 === offset3) {
@@ -25174,7 +25174,7 @@ var require_Layout2 = __commonJS({
           return contentOffset + clo.encode(
             src[clo.property],
             b,
-            offset3 + contentOffse
+            offset3 + contentOffset
           );
         }
         return vlo.encode(src, b, offset3);
@@ -25405,7 +25405,7 @@ var require_Layout2 = __commonJS({
         this.fields.push(bf);
         return bf;
       }
-      /** As with {@link BitStructure#addField|addField} for single-bi
+      /** As with {@link BitStructure#addField|addField} for single-bit
        * fields with `boolean` value representation.
        *
        * @param {string} property - initializer for {@link
@@ -28456,10 +28456,10 @@ var init_concat = __esm({
 function slice(value, start, end, { strict } = {}) {
   if (isHex(value, { strict: false }))
     return sliceHex(value, start, end, {
-      stric
+      strict
     });
   return sliceBytes(value, start, end, {
-    stric
+    strict
   });
 }
 function assertStartOffset(value, start) {
@@ -29032,7 +29032,7 @@ var init_cursor2 = __esm({
         if (this.recursiveReadCount >= this.recursiveReadLimit)
           throw new RecursiveReadLimitExceededError({
             count: this.recursiveReadCount + 1,
-            limit: this.recursiveReadLimi
+            limit: this.recursiveReadLimit
           });
       },
       assertPosition(position) {
@@ -29303,7 +29303,7 @@ function decodeArray(cursor, param, { length, staticPosition }) {
     for (let i = 0; i < length; ++i) {
       cursor.setPosition(start + i * 32);
       const [data] = decodeParameter(cursor, param, {
-        staticPosition: star
+        staticPosition: start
       });
       value2.push(data);
     }
@@ -29361,7 +29361,7 @@ function decodeTuple(cursor, param, { staticPosition }) {
       const component = param.components[i];
       cursor.setPosition(start + consumed);
       const [data, consumed_] = decodeParameter(cursor, component, {
-        staticPosition: star
+        staticPosition: start
       });
       consumed += consumed_;
       value[hasUnnamedChild ? i : component?.name] = data;
@@ -31379,7 +31379,7 @@ function Field3(ORDER, bitLen5, isLE7 = false, redef = {}) {
     },
     // TODO: we don't need it here, move out to separate fn
     invertBatch: (lst) => FpInvertBatch2(f2, lst),
-    // We can't move this out because Fp6, Fp12 implement i
+    // We can't move this out because Fp6, Fp12 implement it
     // and it's unclear what to return in there.
     cmov: (a, b, c) => c ? b : a
   });
@@ -31566,7 +31566,7 @@ function wNAF3(c, bits) {
      * @param precomputes precomputed tables
      * @param n scalar (we don't check here, but should be less than curve order)
      * @param acc accumulator point to add result of multiplication
-     * @returns poin
+     * @returns point
      */
     wNAFUnsafe(W, precomputes, n, acc = c.ZERO) {
       const wo = calcWOpts2(W, bits);
@@ -32002,7 +32002,7 @@ function weierstrassPoints(opts) {
     }
     /**
      * Non-constant-time multiplication. Uses double-and-add algorithm.
-     * It's faster, but should only be used when you don't care abou
+     * It's faster, but should only be used when you don't care about
      * an exposed private key e.g. sig verification, which works over *public* keys.
      */
     multiplyUnsafe(sc) {
@@ -32042,7 +32042,7 @@ function weierstrassPoints(opts) {
      * Uses precomputes when available.
      * Uses endomorphism for Koblitz curves.
      * @param scalar by which the point would be multiplied
-     * @returns New poin
+     * @returns New point
      */
     multiply(scalar) {
       const { endo: endo2, n: N } = CURVE;
@@ -32068,7 +32068,7 @@ function weierstrassPoints(opts) {
      * Efficiently calculate `aP + bQ`. Unsafe, can expose private key, if used incorrectly.
      * Not using Strauss-Shamir trick: precomputation tables are faster.
      * The trick could be useful if both P and Q are not G (not in our case).
-     * @returns non-zero affine poin
+     * @returns non-zero affine point
      */
     multiplyAndAddUnsafe(Q, a, b) {
       const G = Point3.BASE;
@@ -32214,7 +32214,7 @@ function weierstrass2(curveDef) {
       return new Signature(slcNum(hex, 0, l), slcNum(hex, l, 2 * l));
     }
     // DER encoded ECDSA signature
-    // https://bitcoin.stackexchange.com/questions/57644/what-are-the-parts-of-a-bitcoin-transaction-input-scrip
+    // https://bitcoin.stackexchange.com/questions/57644/what-are-the-parts-of-a-bitcoin-transaction-input-script
     static fromDER(hex) {
       const { r: r2, s } = DER2.toSig(ensureBytes3("DER", hex));
       return new Signature(r2, s);
@@ -32291,7 +32291,7 @@ function weierstrass2(curveDef) {
     /**
      * Creates precompute table for an arbitrary EC point. Makes point "cached".
      * Allows to massively speed-up `point.multiply(scalar)`.
-     * @returns cached poin
+     * @returns cached point
      * @example
      * const fast = utils.precompute(8, ProjectivePoint.fromHex(someonesPubKey));
      * fast.multiply(privKey); // much faster ECDH now
@@ -34731,7 +34731,7 @@ function toRpc2(blockOverrides) {
       blobBaseFee: fromNumber(blockOverrides.blobBaseFee)
     },
     ...typeof blockOverrides.feeRecipient === "string" && {
-      feeRecipient: blockOverrides.feeRecipien
+      feeRecipient: blockOverrides.feeRecipient
     },
     ...typeof blockOverrides.gasLimit === "bigint" && {
       gasLimit: fromNumber(blockOverrides.gasLimit)
@@ -36156,7 +36156,7 @@ var objectUtil;
     return {
       ...first,
       ...second
-      // second overwrites firs
+      // second overwrites first
     };
   };
 })(objectUtil || (objectUtil = {}));
@@ -36492,7 +36492,7 @@ function addIssueToContext(ctx, issueData) {
       // then schema-bound map if available
       overrideMap,
       // then global override map
-      overrideMap === en_default ? void 0 : en_defaul
+      overrideMap === en_default ? void 0 : en_default
       // then global default map
     ].filter((x) => !!x)
   });
@@ -36652,7 +36652,7 @@ var ZodType = class {
       parsedType: getParsedType(input.data),
       schemaErrorMap: this._def.errorMap,
       path: input.path,
-      parent: input.paren
+      parent: input.parent
     };
   }
   _processInputParams(input) {
@@ -36664,7 +36664,7 @@ var ZodType = class {
         parsedType: getParsedType(input.data),
         schemaErrorMap: this._def.errorMap,
         path: input.path,
-        parent: input.paren
+        parent: input.parent
       }
     };
   }
@@ -36882,7 +36882,7 @@ var ZodType = class {
       ...processCreateParams(this._def),
       innerType: this,
       defaultValue: defaultValueFunc,
-      typeName: ZodFirstPartyTypeKind.ZodDefaul
+      typeName: ZodFirstPartyTypeKind.ZodDefault
     });
   }
   brand() {
@@ -38439,7 +38439,7 @@ var ZodObject = class _ZodObject extends ZodType {
           syncPairs.push({
             key: key2,
             value,
-            alwaysSet: pair.alwaysSe
+            alwaysSet: pair.alwaysSet
           });
         }
         return syncPairs;
@@ -38523,7 +38523,7 @@ var ZodObject = class _ZodObject extends ZodType {
         ...this._def.shape(),
         ...merging._def.shape()
       }),
-      typeName: ZodFirstPartyTypeKind.ZodObjec
+      typeName: ZodFirstPartyTypeKind.ZodObject
     });
     return merged;
   }
@@ -38533,14 +38533,14 @@ var ZodObject = class _ZodObject extends ZodType {
   //   NewOutput extends {
   //     [k in keyof Augmentation | keyof Output]: k extends keyof Augmentation
   //       ? Augmentation[k]["_output"]
-  //       : k extends keyof Outpu
+  //       : k extends keyof Output
   //       ? Output[k]
   //       : never;
   //   },
   //   NewInput extends {
   //     [k in keyof Augmentation | keyof Input]: k extends keyof Augmentation
   //       ? Augmentation[k]["_input"]
-  //       : k extends keyof Inpu
+  //       : k extends keyof Input
   //       ? Input[k]
   //       : never;
   //   }
@@ -38551,7 +38551,7 @@ var ZodObject = class _ZodObject extends ZodType {
   //   Incoming["_def"]["unknownKeys"],
   //   Incoming["_def"]["catchall"],
   //   NewOutput,
-  //   NewInpu
+  //   NewInput
   // > {
   //   const merged: any = new ZodObject({
   //     unknownKeys: merging._def.unknownKeys,
@@ -38856,7 +38856,7 @@ var ZodDiscriminatedUnion = class _ZodDiscriminatedUnion extends ZodType {
   }
   /**
    * The constructor of the discriminated union schema. Its behaviour is very similar to that of the normal z.union() constructor.
-   * However, it only allows a union of objects, all of which need to share a discriminator property. This property mus
+   * However, it only allows a union of objects, all of which need to share a discriminator property. This property must
    * have a different value for each object in the union.
    * @param discriminator the name of the discriminator property
    * @param types an array of object schemas
@@ -39028,7 +39028,7 @@ var ZodTuple = class _ZodTuple extends ZodType {
   rest(rest) {
     return new _ZodTuple({
       ...this._def,
-      res
+      rest
     });
   }
 };
@@ -39648,7 +39648,7 @@ var ZodEffects = class extends ZodType {
             return INVALID;
           return Promise.resolve(effect.transform(base3.value, checkCtx)).then((result) => ({
             status: status.value,
-            value: resul
+            value: result
           }));
         });
       }
@@ -40273,13 +40273,13 @@ var Logger = class _Logger {
     if (count < expectedCount) {
       this.throwError("missing argument" + message, _Logger.errors.MISSING_ARGUMENT, {
         count,
-        expectedCoun
+        expectedCount
       });
     }
     if (count > expectedCount) {
       this.throwError("too many arguments" + message, _Logger.errors.UNEXPECTED_ARGUMENT, {
         count,
-        expectedCoun
+        expectedCount
       });
     }
   }
@@ -41408,7 +41408,7 @@ var ParamType = class _ParamType {
     this._isParamType = true;
     Object.freeze(this);
   }
-  // Format the parameter fragmen
+  // Format the parameter fragment
   //   - sighash: "(uint256,address)"
   //   - minimal: "tuple(uint256,address) indexed"
   //   - full:    "tuple(uint256 foo, address bar) indexed baz"
@@ -41963,7 +41963,7 @@ var ArrayCoder = class extends Coder {
       if (count * 32 > reader._data.length) {
         logger10.throwError("insufficient data length", Logger.errors.BUFFER_OVERRUN, {
           length: reader._data.length,
-          coun
+          count
         });
       }
     }
@@ -47226,7 +47226,7 @@ var StructError2 = class extends TypeError {
     let cached;
     const {
       message,
-      ...res
+      ...rest
     } = failure;
     const {
       path
@@ -47271,7 +47271,7 @@ function toFailure2(result, context, struct4, value) {
     result = {};
   } else if (typeof result === "string") {
     result = {
-      message: resul
+      message: result
     };
   }
   const {
@@ -47649,7 +47649,7 @@ function createRpcResult2(result) {
     type2({
       jsonrpc: literal2("2.0"),
       id: string2(),
-      resul
+      result
     }),
     type2({
       jsonrpc: literal2("2.0"),
@@ -48105,7 +48105,7 @@ var Layout = class {
   /** Function to create an Object into which decoded properties will
    * be written.
    *
-   * Used only for layouts that {@link Layout#decode|decode} to Objec
+   * Used only for layouts that {@link Layout#decode|decode} to Object
    * instances, which means:
    * * {@link Structure}
    * * {@link Union}
@@ -48130,7 +48130,7 @@ var Layout = class {
    *
    * @returns {(Number|Array|Object)} - the value of the decoded data.
    *
-   * @abstrac
+   * @abstract
    */
   decode(b, offset3) {
     throw new Error("Layout is abstract");
@@ -48155,7 +48155,7 @@ var Layout = class {
    * producing the offset where data for the next layout would be
    * written.
    *
-   * @abstrac
+   * @abstract
    */
   encode(src, b, offset3) {
     throw new Error("Layout is abstract");
@@ -48168,7 +48168,7 @@ var Layout = class {
    * @param {Number} [offset] - the offset at which the encoded instance
    * starts.  If absent a zero offset is inferred.
    *
-   * @return {Number} - the number of bytes covered by the layou
+   * @return {Number} - the number of bytes covered by the layout
    * instance.  If this method is not overridden in a subclass the
    * definition-time constant {@link Layout#span|span} will be
    * returned.
@@ -48185,7 +48185,7 @@ var Layout = class {
   /**
    * Replicate the layout using a new property.
    *
-   * This function must be used to get a structurally-equivalent layou
+   * This function must be used to get a structurally-equivalent layout
    * with a different name since all {@link Layout} instances are
    * immutable.
    *
@@ -48207,7 +48207,7 @@ var Layout = class {
   /**
    * Create an object from layout properties and an array of values.
    *
-   * **NOTE** This function returns `undefined` if invoked on a layou
+   * **NOTE** This function returns `undefined` if invoked on a layout
    * that does not return its value as an Object.  Objects are
    * returned for things that are a {@link Structure}, which includes
    * {@link VariantLayout|variant layouts} if they are structures, and
@@ -48245,7 +48245,7 @@ var ExternalLayout = class extends Layout {
    * or as {@link UnionLayoutDiscriminator#layout|external union
    * discriminators}.
    *
-   * @abstrac
+   * @abstract
    */
   isCount() {
     throw new Error("ExternalLayout is abstract");
@@ -48633,7 +48633,7 @@ var Union = class extends Layout {
    * return value:
    * * If `src` has properties matching the Union discriminator and
    *   the default layout, `undefined` is returned regardless of the
-   *   value of the discriminator property (this ensures the defaul
+   *   value of the discriminator property (this ensures the default
    *   layout will be used);
    * * If `src` has a property matching the Union discriminator, the
    *   value of the discriminator identifies a registered variant, and
@@ -48677,8 +48677,8 @@ var Union = class extends Layout {
   /** Implement {@link Layout#decode|decode} for {@link Union}.
    *
    * If the variant is {@link Union#addVariant|registered} the return
-   * value is an instance of that variant, with no explici
-   * discriminator.  Otherwise the {@link Union#defaultLayout|defaul
+   * value is an instance of that variant, with no explicit
+   * discriminator.  Otherwise the {@link Union#defaultLayout|default
    * layout} is used to decode the content. */
   decode(b, offset3) {
     if (void 0 === offset3) {
@@ -48724,7 +48724,7 @@ var Union = class extends Layout {
       return contentOffset + clo.encode(
         src[clo.property],
         b,
-        offset3 + contentOffse
+        offset3 + contentOffset
       );
     }
     return vlo.encode(src, b, offset3);
@@ -50461,7 +50461,7 @@ async function internal_estimateMaxPriorityFeePerGas(client2, args) {
       const maxPriorityFeePerGas_ = await maxPriorityFeePerGas({
         block,
         client: client2,
-        reques
+        request
       });
       if (maxPriorityFeePerGas_ === null)
         throw new Error();
@@ -50498,7 +50498,7 @@ async function internal_estimateFeesPerGas(client2, args) {
       return chain2.fees.baseFeeMultiplier({
         block: block_,
         client: client2,
-        reques
+        request
       });
     return chain2?.fees?.baseFeeMultiplier ?? 1.2;
   })();
@@ -50525,7 +50525,7 @@ async function internal_estimateFeesPerGas(client2, args) {
     const maxPriorityFeePerGas = typeof request?.maxPriorityFeePerGas === "bigint" ? request.maxPriorityFeePerGas : await internal_estimateMaxPriorityFeePerGas(client2, {
       block,
       chain: chain2,
-      reques
+      request
     });
     const baseFeePerGas = multiply(block.baseFeePerGas);
     const maxFeePerGas = request?.maxFeePerGas ?? baseFeePerGas + maxPriorityFeePerGas;
@@ -50948,7 +50948,7 @@ async function prepareTransactionRequest(client2, args) {
     if (Array.isArray(chain2?.prepareTransactionRequest))
       return {
         fn: chain2.prepareTransactionRequest[0],
-        runAt: chain2.prepareTransactionRequest[1].runA
+        runAt: chain2.prepareTransactionRequest[1].runAt
       };
     return void 0;
   })();
@@ -51104,7 +51104,7 @@ async function prepareTransactionRequest(client2, args) {
         const { maxFeePerGas, maxPriorityFeePerGas } = await internal_estimateFeesPerGas(client2, {
           block: block2,
           chain: chain2,
-          reques
+          request
         });
         if (typeof request.maxPriorityFeePerGas === "undefined" && request.maxFeePerGas && request.maxFeePerGas < maxPriorityFeePerGas)
           throw new MaxFeePerGasTooLowError({
@@ -51226,7 +51226,7 @@ async function estimateContractGas(client2, parameters) {
     const gas = await getAction(client2, estimateGas, "estimateGas")({
       data: `${data}${dataSuffix ? dataSuffix.replace("0x", "") : ""}`,
       to: address2,
-      ...reques
+      ...request
     });
     return gas;
   } catch (error) {
@@ -51514,7 +51514,7 @@ async function getLogs(client2, { address: address2, blockHash, fromBlock, toBlo
     abi: events,
     args,
     logs: formattedLogs,
-    stric
+    strict
   });
 }
 
@@ -51531,7 +51531,7 @@ async function getContractEvents(client2, parameters) {
     events,
     fromBlock,
     toBlock,
-    stric
+    strict
   });
 }
 
@@ -51586,7 +51586,7 @@ async function simulateContract(client2, parameters) {
       data: `${calldata}${dataSuffix ? dataSuffix.replace("0x", "") : ""}`,
       to: address2,
       ...callRequest,
-      accoun
+      account
     });
     const result = decodeFunctionResult({
       abi: abi3,
@@ -51604,7 +51604,7 @@ async function simulateContract(client2, parameters) {
         dataSuffix,
         functionName,
         ...callRequest,
-        accoun
+        account
       }
     };
   } catch (error) {
@@ -51801,7 +51801,7 @@ async function getFilterChanges(_client, { filter }) {
   return parseEventLogs({
     abi: filter.abi,
     logs: formattedLogs,
-    stric
+    strict
   });
 }
 
@@ -51877,7 +51877,7 @@ function watchContractEvent(client2, parameters) {
                 eventName,
                 fromBlock: previousBlockNumber + 1n,
                 toBlock: blockNumber,
-                stric
+                strict
               });
             } else {
               logs = [];
@@ -51917,7 +51917,7 @@ function watchContractEvent(client2, parameters) {
       client2.uid,
       eventName,
       pollingInterval,
-      stric
+      strict
     ]);
     let active = true;
     let unsubscribe = () => active = false;
@@ -52226,7 +52226,7 @@ async function writeContract(client2, parameters) {
         data,
         to: address2,
         account,
-        ...reques
+        ...request
       });
     } catch (error) {
       throw getContractError(error, {
@@ -52415,7 +52415,7 @@ async function sendCalls(client2, parameters) {
   } catch (err2) {
     const error = err2;
     if (experimental_fallback && (error.name === "MethodNotFoundRpcError" || error.name === "MethodNotSupportedRpcError" || error.name === "UnknownRpcError" || error.details.toLowerCase().includes("does not exist / is not available") || error.details.toLowerCase().includes("missing or invalid. request()") || error.details.toLowerCase().includes("did not match any variant of untagged enum") || error.details.toLowerCase().includes("account upgraded to unsupported contract") || error.details.toLowerCase().includes("eip-7702 not supported") || error.details.toLowerCase().includes("unsupported wc_ method") || // magic.link
-    error.details.toLowerCase().includes("feature toggled misconfigured") || // Trust Walle
+    error.details.toLowerCase().includes("feature toggled misconfigured") || // Trust Wallet
     error.details.toLowerCase().includes("jsonrpcengine: response has no error or result for request"))) {
       if (capabilities) {
         const hasNonOptionalCapability = Object.values(capabilities).some((capability) => !capability.optional);
@@ -53085,7 +53085,7 @@ async function parseNftAvatarUri(client2, { gatewayUrls, record: record2 }) {
   const { uri: resolvedNftUri, isOnChain, isEncoded } = resolveAvatarUri({ uri: nftUri, gatewayUrls });
   if (isOnChain && (resolvedNftUri.includes("data:application/json;base64,") || resolvedNftUri.startsWith("{"))) {
     const encodedJson = isEncoded ? (
-      // if it is encoded, decode i
+      // if it is encoded, decode it
       atob(resolvedNftUri.replace("data:application/json;base64,", ""))
     ) : (
       // if it isn't encoded assume it is a JSON string, but it could be anything (it will error if it is)
@@ -53173,7 +53173,7 @@ async function getEnsAvatar(client2, { blockNumber, blockTag, assetGatewayUrls, 
     name: name3,
     universalResolverAddress,
     gatewayUrls,
-    stric
+    strict
   });
   if (!record2)
     return null;
@@ -53557,7 +53557,7 @@ async function getEip712Domain(client2, parameters) {
         version: version17,
         chainId: Number(chainId2),
         verifyingContract,
-        sal
+        salt
       },
       extensions,
       fields
@@ -53631,7 +53631,7 @@ async function getFilterLogs(_client, { filter }) {
   return parseEventLogs({
     abi: filter.abi,
     logs: formattedLogs,
-    stric
+    strict
   });
 }
 
@@ -57180,7 +57180,7 @@ function decodeArray2(cursor, param, options) {
       cursor.setPosition(start + i * 32);
       const [data] = decodeParameter2(cursor, param, {
         checksumAddress: checksumAddress2,
-        staticPosition: star
+        staticPosition: start
       });
       value2.push(data);
     }
@@ -57241,7 +57241,7 @@ function decodeTuple2(cursor, param, options) {
       cursor.setPosition(start + consumed);
       const [data, consumed_] = decodeParameter2(cursor, component, {
         checksumAddress: checksumAddress2,
-        staticPosition: star
+        staticPosition: start
       });
       consumed += consumed_;
       value[hasUnnamedChild ? i : component?.name] = data;
@@ -57519,7 +57519,7 @@ var staticCursor2 = {
     if (this.recursiveReadCount >= this.recursiveReadLimit)
       throw new RecursiveReadLimitExceededError2({
         count: this.recursiveReadCount + 1,
-        limit: this.recursiveReadLimi
+        limit: this.recursiveReadLimit
       });
   },
   assertPosition(position) {
@@ -58332,7 +58332,7 @@ function Field4(ORDER, bitLen5, isLE7 = false, redef = {}) {
     },
     // TODO: we don't need it here, move out to separate fn
     invertBatch: (lst) => FpInvertBatch3(f2, lst),
-    // We can't move this out because Fp6, Fp12 implement i
+    // We can't move this out because Fp6, Fp12 implement it
     // and it's unclear what to return in there.
     cmov: (a, b, c) => c ? b : a
   });
@@ -58490,7 +58490,7 @@ function wNAF4(c, bits) {
      * @param precomputes precomputed tables
      * @param n scalar (we don't check here, but should be less than curve order)
      * @param acc accumulator point to add result of multiplication
-     * @returns poin
+     * @returns point
      */
     wNAFUnsafe(W, precomputes, n, acc = c.ZERO) {
       const wo = calcWOpts3(W, bits);
@@ -59025,7 +59025,7 @@ function weierstrassPoints2(opts) {
     }
     /**
      * Non-constant-time multiplication. Uses double-and-add algorithm.
-     * It's faster, but should only be used when you don't care abou
+     * It's faster, but should only be used when you don't care about
      * an exposed private key e.g. sig verification, which works over *public* keys.
      */
     multiplyUnsafe(sc) {
@@ -59065,7 +59065,7 @@ function weierstrassPoints2(opts) {
      * Uses precomputes when available.
      * Uses endomorphism for Koblitz curves.
      * @param scalar by which the point would be multiplied
-     * @returns New poin
+     * @returns New point
      */
     multiply(scalar) {
       const { endo: endo2, n: N } = CURVE;
@@ -59091,7 +59091,7 @@ function weierstrassPoints2(opts) {
      * Efficiently calculate `aP + bQ`. Unsafe, can expose private key, if used incorrectly.
      * Not using Strauss-Shamir trick: precomputation tables are faster.
      * The trick could be useful if both P and Q are not G (not in our case).
-     * @returns non-zero affine poin
+     * @returns non-zero affine point
      */
     multiplyAndAddUnsafe(Q, a, b) {
       const G = Point3.BASE;
@@ -59237,7 +59237,7 @@ function weierstrass3(curveDef) {
       return new Signature(slcNum(hex, 0, l), slcNum(hex, l, 2 * l));
     }
     // DER encoded ECDSA signature
-    // https://bitcoin.stackexchange.com/questions/57644/what-are-the-parts-of-a-bitcoin-transaction-input-scrip
+    // https://bitcoin.stackexchange.com/questions/57644/what-are-the-parts-of-a-bitcoin-transaction-input-script
     static fromDER(hex) {
       const { r: r2, s } = DER3.toSig(ensureBytes4("DER", hex));
       return new Signature(r2, s);
@@ -59314,7 +59314,7 @@ function weierstrass3(curveDef) {
     /**
      * Creates precompute table for an arbitrary EC point. Makes point "cached".
      * Allows to massively speed-up `point.multiply(scalar)`.
-     * @returns cached poin
+     * @returns cached point
      * @example
      * const fast = utils.precompute(8, ProjectivePoint.fromHex(someonesPubKey));
      * fast.multiply(privKey); // much faster ECDH now
@@ -60202,7 +60202,7 @@ async function multicall(client2, parameters) {
         args,
         docsPath: "/docs/contract/multicall",
         functionName,
-        sender: accoun
+        sender: account
       });
       if (!allowFailure)
         throw error;
@@ -61198,14 +61198,14 @@ async function verifyErc6492(client2, parameters) {
       functionName: "isValidSig",
       args: [address2, hash5, wrappedSignature]
     }),
-    ...res
+    ...rest
   } : {
     data: encodeDeployData({
       abi: erc6492SignatureValidatorAbi,
       args: [address2, hash5, wrappedSignature],
       bytecode: erc6492SignatureValidatorByteCode
     }),
-    ...res
+    ...rest
   };
   const { data } = await getAction(client2, call, "call")(args).catch((error) => {
     if (error instanceof CallExecutionError)
@@ -61247,7 +61247,7 @@ async function verifyMessage2(client2, { address: address2, message, factory, fa
     factoryData,
     hash: hash5,
     signature: signature2,
-    ...callReques
+    ...callRequest
   });
 }
 
@@ -61262,7 +61262,7 @@ async function verifyTypedData2(client2, parameters) {
     factoryData,
     hash: hash5,
     signature: signature2,
-    ...callReques
+    ...callRequest
   });
 }
 
@@ -61437,7 +61437,7 @@ async function waitForTransactionReceipt(client2, parameters) {
                 blockNumber = transaction.blockNumber;
             }, {
               delay: retryDelay,
-              retryCoun
+              retryCount
             });
             retrying = false;
           }
@@ -61482,7 +61482,7 @@ async function waitForTransactionReceipt(client2, parameters) {
                   reason,
                   replacedTransaction,
                   transaction: replacementTransaction,
-                  transactionReceipt: receip
+                  transactionReceipt: receipt
                 });
                 emit.resolve(receipt);
               });
@@ -61753,7 +61753,7 @@ function watchEvent(client2, { address: address2, args, batch = true, event, eve
                 abi: events_ ?? [],
                 data: log.data,
                 topics: log.topics,
-                stric
+                strict
               });
               const formatted3 = formatLog(log, { args: args2, eventName });
               onLogs([formatted3]);
@@ -61940,7 +61940,7 @@ async function verifySiweMessage(client2, parameters) {
     address: parsed.address,
     hash: hash5,
     signature: signature2,
-    ...callReques
+    ...callRequest
   });
 }
 
@@ -62285,7 +62285,7 @@ async function sendCallsSync(client2, parameters) {
   const status = await getAction(client2, waitForCallsStatus, "waitForCallsStatus")({
     ...parameters,
     id: result.id,
-    timeou
+    timeout
   });
   return status;
 }
@@ -62391,7 +62391,7 @@ async function sendTransactionSync(client2, parameters) {
         checkReplacement: false,
         hash: hash5,
         pollingInterval,
-        timeou
+        timeout
       });
       if (throwOnReceiptRevert && receipt.status === "reverted")
         throw new TransactionReceiptRevertedError({ receipt });
@@ -62436,7 +62436,7 @@ async function sendTransactionSync(client2, parameters) {
       return await getAction(client2, sendRawTransactionSync, "sendRawTransactionSync")({
         serializedTransaction,
         throwOnReceiptRevert,
-        timeout: parameters.timeou
+        timeout: parameters.timeout
       });
     }
     if (account?.type === "smart")
@@ -62559,7 +62559,7 @@ async function signTransaction(client2, parameters) {
       {
         ...format4({
           ...transaction,
-          accoun
+          account
         }, "signTransaction"),
         chainId: numberToHex(chainId2),
         from: account.address
@@ -62724,7 +62724,7 @@ function fallback(transports_, config = {}) {
             ...rest,
             chain: chain2,
             retryCount: 0,
-            timeou
+            timeout
           });
           try {
             const response = await transport2.request({
@@ -62884,7 +62884,7 @@ function http2(url, config = {}) {
       fetchOptions,
       onRequest: onFetchRequest,
       onResponse: onFetchResponse,
-      timeou
+      timeout
     });
     return createTransport({
       key: key2,
@@ -63298,7 +63298,7 @@ var KitError = class extends Error {
       // not dump a `[Symbol(circle.KitError)]: true` line into operator
       // logs, but observable to anyone holding `KIT_ERROR_BRAND`. The
       // symbol is registered (`Symbol.for`) so distinct `dist/*` copies
-      // of `@core/errors` resolve to the same identity, which is wha
+      // of `@core/errors` resolve to the same identity, which is what
       // makes the brand a cross-bundle-safe replacement for the
       // `instanceof KitError` check used previously.
       [KIT_ERROR_BRAND]: {
@@ -63564,7 +63564,7 @@ var NetworkError = {
     type: "NETWORK"
   },
   /**
-  * A long-running operation was aborted via its `AbortSignal` before i
+  * A long-running operation was aborted via its `AbortSignal` before it
   * could complete (e.g. a caller cancelled `waitForTransaction`). For
   * post-broadcast waits this stops the local wait only — the transaction
   * may still settle on-chain.
@@ -63693,7 +63693,7 @@ function createInvalidAddressError(address2, chain2, expectedFormat) {
       trace: {
         address: address2,
         chain: chain2,
-        expectedForma
+        expectedFormat
       }
     }
   };
@@ -64305,7 +64305,7 @@ function handleClientError(statusCode, serviceName, operation, error, msg, respo
           trace: error
         }
       });
-    // 404 - Not found - unsupported route OR stop-limit / slippage constraint not me
+    // 404 - Not found - unsupported route OR stop-limit / slippage constraint not met
     case 404:
       if (isSlippageConstraintFailure(responseBody)) {
         return new KitError({
@@ -68476,7 +68476,7 @@ function extractChainInfo(chain2) {
   return {
     name: name3,
     displayName: name3.replaceAll("_", " "),
-    expectedAddressForma
+    expectedAddressFormat
   };
 }
 function isNativeToken(token, chain2) {
@@ -68907,7 +68907,7 @@ var Actionable = class {
   * @param payload - The data associated with the action.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * type Actions = {
   *   transferStarted: { amount: string; destination: string };
   *   transferComplete: { txHash: string };
@@ -68915,7 +68915,7 @@ var Actionable = class {
   *
   * const events = new Actionable<Actions>();
   *
-  * // Dispatch an even
+  * // Dispatch an event
   * events.dispatch('transferStarted', {
   *   amount: '100',
   *   destination: '0xABC123'
@@ -69621,7 +69621,7 @@ function toSafePayload(payload) {
     sdkVersion: payload.sdkVersion,
     eventType: payload.eventType,
     timestamp: payload.timestamp,
-    clientContex
+    clientContext
   };
   if (payload.sourceChain !== void 0) safe["sourceChain"] = payload.sourceChain;
   if (payload.destinationChain !== void 0) safe["destinationChain"] = payload.destinationChain;
@@ -69663,7 +69663,7 @@ async function emitAnalyticsLog(payload) {
       headers: {
         "Content-Type": "application/json",
         // Browsers forbid setting a user-agent request header, and the custom
-        // fallback header the SDK used instead trips CORS preflight (it isn'
+        // fallback header the SDK used instead trips CORS preflight (it isn't
         // in the telemetry endpoint's `Access-Control-Allow-Headers`), so send
         // it only in Node; browsers omit it entirely.
         ...getNodeUserAgentHeader()
@@ -69764,7 +69764,7 @@ function buildPayload$1(config, eventType, errorDetails, context) {
       tokenIn: context.tokenIn
     },
     ...context?.tokenOut != null && {
-      tokenOut: context.tokenOu
+      tokenOut: context.tokenOut
     },
     ...context?.txHash != null && {
       txHash: context.txHash
@@ -69855,7 +69855,7 @@ function validateNetworkMatch(fromData, toData) {
         fromChain: fromData["chain"].name,
         toChain: toData["chain"].name,
         fromIsTestnet: fromData["chain"].isTestnet,
-        toIsTestnet: toData["chain"].isTestne
+        toIsTestnet: toData["chain"].isTestnet
       }
     }
   });
@@ -70048,7 +70048,7 @@ var BridgingProvider = class {
   * Get all destination chains that are supported for transfers from the given source chain.
   *
   * This method filters the provider's supported chains to return only those that are
-  * compatible with the source chain. Compatibility is determined by matching testne
+  * compatible with the source chain. Compatibility is determined by matching testnet
   * status (mainnet chains can only transfer to mainnet chains, testnets to testnets)
   * and excluding the source chain itself.
   *
@@ -70056,7 +70056,7 @@ var BridgingProvider = class {
   * @returns Array of chain definitions that can serve as destinations for the given source
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const provider = new BridgingProvider()
   * const destinations = provider.getSupportedDestinationsFor(Ethereum)
   * console.log('Available destinations from Ethereum:', destinations.map(d => d.name))
@@ -70072,7 +70072,7 @@ var BridgingProvider = class {
   * @param dispatcher - The event dispatcher implementing the Actionable interface
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const provider = new BridgingProvider()
   *
   * const actionDispatcher = new Actionable()
@@ -70282,7 +70282,7 @@ var bridgeParamsWithChainIdentifierSchema = external_exports.object({
 });
 var defaultClock = {
   now: () => Date.now(),
-  since: (start) => Date.now() - star
+  since: (start) => Date.now() - start
 };
 function hasGetRandomValues() {
   return typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function";
@@ -71049,7 +71049,7 @@ var resolveFeePayment = (params2) => {
       approvals: [
         {
           token: burnToken,
-          amoun
+          amount
         }
       ]
     };
@@ -71062,7 +71062,7 @@ var resolveFeePayment = (params2) => {
       approvals: [
         {
           token: burnToken,
-          amount: amount + feeTotalAmoun
+          amount: amount + feeTotalAmount
         }
       ]
     };
@@ -71074,11 +71074,11 @@ var resolveFeePayment = (params2) => {
     approvals: [
       {
         token: burnToken,
-        amoun
+        amount
       },
       {
         token: feeToken,
-        amount: feeTotalAmoun
+        amount: feeTotalAmount
       }
     ]
   };
@@ -71193,7 +71193,7 @@ var CCTPv2StepName = {
   reAttest: "reAttest"
 };
 var STEP_TRANSITION_RULES = {
-  // Starting state - no steps executed ye
+  // Starting state - no steps executed yet
   "": [
     {
       condition: () => true,
@@ -71542,7 +71542,7 @@ async function executePreparedChainRequest({ name: name3, request, adapter: adap
     }
     const transaction = await retryAsync(async () => adapter2.waitForTransaction(txHash, {
       confirmations,
-      timeou
+      timeout
     }, chain2), retryOptions);
     const outcome = evaluateTransactionOutcome(transaction, txHash);
     step2.state = outcome.state;
@@ -71962,7 +71962,7 @@ async function bridgeMint({ params: params2, provider }, attestation) {
     adapter: params2.destination.adapter,
     chain: params2.destination.chain,
     request: mintRequest,
-    // Some chains (e.g. Cronos) enforce an EIP-7623 calldata gas floor tha
+    // Some chains (e.g. Cronos) enforce an EIP-7623 calldata gas floor that
     // eth_estimateGas does not account for, returning a below-floor value
     // without reverting. The floor covers those; chains that cost more than the
     // floor are covered by their own estimate.
@@ -72198,7 +72198,7 @@ async function executeBatchedApproveAndBurn(params2, provider) {
   return {
     approveStep,
     burnStep,
-    contex
+    context
   };
 }
 function categorizeMissingReceipt(statusCode, batchError) {
@@ -72417,7 +72417,7 @@ async function bridge$1(params2, provider) {
       if (newContext) {
         context = {
           ...context,
-          ...newContex
+          ...newContext
         };
       }
       dispatchStepEvent(name3, step2, provider, invocation);
@@ -72539,7 +72539,7 @@ async function handleStepExecutionError(name3, error, context, useForwarder) {
   }
   return {
     shouldContinue: true,
-    stepContext: reAttestResult.stepContex
+    stepContext: reAttestResult.stepContext
   };
 }
 async function executeMintRetry(params2, provider, executor, freshContext, updateContext, result, invocation) {
@@ -72581,7 +72581,7 @@ async function executeSteps(params2, provider, result, startIndex, executors, us
       if (newContext) {
         stepContext = {
           ...stepContext,
-          ...newContex
+          ...newContext
         };
       }
       dispatchStepEvent(name3, step2, provider, invocation);
@@ -72743,7 +72743,7 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   * dispatcher.
   *
   * Kit-level orchestration that drives the burn primitives directly instead
-  * of {@link CCTPV2BridgingProvider.bridge} (for example the receive-exac
+  * of {@link CCTPV2BridgingProvider.bridge} (for example the receive-exact
   * source-fee flow) uses this to surface the same `approve`/`burn`/`mint`
   * events as the standard bridge path. It is a no-op when no dispatcher is
   * registered.
@@ -72755,7 +72755,7 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   * @returns Nothing.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const provider = new CCTPV2BridgingProvider()
   * provider.emitBridgeStep('burn', {
   *   name: 'burn',
@@ -72817,7 +72817,7 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   * @throws {UnsupportedRouteError} When the route is not supported.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const result = await provider.bridge({
   *   source: { adapter: sourceAdapter, chain: 'Ethereum' },
   *   destination: { adapter: destAdapter, chain: 'Base' },
@@ -72840,7 +72840,7 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
       amount,
       token,
       tokenAddress: source.chain.usdcAddress,
-      operationContext: sourceOperationContex
+      operationContext: sourceOperationContext
     });
     return bridge$1(params2, this);
   }
@@ -72858,7 +72858,7 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   * @throws Error when the result is not actionable or retry fails.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const retryResult = await provider.retry(failedResult, retryContext)
   * ```
   */
@@ -72885,7 +72885,7 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   * @throws {UnsupportedRouteError} When the route is not supported.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import {
   *   resolveInvocationContext,
   *   createRuntime,
@@ -72967,7 +72967,7 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   /**
   * Extracts OperationContext from bridge parameters for a given wallet context.
   *
-  * This method extracts the chain and address information from the wallet contex
+  * This method extracts the chain and address information from the wallet context
   * to construct an OperationContext for use with adapter method calls.
   *
   * @param walletContext - The wallet context to extract operation context from
@@ -73070,7 +73070,7 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   /**
   * Prepares a USDC token approval transaction for CCTP v2 transfers.
   *
-  * This method creates a prepared transaction that approves the CCTP v2 contrac
+  * This method creates a prepared transaction that approves the CCTP v2 contract
   * to spend a specified amount of USDC tokens. The approval is required before
   * initiating a cross-chain burn operation.
   *
@@ -73085,11 +73085,11 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   * @throws Error when CCTP v2 contracts are missing or misconfigured
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const provider = new CCTPV2BridgingProvider()
   * const prepared = await provider.approve(adapter, '1000000') // 1 USDC (6 decimals)
   *
-  * // Estimate gas cos
+  * // Estimate gas cost
   * const gasEstimate = await prepared.estimate()
   * console.log('Gas required:', gasEstimate.gas)
   *
@@ -73136,7 +73136,7 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   * @throws Error when CCTP v2 contracts are missing or misconfigured
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const provider = new CCTPV2BridgingProvider()
   * const prepared = await provider.mint(
   *   destAdapter,
@@ -73144,7 +73144,7 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   *   '0xabcd...'  // attestation from Circle
   * )
   *
-  * // Estimate gas cos
+  * // Estimate gas cost
   * const gasEstimate = await prepared.estimate()
   * console.log('Gas required:', gasEstimate.gas)
   *
@@ -73164,7 +73164,7 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
       message: attestation.message,
       attestation: attestation.attestation,
       eventNonce: attestation.eventNonce,
-      destinationAddress: destinationAddressForMin
+      destinationAddress: destinationAddressForMint
     };
     return await destination.adapter.prepareAction("cctp.v2.receiveMessage", actionParams, operationContext);
   }
@@ -73178,7 +73178,7 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   * @param sourceDomainId - The CCTP domain ID of the source chain
   * @param transactionHash - The transaction hash of the burn operation
   * @param isTestnet - Whether this is for a testnet chain (true) or mainnet chain (false)
-  * @param config - Optional configuration overrides for this specific reques
+  * @param config - Optional configuration overrides for this specific request
   * @returns Promise resolving to the first attestation message
   * @throws Error If no attestation is found for the transaction
   * @throws Error If the request times out after retries
@@ -73186,24 +73186,24 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   * @throws Error If the response format is invalid
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const provider = new CCTPV2BridgingProvider({
   *   attestation: { maxRetries: 5 } // Global config
   * })
   *
   * try {
-  *   // Use global config for mainne
+  *   // Use global config for mainnet
   *   const result1 = await provider.fetchAttestation(1, '0x123...', false)
   *
-  *   // Override for this specific call on testne
+  *   // Override for this specific call on testnet
   *   const result2 = await provider.fetchAttestation(1, '0x456...', true, {
-  *     timeout: 5000 // Override just the timeou
+  *     timeout: 5000 // Override just the timeout
   *   })
   * } catch (error) {
   *   if (error.message.includes('No attestation found')) {
   *     // Handle missing attestation
   *   } else if (error.message.includes('Request timed out')) {
-  *     // Handle timeou
+  *     // Handle timeout
   *   } else if (error.message.includes('HTTP 4')) {
   *     // Handle API error
   *   } else {
@@ -73243,10 +73243,10 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   * @param transactionHash - The transaction hash of the burn operation
   * @param config - Optional polling configuration overrides for timeout, retries, delay, and headers
   * @returns A promise that resolves to the attestation message with `forwardTxHash`
-  * @throws KitError If the relayer forward fails, the response is invalid, or polling times ou
+  * @throws KitError If the relayer forward fails, the response is invalid, or polling times out
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { CCTPV2BridgingProvider } from '@circle-fin/provider-cctp-v2'
   * import { Chains } from '@core/chains'
   *
@@ -73277,11 +73277,11 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   /**
   * Requests a fresh attestation for an expired attestation.
   *
-  * This method is used when the original attestation has expired before the min
+  * This method is used when the original attestation has expired before the mint
   * transaction could be completed. It performs three steps:
   * 1. Fetches the existing attestation data to extract the nonce
   * 2. Requests re-attestation from Circle's API using the nonce
-  * 3. Polls for the fresh attestation and returns i
+  * 3. Polls for the fresh attestation and returns it
   *
   * @typeParam TFromAdapterCapabilities - The type representing the capabilities of the source adapter
   * @param source - The source wallet context containing the chain definition and wallet address
@@ -73295,7 +73295,7 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   * @throws {Error} With "Failed to re-attest: {details}" for other errors
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { CCTPV2BridgingProvider } from '@circle-fin/provider-cctp-v2'
   * import { Chains } from '@core/chains'
   *
@@ -73315,7 +73315,7 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   *     { timeout: 10000, maxRetries: 5 }
   *   )
   *
-  *   // Use the fresh attestation to retry the min
+  *   // Use the fresh attestation to retry the mint
   *   const mintRequest = await provider.mint(source, destination, freshAttestation)
   *   const result = await mintRequest.execute()
   * } catch (error) {
@@ -73356,18 +73356,18 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   * This method validates that both chains have CCTP v2 contracts deployed and configured.
   * It uses the `isCCTPV2Supported` guard function to check each chain individually.
   * When `useForwarder` is `true`, additionally checks that the destination chain
-  * supports forwarding as a destination. The source chain's forwarding support is no
+  * supports forwarding as a destination. The source chain's forwarding support is not
   * checked: today's Forwarding Service operates on the destination, so any CCTP v2 chain
   * can originate a forwarded transfer.
   *
-  * @param source - The source chain definition to check for CCTP v2 suppor
-  * @param destination - The destination chain definition to check for CCTP v2 suppor
+  * @param source - The source chain definition to check for CCTP v2 support
+  * @param destination - The destination chain definition to check for CCTP v2 support
   * @param token - The token to transfer (currently only USDC is supported)
   * @param useForwarder - When `true`, also checks that the route supports forwarding
   * @returns `true` if both chains support CCTP v2 (and forwarding if requested), `false` otherwise
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const provider = new CCTPV2BridgingProvider()
   * const canTransfer = provider.supportsRoute(Ethereum, Base)
   *
@@ -73426,7 +73426,7 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   * @returns The maximum fee to be used for the bridge operation in minor units
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const maxFee = await provider.getMaxFee({
   *   source: { adapter: sourceAdapter, chain: Chains.Ethereum, address: '0x...' },
   *   destination: { adapter: destAdapter, chain: Chains.Base, address: '0x...' },
@@ -73488,7 +73488,7 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   * @returns Promise resolving to the prepared burn transaction data
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const preparedBurn = await provider.burn(
   *   {
   *     source: { adapter, chain: "Ethereum_Sepolia" },
@@ -73559,10 +73559,10 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   *
   * Build the source-chain `depositForBurnWithHookAndFees` call. Fees are
   * collected up front on the source chain against a signed quote. The
-  * destination may use the GenericExecutor shorthand, or an explicit min
+  * destination may use the GenericExecutor shorthand, or an explicit mint
   * recipient and destination caller for direct forwarding.
   *
-  * This is the low-level on-chain primitive behind the Unified Balance Ki
+  * This is the low-level on-chain primitive behind the Unified Balance Kit
   * `fastCrossChainDeposit` and the Bridge Kit source-fee
   * (`feePayment: 'source'`) flow. The `hookData` and signed-quote
   * `claim` are produced elsewhere and passed in here:
@@ -73583,14 +73583,14 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   * @typeParam TFromAdapterCapabilities - The source adapter's capabilities.
   * @param params - The burn amount, destination, hook data, signed quote, and fee.
   * @returns The prepared approvals, the prepared burn, and the resolved fee plan.
-  * @throws {KitError} If the wallet context is invalid, `destinationChain` does no
+  * @throws {KitError} If the wallet context is invalid, `destinationChain` does not
   *   support CCTP v2, the destination fields are missing, `amount` or
   *   `feeTotalAmount` is not a bigint or a numeric string coercible to bigint,
   *   the hook data lacks a `cctp-forward` frame (guaranteed
   *   `ForwardFeeWithoutHook`), or the operation context cannot be resolved.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import {
   *   CCTPV2BridgingProvider,
   *   type BurnWithFeesParams,
@@ -73632,7 +73632,7 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
       feeToken,
       burnToken,
       amount,
-      feeTotalAmoun
+      feeTotalAmount
     });
     const operationContext = this.extractOperationContext(source);
     let resolvedContext;
@@ -73646,7 +73646,7 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
     const approvals = await Promise.all(feePayment.approvals.map(async (approval) => source.adapter.prepareAction("token.approve", {
       tokenAddress: approval.token,
       delegate: wrapperAddress,
-      amount: approval.amoun
+      amount: approval.amount
     }, context)));
     const burn = await source.adapter.prepareAction("cctp.v2.depositForBurnWithFees", {
       fromChain: source.chain,
@@ -73657,12 +73657,12 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
       hookData,
       claim,
       feeToken,
-      feeTotalAmoun
+      feeTotalAmount
     }, context);
     return {
       approvals,
       burn,
-      feePaymen
+      feePayment
     };
   }
   /**
@@ -73676,7 +73676,7 @@ var CCTPV2BridgingProvider = class extends BridgingProvider {
   * @param config - Optional configuration for transaction waiting (confirmations, timeout)
   * @returns The hash of the confirmed transaction
   * @example
-  * ```typescrip
+  * ```typescript
   * const provider = new CCTPV2BridgingProvider()
   * const txHash = await provider.waitForTransaction(
   *   adapter,
@@ -73934,7 +73934,7 @@ function assertFeeItemsSumToTotal(quote) {
       cause: {
         trace: {
           itemsTotal: itemsTotal.toString(),
-          feeTotalAmount: quote.feeTotalAmoun
+          feeTotalAmount: quote.feeTotalAmount
         }
       }
     });
@@ -74011,7 +74011,7 @@ async function fetchFeeQuote(params2) {
   const url = baseUrl === void 0 ? buildFeeQuoteUrl({
     sourceDomain,
     destinationDomain,
-    isTestne
+    isTestnet
   }) : buildFeeQuoteUrl({
     sourceDomain,
     destinationDomain,
@@ -74155,7 +74155,7 @@ async function fetchBoundQuote(binding) {
       amount: binding.amount,
       feeToken: binding.feeToken,
       requests: binding.requests,
-      isTestnet: binding.isTestne
+      isTestnet: binding.isTestnet
     });
     if (quote.feeToken.toLowerCase() !== binding.feeToken.toLowerCase()) {
       throw createValidationFailedError$1("feeToken", quote.feeToken, "Fee Service must return source-chain USDC for source-fee bridging");
@@ -74201,7 +74201,7 @@ async function validateBoundQuote(binding, signedQuote, refundAddress) {
         refundAddress
       ]
     ],
-    isTestnet: binding.isTestne
+    isTestnet: binding.isTestnet
   });
 }
 function isValidationSafe(binding, signedQuote, validation, expectedQuote) {
@@ -74215,7 +74215,7 @@ function toExecutionFeeQuote(quote) {
   return {
     signedQuote: quote.signedQuote,
     feeToken: quote.feeToken,
-    feeTotalAmount: quote.feeTotalAmoun
+    feeTotalAmount: quote.feeTotalAmount
   };
 }
 function toFeeItems(quote) {
@@ -74289,7 +74289,7 @@ async function prepareAndPreflight(params2, binding, quote, provider) {
     amount: totalDebit,
     token: "USDC",
     tokenAddress: params2.source.chain.usdcAddress,
-    operationContex
+    operationContext
   });
   const prepared = await provider.burnWithFees({
     source: params2.source,
@@ -74303,7 +74303,7 @@ async function prepareAndPreflight(params2, binding, quote, provider) {
       refundAddress: params2.source.address
     },
     feeToken: quote.feeToken,
-    feeTotalAmount: quote.feeTotalAmoun
+    feeTotalAmount: quote.feeTotalAmount
   });
   const wrapper = resolveCCTPV2ContractAddress(params2.source.chain, "tokenMessengerWithFees");
   const allowance2 = await readAllowance(params2, wrapper);
@@ -74499,7 +74499,7 @@ var BridgeKit = class {
   * @param config - The configuration containing the CCTPv2 provider
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { BridgeKit } from '@circle-fin/bridge-kit'
   *
   * const kit = new BridgeKit()
@@ -74552,7 +74552,7 @@ var BridgeKit = class {
   * @throws {Error} When CCTPv2 does not support the specified route.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { BridgeKit } from '@circle-fin/bridge-kit'
   * import { createViemAdapterFromPrivateKey } from '@circle-fin/adapter-viem-v2'
   *
@@ -74581,7 +74581,7 @@ var BridgeKit = class {
   *   },
   * })
   *
-  * // Handle resul
+  * // Handle result
   * if (result.state === 'success') {
   *   console.log('Bridge completed!')
   *   result.steps.forEach(step => {
@@ -74656,7 +74656,7 @@ var BridgeKit = class {
   *         non-recoverable errors or invalid state.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { BridgeKit } from '@circle-fin/bridge-kit'
   * import { createViemAdapterFromPrivateKey } from '@circle-fin/adapter-viem-v2'
   *
@@ -74755,7 +74755,7 @@ var BridgeKit = class {
   * @returns Array of unique chain definitions supported by the registered providers
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { BridgeKit } from '@circle-fin/bridge-kit'
   *
   * const kit = new BridgeKit()
@@ -74800,7 +74800,7 @@ var BridgeKit = class {
       ];
       const chainTypeInput = options.chainType;
       const chainTypeValues = Array.isArray(chainTypeInput) ? chainTypeInput : [
-        chainTypeInpu
+        chainTypeInput
       ];
       if (!chainTypeValues.every((chainType) => supportedChainTypes.includes(chainType))) {
         const listFormatter = new Intl.ListFormat("en", {
@@ -74905,7 +74905,7 @@ var BridgeKit = class {
         ...providerParams.config,
         customFee: {
           value: fee,
-          recipientAddress: feeRecipien
+          recipientAddress: feeRecipient
         }
       };
     }
@@ -74952,12 +74952,12 @@ var BridgeKit = class {
   * Use `computeFee` (recommended) for human-readable amounts, or `calculateFee`
   * (deprecated) for smallest-unit amounts. Only one should be provided.
   *
-  * ```tex
+  * ```text
   * Transfer amount (user input, e.g., 1,000 USDC)
   *   ↓ Wallet signs for transfer + custom fee (e.g., 1,000 + 10 = 1,010 USDC)
   *   ↓ Custom fee split (10% Circle, 90% your recipientAddress wallet)
   *   ↓ Full transfer amount (1,000 USDC) forwarded to CCTPv2
-  *   ↓ CCTPv2 protocol fee (e.g., 0.1 USDC) deducted from transfer amoun
+  *   ↓ CCTPv2 protocol fee (e.g., 0.1 USDC) deducted from transfer amount
   *   ↓ User receives funds on destination chain (e.g., 999.9 USDC)
   * ```
   *
@@ -74965,7 +74965,7 @@ var BridgeKit = class {
   * @throws {KitError} If the custom fee policy is invalid or missing required functions
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { BridgeKit } from '@circle-fin/bridge-kit'
   *
   * const kit = new BridgeKit()
@@ -75001,7 +75001,7 @@ var BridgeKit = class {
   * Remove the custom fee policy for the kit.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * kit.removeCustomFeePolicy()
   * ```
   */
@@ -77552,7 +77552,7 @@ async function buildEIP2612TypedData(meta, adapter2, opts, ctx) {
   };
   return buildTypedData({
     ...meta,
-    verifyingContract: formattedContrac
+    verifyingContract: formattedContract
   }, EIP2612_TYPES, "Permit", message);
 }
 function checkErc3009ValidityWindow(check) {
@@ -77682,7 +77682,7 @@ function buildERC3009TypedData(meta, opts) {
   };
   return buildTypedData({
     ...meta,
-    verifyingContract: formattedContrac
+    verifyingContract: formattedContract
   }, ERC3009_TYPES, "ReceiveWithAuthorization", message);
 }
 var assertEvmAdapterSymbol = /* @__PURE__ */ Symbol("assertEvmAdapter");
@@ -77721,7 +77721,7 @@ async function fetchUsdcDomainName(adapter2, operationContext) {
       message: `Failed to fetch USDC domain name: expected non-empty string, got ${typeof result}`,
       cause: {
         trace: {
-          resultType: typeof resul
+          resultType: typeof result
         }
       }
     });
@@ -77783,7 +77783,7 @@ async function depositWithApprove(params2) {
       token,
       value: amount,
       ...isForAnother ? {
-        depositor: depositAccoun
+        depositor: depositAccount
       } : {},
       chain: chain2
     }, operationContext);
@@ -77805,7 +77805,7 @@ async function depositWithPermit(params2) {
   const typedData = await buildEIP2612TypedData(domainMeta, adapter2, {
     owner: signerAddress,
     spender: gatewayWalletAddress,
-    value: amoun
+    value: amount
   }, operationContext);
   const signatureHex = await adapter2.signTypedData(typedData, operationContext);
   const { v, r: r2, s } = parseSignature4(signatureHex);
@@ -77830,7 +77830,7 @@ async function depositWithAuthorization(params2) {
   const typedData = buildERC3009TypedData(domainMeta, {
     from: signerAddress,
     to: gatewayWalletAddress,
-    value: amoun
+    value: amount
   });
   const signatureHex = await adapter2.signTypedData(typedData, operationContext);
   const { v, r: r2, s } = parseSignature4(signatureHex);
@@ -77982,7 +77982,7 @@ function evmSigningData(burnIntent) {
       domain: GATEWAY_EIP712_DOMAIN,
       primaryType: "BurnIntentSet",
       message: {
-        intents: burnInten
+        intents: burnIntent
       }
     };
   }
@@ -77995,7 +77995,7 @@ function evmSigningData(burnIntent) {
     },
     domain: GATEWAY_EIP712_DOMAIN,
     primaryType: "BurnIntent",
-    message: burnInten
+    message: burnIntent
   };
 }
 var EIP_7702_DELEGATION_PREFIX = "0xef0100";
@@ -78071,7 +78071,7 @@ function createSigningUnits(group, signerTypeByDomain) {
       if (existingUnit === void 0) {
         contractUnitsByDomain.set(sourceDomain, {
           intents: [
-            inten
+            intent
           ],
           chain: resolveIntentChain(group, intent),
           contractSigner: true,
@@ -78163,7 +78163,7 @@ function groupEvmIntents(intent, alloc, evmGroups) {
       adapter: alloc.adapter,
       chain: alloc.chain,
       intents: [
-        inten
+        intent
       ],
       chainsByDomain: /* @__PURE__ */ new Map([
         [
@@ -78258,7 +78258,7 @@ async function performSolanaDeposit(params2) {
     token,
     value: amount,
     ...isForAnother ? {
-      depositor: depositAccoun
+      depositor: depositAccount
     } : {},
     chain: chain2
   }, operationContext);
@@ -78357,7 +78357,7 @@ async function signSolanaIntentGroup(group) {
     const sig = await signRequest.execute();
     return {
       intents: [
-        inten
+        intent
       ],
       signature: sig
     };
@@ -78368,7 +78368,7 @@ function groupSolanaIntents(intent, alloc) {
     adapter: alloc.adapter,
     chain: alloc.chain,
     intents: [
-      inten
+      intent
     ],
     address: alloc.sourceSigner
   };
@@ -78525,7 +78525,7 @@ function validateCustomFeeConfig(customFee, chain2) {
       cause: {
         trace: {
           percentageBps,
-          amoun
+          amount
         }
       }
     });
@@ -78625,7 +78625,7 @@ async function buildServiceParams(params2) {
       slippageBps: config.slippageBps
     },
     ...config?.stopLimit !== void 0 && {
-      stopLimit: config.stopLimi
+      stopLimit: config.stopLimit
     },
     ...config?.provider !== void 0 && {
       provider: config.provider
@@ -78633,12 +78633,12 @@ async function buildServiceParams(params2) {
     ...customFee !== void 0 && {
       config: {
         customFee: {
-          // Support both percentage and absolute amoun
+          // Support both percentage and absolute amount
           ...customFee.percentageBps !== void 0 && {
             percentageBps: customFee.percentageBps
           },
           ...customFee.amount !== void 0 && {
-            amount: customFee.amoun
+            amount: customFee.amount
           },
           recipientAddress: customFee.recipientAddress
         }
@@ -78927,7 +78927,7 @@ async function generatePermit({ adapter: adapter2, tokenIn, amount, adapterContr
   }, eip2612Adapter, {
     owner: context.address,
     spender: adapterContractAddress,
-    value: amoun
+    value: amount
   }, context);
   const signatureHex = await eip2612Adapter.signTypedData(typedData, context);
   const signature2 = parseSignature4(signatureHex);
@@ -78979,11 +78979,11 @@ async function buildTokenInputs({ adapter: adapter2, context, tokenInAddress, in
       tokenIn: tokenInAddress,
       amount: inputAmount,
       adapterContractAddress,
-      contex
+      context
     });
     if (permitInput) {
       return [
-        permitInpu
+        permitInput
       ];
     }
     throw new KitError({
@@ -79208,7 +79208,7 @@ async function validateNonNativeBalance(params2) {
           tokenInAddress,
           walletAddress,
           currentBalance: balance2,
-          requiredAmount: amoun
+          requiredAmount: amount
         }
       }
     });
@@ -79475,7 +79475,7 @@ async function fetchSameChainStatusSnapshot({ isCrossChainSwap, txHash, chain: c
       if (statusResult.status === "DONE" && statusResult.amountOut !== void 0) {
         return {
           progress: buildSwapProgress(statusResult),
-          amountOut: statusResult.amountOu
+          amountOut: statusResult.amountOut
         };
       }
     } catch {
@@ -79566,7 +79566,7 @@ var StablecoinServiceSwapProvider = class {
   * @returns `true` if the provider supports this route, `false` otherwise.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { StablecoinServiceSwapProvider } from '@circle-fin/provider-stablecoin-service-swap'
   * import { Ethereum, Base, Solana } from '@core/chains'
   *
@@ -79631,7 +79631,7 @@ var StablecoinServiceSwapProvider = class {
   * Estimate swap costs and output amount by delegating to the Stablecoin Service quote API.
   *
   * @remarks
-  * This method fetches a quote from Circle's Stablecoin Service API withou
+  * This method fetches a quote from Circle's Stablecoin Service API without
   * executing the actual swap. Unlike on-chain gas estimation, this method
   * does NOT require the wallet to hold the input token balance—gas limits
   * are provided by the service response.
@@ -79647,7 +79647,7 @@ var StablecoinServiceSwapProvider = class {
   *
   * The estimate includes:
   * - `stopLimit`: Minimum guaranteed output in base units
-  * - `estimatedOutput`: Expected output in human-readable forma
+  * - `estimatedOutput`: Expected output in human-readable format
   * - `fees`: Detailed breakdown of all applicable fees
   * - `transaction`: Pre-built transaction data for execution
   *
@@ -79657,7 +79657,7 @@ var StablecoinServiceSwapProvider = class {
   * @throws {@link KitError} If validation fails or the service is unavailable.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { StablecoinServiceSwapProvider } from '@circle-fin/provider-stablecoin-service-swap'
   * import { createViemAdapterFromPrivateKey } from '@circle-fin/adapter-viem-v2'
   * import { Ethereum } from '@core/chains'
@@ -79683,8 +79683,8 @@ var StablecoinServiceSwapProvider = class {
   * ```
   *
   * @example
-  * ```typescrip
-  * // Estimate with custom stop limi
+  * ```typescript
+  * // Estimate with custom stop limit
   * const estimateWithStopLimit = await provider.estimate({
   *   from: { adapter, chain: Ethereum },
   *   tokenIn: 'USDC',  // Token alias
@@ -79693,7 +79693,7 @@ var StablecoinServiceSwapProvider = class {
   *   to: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
   *   config: {
   *     slippageBps: 300,
-  *     stopLimit: '99000000' // Minimum 99 USDT outpu
+  *     stopLimit: '99000000' // Minimum 99 USDT output
   *   }
   * })
   * ```
@@ -79747,7 +79747,7 @@ var StablecoinServiceSwapProvider = class {
   * Prepares a token approval transaction for swap operations.
   *
   * @remarks
-  * This method creates a prepared transaction that approves the Adapter Contrac
+  * This method creates a prepared transaction that approves the Adapter Contract
   * to spend a specified amount of tokens. The approval is required before
   * initiating a swap operation when the token doesn't support EIP-2612 permits.
   *
@@ -79792,14 +79792,14 @@ var StablecoinServiceSwapProvider = class {
   * @throws Error when amount is invalid (empty, negative, or malformed)
   *
   * @example USDC approval (uses increaseAllowance)
-  * ```typescrip
+  * ```typescript
   * // Internal use in swap() method for USDC
   * const approvalRequest = await this.approve(
   *   adapter,
   *   '1000000', // 1 USDC (6 decimals)
   *   '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC address
   *   '0xAdapterContract', // Adapter Contract address
-  *   resolvedContex
+  *   resolvedContext
   * )
   * // Uses usdc.increaseAllowance internally
   *
@@ -79809,14 +79809,14 @@ var StablecoinServiceSwapProvider = class {
   * ```
   *
   * @example USDT approval (uses approve)
-  * ```typescrip
+  * ```typescript
   * // Internal use in swap() method for USDT
   * const approvalRequest = await this.approve(
   *   adapter,
   *   '1000000', // 1 USDT (6 decimals)
   *   '0xdAC17F958D2ee523a2206206994597C13D831ec7', // USDT address
   *   '0xAdapterContract', // Adapter Contract address
-  *   resolvedContex
+  *   resolvedContext
   * )
   * // Uses token.approve internally
   *
@@ -79869,7 +79869,7 @@ var StablecoinServiceSwapProvider = class {
   * @param adapter - The adapter for transaction execution
   * @param chain - The chain definition containing contract addresses
   * @param serviceParams - The swap parameters from the service
-  * @param resolvedContext - The resolved operation contex
+  * @param resolvedContext - The resolved operation context
   * @param executedTransactions - Array to track executed transactions
   * @param allowanceStrategy - Optional override for the allowance strategy.
   *   When set to `'approve'`, the permit flow is bypassed and a standard
@@ -79914,19 +79914,19 @@ var StablecoinServiceSwapProvider = class {
   * USDT requires allowance to be reset to 0 before setting a new non-zero value.
   * This method checks the current allowance and:
   * - If sufficient, proceeds without changes
-  * - If non-zero but insufficient, resets to 0 then sets new amoun
+  * - If non-zero but insufficient, resets to 0 then sets new amount
   * - If zero, sets new amount directly
   *
   * @param adapter - The chain adapter instance
   * @param chain - The chain definition
   * @param serviceParams - The service parameters containing amount and addresses
   * @param adapterContractAddress - The adapter contract address to approve
-  * @param resolvedContext - The resolved operation contex
+  * @param resolvedContext - The resolved operation context
   * @param executedTransactions - Array to track executed approval transactions
   * @returns A Promise that resolves when approval transactions are complete
   *
   * @throws Error if the adapter fails to prepare or execute approval transactions
-  * @throws Error if transaction confirmation fails or times ou
+  * @throws Error if transaction confirmation fails or times out
   */
   async handleUsdtApproval(adapter2, chain2, executionCtx, adapterContractAddress, resolvedContext, executedTransactions) {
     const current = await readTokenAllowance(adapter2, {
@@ -79964,12 +79964,12 @@ var StablecoinServiceSwapProvider = class {
   * @param chain - The chain definition
   * @param serviceParams - The service parameters containing amount and addresses
   * @param adapterContractAddress - The adapter contract address to approve
-  * @param resolvedContext - The resolved operation contex
+  * @param resolvedContext - The resolved operation context
   * @param executedTransactions - Array to track executed approval transactions
   * @returns A Promise that resolves when the approval transaction is complete
   *
   * @throws Error if the adapter fails to prepare or execute the approval transaction
-  * @throws Error if transaction confirmation fails or times ou
+  * @throws Error if transaction confirmation fails or times out
   */
   async handleStandardApproval(adapter2, chain2, executionCtx, adapterContractAddress, resolvedContext, executedTransactions) {
     const approvalReq = await this.approve(adapter2, executionCtx.amount, executionCtx.tokenInAddress, adapterContractAddress, resolvedContext);
@@ -80014,7 +80014,7 @@ var StablecoinServiceSwapProvider = class {
   * @throws Error when service communication or transaction execution fails
   *
   * @example Swap with EIP-2612 (single transaction)
-  * ```typescrip
+  * ```typescript
   * import { StablecoinServiceSwapProvider } from '@circle-fin/provider-stablecoin-service-swap'
   * import { createAdapterFromPrivateKey } from '@circle-fin/adapter-viem-v2'
   * import { Ethereum } from '@core/chains'
@@ -80039,7 +80039,7 @@ var StablecoinServiceSwapProvider = class {
   * ```
   *
   * @example Swap without EIP-2612 (two transactions)
-  * ```typescrip
+  * ```typescript
   * // Swap token that doesn't support EIP-2612
   * const result = await provider.swap({
   *   from: { adapter, chain: Ethereum },
@@ -80052,7 +80052,7 @@ var StablecoinServiceSwapProvider = class {
   * ```
   *
   * @example Swap with custom configuration
-  * ```typescrip
+  * ```typescript
   * const result = await provider.swap({
   *   from: { adapter, chain: Ethereum },
   *   tokenIn: 'USDC', // Alias supported
@@ -80074,7 +80074,7 @@ var StablecoinServiceSwapProvider = class {
   * ```
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * // Swap with error handling
   * import { isKitError, isFatalError, isRetryableError } from '@core/errors'
   *
@@ -80099,7 +80099,7 @@ var StablecoinServiceSwapProvider = class {
   * ```
   *
   * @example Error handling
-  * ```typescrip
+  * ```typescript
   * try {
   *   const result = await provider.swap(params)
   *   console.log('Success:', result.txHash)
@@ -80135,7 +80135,7 @@ var StablecoinServiceSwapProvider = class {
         tokenInSymbol: tokenIn,
         amount: serviceParams.amount,
         walletAddress: serviceParams.fromAddress,
-        context: resolvedContex
+        context: resolvedContext
       });
     }
     const serviceResponse = await createSwap(serviceParams);
@@ -80213,7 +80213,7 @@ var StablecoinServiceSwapProvider = class {
       },
       progress: statusSnapshot.progress,
       ...statusSnapshot.amountOut !== void 0 && {
-        amountOut: statusSnapshot.amountOu
+        amountOut: statusSnapshot.amountOut
       }
     };
   }
@@ -80274,7 +80274,7 @@ var StablecoinServiceSwapProvider = class {
       return {
         batchedSwapPlan: {
           approveRequest,
-          swapReques
+          swapRequest
         }
       };
     }
@@ -80311,7 +80311,7 @@ var StablecoinServiceSwapProvider = class {
       } catch {
       }
       return preparedAction.execute({
-        gasLimit: effectiveGasLimi
+        gasLimit: effectiveGasLimit
       });
     }
     return preparedAction.execute();
@@ -80578,7 +80578,7 @@ function validateDecimals(decimals, context) {
   if (!Number.isInteger(decimals) || decimals < 0 || decimals > MAX_DECIMALS) {
     throw createAmountError("INVALID_DECIMALS", `${context}: decimals must be an integer between 0 and ${String(MAX_DECIMALS)}, got ${String(decimals)}`, {
       decimals,
-      contex
+      context
     });
   }
 }
@@ -80605,7 +80605,7 @@ function parse2(input, options, ctx) {
   const str2 = typeof input === "number" ? input.toString() : input;
   if (typeof str2 !== "string" || str2.trim() === "") {
     throw createAmountError("PARSE_ERROR", `${ctx}: input must be a non-empty string or number`, {
-      inpu
+      input
     });
   }
   let normalized = str2.trim();
@@ -80613,7 +80613,7 @@ function parse2(input, options, ctx) {
   if (isNegative) {
     if (!allowNegative) {
       throw createAmountError("NEGATIVE_NOT_ALLOWED", `${ctx}: negative values not allowed`, {
-        inpu
+        input
       });
     }
     normalized = normalized.slice(1);
@@ -80624,7 +80624,7 @@ function parse2(input, options, ctx) {
   const parts = normalized.split(".");
   if (parts.length > 2) {
     throw createAmountError("PARSE_ERROR", `${ctx}: invalid number format (multiple decimal points)`, {
-      inpu
+      input
     });
   }
   let integerPart = parts[0] ?? "";
@@ -80634,7 +80634,7 @@ function parse2(input, options, ctx) {
   }
   if (!/^\d+$/.test(integerPart) || decimalPart && !/^\d+$/.test(decimalPart)) {
     throw createAmountError("PARSE_ERROR", `${ctx}: input contains non-numeric characters`, {
-      inpu
+      input
     });
   }
   const truncatedDecimal = decimalPart.slice(0, decimals).padEnd(decimals, "0");
@@ -80815,7 +80815,7 @@ var Amount = class _Amount {
   * @throws KitError If raw is not a bigint or decimals is invalid.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * // Get decimals from token registry
   * const amount = Amount.of(1_000_000n, { decimals: 6 })
   * ```
@@ -80838,7 +80838,7 @@ var Amount = class _Amount {
   * @throws KitError If input is invalid or parsing fails.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const amount = Amount.parse('100.50', { decimals: 6 })
   * ```
   */
@@ -80860,8 +80860,8 @@ var Amount = class _Amount {
   * For such values, provide a `string` representation instead.
   *
   * @example
-  * ```typescrip
-  * Amount.from(1_000_000n, { decimals: 6 })  // from bigin
+  * ```typescript
+  * Amount.from(1_000_000n, { decimals: 6 })  // from bigint
   * Amount.from('1.00', { decimals: 6 })      // from string
   * Amount.from(existingAmount)               // pass-through
   * ```
@@ -80877,7 +80877,7 @@ var Amount = class _Amount {
     }
     if (config === void 0) {
       throw createAmountError("INVALID_INPUT", "Amount.from: config with decimals is required for non-Amount inputs", {
-        inpu
+        input
       });
     }
     if (typeof input === "bigint") {
@@ -80892,7 +80892,7 @@ var Amount = class _Amount {
   * @returns A zero Amount instance.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const zero = Amount.zero({ decimals: 6 })
   * ```
   */
@@ -80906,7 +80906,7 @@ var Amount = class _Amount {
   * @returns True if the value has Amount shape (raw: bigint, decimals: number).
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * Amount.isAmount({ raw: 1000000n, decimals: 6 }) // true
   * Amount.isAmount({ value: 100 })                 // false
   * ```
@@ -80922,7 +80922,7 @@ var Amount = class _Amount {
   * @throws KitError If amounts array is empty or decimals don't match.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const fee1 = Amount.parse('0.10', { decimals: 6 })
   * const fee2 = Amount.parse('0.25', { decimals: 6 })
   * const fee3 = Amount.parse('0.15', { decimals: 6 })
@@ -80958,7 +80958,7 @@ var Amount = class _Amount {
   * @throws KitError If the JSON structure is invalid.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const json = JSON.parse('{"raw":"1500000","decimals":6}')
   * const amount = Amount.fromJSON(json)
   * ```
@@ -80985,7 +80985,7 @@ var Amount = class _Amount {
   * @throws KitError If amounts have different decimals.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.5', { decimals: 6 })
   * const b = Amount.parse('2.0', { decimals: 6 })
   * a.compare(b) // -1
@@ -81002,7 +81002,7 @@ var Amount = class _Amount {
   * @throws KitError If amounts have different decimals.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.5', { decimals: 6 })
   * const b = Amount.parse('1.5', { decimals: 6 })
   * a.eq(b) // true
@@ -81019,7 +81019,7 @@ var Amount = class _Amount {
   * @throws KitError If amounts have different decimals.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.0', { decimals: 6 })
   * const b = Amount.parse('2.0', { decimals: 6 })
   * a.lt(b) // true
@@ -81036,7 +81036,7 @@ var Amount = class _Amount {
   * @throws KitError If amounts have different decimals.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.5', { decimals: 6 })
   * const b = Amount.parse('1.5', { decimals: 6 })
   * a.lte(b) // true
@@ -81053,7 +81053,7 @@ var Amount = class _Amount {
   * @throws KitError If amounts have different decimals.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('2.0', { decimals: 6 })
   * const b = Amount.parse('1.0', { decimals: 6 })
   * a.gt(b) // true
@@ -81070,7 +81070,7 @@ var Amount = class _Amount {
   * @throws KitError If amounts have different decimals.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('2.0', { decimals: 6 })
   * const b = Amount.parse('2.0', { decimals: 6 })
   * a.gte(b) // true
@@ -81087,7 +81087,7 @@ var Amount = class _Amount {
   * @throws KitError If amounts have different decimals.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.0', { decimals: 6 })
   * const b = Amount.parse('2.0', { decimals: 6 })
   * a.min(b).toString() // "1"
@@ -81104,7 +81104,7 @@ var Amount = class _Amount {
   * @throws KitError If amounts have different decimals.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.0', { decimals: 6 })
   * const b = Amount.parse('2.0', { decimals: 6 })
   * a.max(b).toString() // "2"
@@ -81124,7 +81124,7 @@ var Amount = class _Amount {
   * @throws KitError If amounts have different decimals.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.5', { decimals: 6 })
   * const b = Amount.parse('0.5', { decimals: 6 })
   * a.add(b).toString() // "2"
@@ -81142,7 +81142,7 @@ var Amount = class _Amount {
   * @throws KitError If amounts have different decimals.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('2.0', { decimals: 6 })
   * const b = Amount.parse('0.5', { decimals: 6 })
   * a.sub(b).toString() // "1.5"
@@ -81164,7 +81164,7 @@ var Amount = class _Amount {
   * high-precision calculations, provide the multiplier as a `bigint`.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.5', { decimals: 6 })
   * a.mul(2n).toString() // "3"
   * a.mul(3).toString()  // "4.5"
@@ -81187,7 +81187,7 @@ var Amount = class _Amount {
   * high-precision calculations, provide the divisor as a `bigint`.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('6.0', { decimals: 6 })
   * a.div(2n).toString() // "3"
   * a.div(4).toString()  // "1.5"
@@ -81203,7 +81203,7 @@ var Amount = class _Amount {
   * @returns A new Amount with the absolute value.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.of(-1_500_000n, { decimals: 6 })
   * a.abs().toString() // "1.5"
   * ```
@@ -81218,7 +81218,7 @@ var Amount = class _Amount {
   * @returns A new Amount with the negated value.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.5', { decimals: 6 })
   * a.neg().raw // -1_500_000n
   * ```
@@ -81236,7 +81236,7 @@ var Amount = class _Amount {
   * @returns True if the raw value is 0n.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * Amount.zero({ decimals: 6 }).isZero() // true
   * Amount.parse('0.001', { decimals: 6 }).isZero() // false
   * ```
@@ -81250,7 +81250,7 @@ var Amount = class _Amount {
   * @returns True if the raw value is greater than 0n.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * Amount.parse('1.0', { decimals: 6 }).isPositive() // true
   * Amount.zero({ decimals: 6 }).isPositive() // false
   * ```
@@ -81264,7 +81264,7 @@ var Amount = class _Amount {
   * @returns True if the raw value is less than 0n.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * Amount.of(-1_000_000n, { decimals: 6 }).isNegative() // true
   * Amount.parse('1.0', { decimals: 6 }).isNegative() // false
   * ```
@@ -81283,7 +81283,7 @@ var Amount = class _Amount {
   * @throws KitError If newDecimals is invalid.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * // Scale up: 6 decimals → 18 decimals
   * const usdc = Amount.parse('1.5', { decimals: 6 })
   * const scaled = usdc.toDecimals(18)
@@ -81311,7 +81311,7 @@ var Amount = class _Amount {
   * @returns A formatted string (e.g., "1,000.50").
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1000.5', { decimals: 6 })
   * a.formatted()                              // "1,000.5"
   * a.formatted({ minimumFractionDigits: 2 }) // "1,000.50"
@@ -81328,12 +81328,12 @@ var Amount = class _Amount {
   *
   * @remarks
   * For display with a token symbol, combine with the token registry:
-  * ```typescrip
+  * ```typescript
   * `${amount.toString()} ${token.symbol}`
   * ```
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.5', { decimals: 6 })
   * a.toString() // "1.5"
   * ```
@@ -81347,7 +81347,7 @@ var Amount = class _Amount {
   * @returns An object with raw (as string), decimals, and formatted value.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.5', { decimals: 6 })
   * a.toJSON()
   * // { raw: "1500000", decimals: 6, formatted: "1.5" }
@@ -81429,7 +81429,7 @@ async function resolveSwapConfig(params2, chain2, tokens3, adapter2, tokenOutCha
   return {
     ...params2.config,
     ...stopLimit !== void 0 && {
-      stopLimi
+      stopLimit
     }
   };
 }
@@ -81460,7 +81460,7 @@ async function resolveSwapParams(params2, tokens3) {
   const resolvedAmount = await resolveAmount(params2.amountIn, tokenIn, fromChain, tokens3, params2.from.adapter);
   const resolvedConfig = await resolveSwapConfig({
     ...params2,
-    tokenOu
+    tokenOut
   }, fromChain, tokens3, params2.from.adapter, toChain);
   return {
     from: {
@@ -81574,7 +81574,7 @@ async function applyExistingFeeAmount(context, params2, existingAmount, existing
       ...params2.config,
       customFee: {
         amount: existingAmount,
-        recipientAddress: feeRecipien
+        recipientAddress: feeRecipient
       }
     };
   }
@@ -81682,7 +81682,7 @@ var formatSwapResult = (result, formatDirection, tokenIn, tokenOut, tokenInDecim
     },
     progress: result.progress,
     ...formattedAmountOut !== void 0 && {
-      amountOut: formattedAmountOu
+      amountOut: formattedAmountOut
     }
   };
 };
@@ -81744,7 +81744,7 @@ async function handleOutputFeeCallback(context, params2) {
     const canonicalizedParams = {
       ...params2,
       tokenIn,
-      tokenOu
+      tokenOut
     };
     const resolvedTokenIn = resolveTokenForQuote(canonicalizedParams.tokenIn, chain2, context.tokens);
     const resolvedTokenOut = resolveTokenForQuote(canonicalizedParams.tokenOut, outputChain, context.tokens);
@@ -81768,14 +81768,14 @@ async function handleOutputFeeCallback(context, params2) {
       ...canonicalizedParams,
       type: "output",
       minAmount: quoteResponse.quote.minAmount,
-      estimatedAmount: quoteResponse.quote.estimatedAmoun
+      estimatedAmount: quoteResponse.quote.estimatedAmount
     };
     const feeAmount = await context.customFeePolicy.computeFee(feeContext);
     const feeRecipient = await context.customFeePolicy.resolveFeeRecipientAddress(outputChain, feeContext);
     return {
       amount: feeAmount,
       recipientAddress: feeRecipient,
-      stopLimit: quoteResponse.quote.minAmoun
+      stopLimit: quoteResponse.quote.minAmount
     };
   } catch (error) {
     if (error instanceof KitError) {
@@ -81810,7 +81810,7 @@ async function estimate(context, params2) {
         recipientAddress: callbackResult.recipientAddress
       },
       ...callbackResult.stopLimit && !resolvedParams.config?.stopLimit && {
-        stopLimit: callbackResult.stopLimi
+        stopLimit: callbackResult.stopLimit
       }
     };
   }
@@ -81851,7 +81851,7 @@ async function applyOutputFeeCallback(context, resolvedParams) {
       recipientAddress: callbackResult.recipientAddress
     },
     ...callbackResult.stopLimit && !resolvedParams.config?.stopLimit && {
-      stopLimit: callbackResult.stopLimi
+      stopLimit: callbackResult.stopLimit
     }
   };
 }
@@ -81952,7 +81952,7 @@ var buildDestinationLeg = (raw, amount) => {
       }
     },
     ...amount !== void 0 && {
-      amoun
+      amount
     }
   };
 };
@@ -81978,7 +81978,7 @@ async function getSwapStatus$1(params2) {
     txHash: params2.txHash,
     chain: chainIn,
     ...isCrossChain2 && {
-      toChain: chainOu
+      toChain: chainOut
     },
     ...apiKey ? {
       apiKey
@@ -82036,7 +82036,7 @@ async function waitForSwap$1(params2) {
     txHash,
     chainIn,
     ...chainOut !== void 0 && {
-      chainOu
+      chainOut
     },
     ...apiKey ? {
       apiKey
@@ -82145,7 +82145,7 @@ function setCustomFeePolicy(context, customFeePolicy) {
       const humanReadableAmount = formatUnits3(feeContext.amountIn, decimals);
       const humanReadableContext = {
         ...feeContext,
-        amountIn: humanReadableAmoun
+        amountIn: humanReadableAmount
       };
       const fee = await computeFee(humanReadableContext);
       const parsed = Amount.parse(fee, {
@@ -82235,7 +82235,7 @@ var SwapKit = class {
   * @param config - Optional configuration for the SwapKit instance
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { SwapKit } from '@circle-fin/swap-kit'
   *
   * // Create with default configuration
@@ -82243,7 +82243,7 @@ var SwapKit = class {
   * ```
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { SwapKit } from '@circle-fin/swap-kit'
   * import { Blockchain } from '@core/chains'
   *
@@ -82296,7 +82296,7 @@ var SwapKit = class {
   * @throws {@link KitError} If validation fails or no provider supports the route
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { SwapKit } from '@circle-fin/swap-kit'
   * import { createViemAdapterFromPrivateKey } from '@circle-fin/adapter-viem-v2'
   * import { Ethereum } from '@core/chains'
@@ -82315,7 +82315,7 @@ var SwapKit = class {
   * })
   *
   * console.log(`Stop limit: ${quote.stopLimit.amount} ${quote.stopLimit.token}`)
-  * console.log(`Estimated output: ${quote.estimatedOutput?.amount} ${quote.estimatedOutput?.token}`) // Decimal forma
+  * console.log(`Estimated output: ${quote.estimatedOutput?.amount} ${quote.estimatedOutput?.token}`) // Decimal format
   * console.log(`Fees:`, quote.fees)
   * ```
   */
@@ -82327,7 +82327,7 @@ var SwapKit = class {
         destinationChain
       },
       tokenIn: params2.tokenIn,
-      tokenOut: params2.tokenOu
+      tokenOut: params2.tokenOut
     });
   }
   /**
@@ -82346,7 +82346,7 @@ var SwapKit = class {
   * @throws {@link KitError} If validation fails or no provider supports the route
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { SwapKit } from '@circle-fin/swap-kit'
   * import { createViemAdapterFromPrivateKey } from '@circle-fin/adapter-viem-v2'
   * import { Ethereum } from '@core/chains'
@@ -82373,7 +82373,7 @@ var SwapKit = class {
   * ```
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * // Swap native token (ETH) for USDC
   * const result = await kit.swap({
   *   from: { adapter, chain: Ethereum },
@@ -82434,7 +82434,7 @@ var SwapKit = class {
   * @throws \{KitError\} If `chainIn` or `chainOut` is malformed.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const result = await kit.swap(swapParams)
   *
   * // Single snapshot:
@@ -82448,7 +82448,7 @@ var SwapKit = class {
   * ```
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * // Poll until terminal:
   * let status = await kit.getSwapStatus({
   *   txHash: result.txHash,
@@ -82505,7 +82505,7 @@ var SwapKit = class {
   *
   * @example
   * Pipe a `SwapResult` straight in — the common case:
-  * ```typescrip
+  * ```typescript
   * import { SwapKit } from '@circle-fin/swap-kit'
   *
   * const kit = new SwapKit()
@@ -82526,7 +82526,7 @@ var SwapKit = class {
   *
   * @example
   * Resume from a persisted tx hash (no `SwapResult` on hand):
-  * ```typescrip
+  * ```typescript
   * const final = await kit.waitForSwap({
   *   txHash: persisted.txHash,
   *   chainIn: persisted.chainIn,
@@ -82574,7 +82574,7 @@ var SwapKit = class {
   *
   * @example
   * Symbol lookup:
-  * ```typescrip
+  * ```typescript
   * const { rates } = await kit.getTokenRates({
   *   chain: 'Ethereum',
   *   tokens: ['USDC', 'EURC', 'NATIVE'],
@@ -82587,7 +82587,7 @@ var SwapKit = class {
   *
   * @example
   * Mixed symbols and raw addresses:
-  * ```typescrip
+  * ```typescript
   * const { rates } = await kit.getTokenRates({
   *   chain: 'Ethereum',
   *   // 'USDC' (registry symbol) + raw USDT address
@@ -82598,7 +82598,7 @@ var SwapKit = class {
   *
   * @example
   * Per-chain dump:
-  * ```typescrip
+  * ```typescript
   * const { rates } = await kit.getTokenRates({
   *   chain: 'Base',
   *   apiKey: process.env.CIRCLE_API_KEY,
@@ -82623,7 +82623,7 @@ var SwapKit = class {
   * @returns Array of unique chain definitions supported by the providers
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { SwapKit } from '@circle-fin/swap-kit'
   * import { Blockchain } from '@core/chains'
   *
@@ -82663,7 +82663,7 @@ var SwapKit = class {
   * @throws {@link ValidationError} If the custom fee policy is invalid or missing required functions
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { SwapKit } from '@circle-fin/swap-kit'
   * import { Blockchain } from '@core/chains'
   *
@@ -82687,7 +82687,7 @@ var SwapKit = class {
   * ```
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * // Set a fixed fee policy (simplest approach)
   * kit.setCustomFeePolicy({
   *   computeFee: () => {
@@ -82708,7 +82708,7 @@ var SwapKit = class {
   /**
   * Remove the custom fee policy from the kit.
   *
-  * Clear any previously configured fee policy, returning the kit to the defaul
+  * Clear any previously configured fee policy, returning the kit to the default
   * state where no custom fees are applied to swap operations. After calling this
   * method, subsequent swaps will not include any kit-level fees unless a new
   * policy is set via `setCustomFeePolicy()`.
@@ -82717,7 +82717,7 @@ var SwapKit = class {
   * switching between different fee configurations.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { SwapKit } from '@circle-fin/swap-kit'
   * import { createViemAdapterFromPrivateKey } from '@circle-fin/adapter-viem-v2'
   * import { Ethereum } from '@core/chains'
@@ -83326,7 +83326,7 @@ function buildSummary(instructions, envelope) {
         summary.receiver = instruction.receiver;
         summary.token = {
           address: requireAddress(envelope[index2]?.[tokenField2], `instructions[${index2.toString()}].${tokenField2}`),
-          amoun
+          amount
         };
         break;
       }
@@ -84688,7 +84688,7 @@ async function fetchBridgeDepositPrepare(params2) {
       preparedBundle,
       expiresAt: response.data.expiresAt,
       ...response.data.quoteIssuedAt !== void 0 && {
-        quoteIssuedAt: response.data.quoteIssuedA
+        quoteIssuedAt: response.data.quoteIssuedAt
       },
       ...response.data.quoteExpiry !== void 0 && {
         quoteExpiry: response.data.quoteExpiry
@@ -85586,7 +85586,7 @@ var EarnServiceProvider = class {
           txHash: txHash2,
           explorerUrl: explorerUrl2,
           vaultAddress,
-          amount: params2.amoun
+          amount: params2.amount
         };
       }
       if (!options.skipApprove && approvalToken !== void 0 && requiredAllowance > 0n) {
@@ -85637,7 +85637,7 @@ var EarnServiceProvider = class {
         txHash,
         explorerUrl,
         vaultAddress,
-        amount: params2.amoun
+        amount: params2.amount
       };
     } catch (error) {
       throw augmentEarnError(error, {
@@ -85709,7 +85709,7 @@ var EarnServiceProvider = class {
       destinationChain: destinationChain.chain,
       expiresAt: prepared.expiresAt,
       ...prepared.quoteIssuedAt !== void 0 && {
-        quoteIssuedAt: prepared.quoteIssuedA
+        quoteIssuedAt: prepared.quoteIssuedAt
       },
       ...prepared.quoteExpiry !== void 0 && {
         quoteExpiry: prepared.quoteExpiry
@@ -85784,7 +85784,7 @@ var EarnServiceProvider = class {
           txHash: txHash2,
           explorerUrl: explorerUrl2,
           vaultAddress,
-          amount: params2.amoun
+          amount: params2.amount
         };
       }
       if (!options.skipApprove && approvalToken !== void 0) {
@@ -85834,7 +85834,7 @@ var EarnServiceProvider = class {
         txHash,
         explorerUrl,
         vaultAddress,
-        amount: params2.amoun
+        amount: params2.amount
       };
     } catch (error) {
       throw augmentEarnError(error, {
@@ -86067,7 +86067,7 @@ function validateCrossChainDepositRoute(sourceChain, destinationChain) {
     destinationApiChain,
     destinationDomain: destinationChain.cctp.domain,
     sourceChain,
-    authorizationRecipien
+    authorizationRecipient
   };
 }
 function resolvePreparedBridgeSourceToken(preparedBundle, sourceChain) {
@@ -86344,7 +86344,7 @@ var isValidEip55Checksum = (address2) => {
 var recipientEvmAddressSchema = evmAddressSchema$1.refine((address2) => !ZERO_EVM_ADDRESS_REGEX.test(address2), "address must not be the zero address").refine(isValidEip55Checksum, "address has an invalid EIP-55 checksum");
 var adapterContextSchema$4 = external_exports.object({
   adapter: adapterSchema$1,
-  // AdapterContext accepts a wider chain field, but runtime validation mus
+  // AdapterContext accepts a wider chain field, but runtime validation must
   // stay constrained to EarnChain identifiers.
   chain: earnChainIdentifierSchema,
   // Validate an explicit override as a real EVM address with a valid EIP-55
@@ -86428,7 +86428,7 @@ var exploreVaultsParamsSchema = external_exports.object({
     "tvl",
     "name"
   ]).optional(),
-  // The page and pageSize bounds mirror the Earn Service API's own reques
+  // The page and pageSize bounds mirror the Earn Service API's own request
   // validation (page 1-10000, pageSize 100-500); rejecting client-side turns
   // a server 400 into an immediate, descriptive validation error.
   page: external_exports.number().int("page must be an integer").min(1, "page must be at least 1").max(MAX_EXPLORE_PAGE, `page must be at most ${MAX_EXPLORE_PAGE.toString()}`).optional(),
@@ -86930,7 +86930,7 @@ var EarnKit = class {
   * @param config - Optional configuration for the EarnKit instance
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { EarnKit } from '@circle-fin/earn-kit'
   *
   * // Create with default configuration
@@ -86993,7 +86993,7 @@ var EarnKit = class {
   *   operation itself fails.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { isRetryableError } from '@circle-fin/earn-kit'
   *
   * try {
@@ -87044,7 +87044,7 @@ var EarnKit = class {
   * @returns Deduplicated supported chain definitions
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const kit = new EarnKit()
   * const chains = kit.getSupportedChains()
   * ```
@@ -87063,7 +87063,7 @@ var EarnKit = class {
   * @throws {@link KitError} If no provider is configured
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const kit = new EarnKit()
   * const result = await kit.getVaults({
   *   vaults: [{ chain: 'Arc_Testnet', vaultAddress: '0x8eB67...' }],
@@ -87088,7 +87088,7 @@ var EarnKit = class {
   * @throws {@link KitError} If validation fails or no provider is configured
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const kit = new EarnKit()
   * const result = await kit.exploreVaults({
   *   chain: 'Arc_Testnet',
@@ -87115,11 +87115,11 @@ var EarnKit = class {
   * further requests.
   *
   * @param params - Discovery parameters (no `page`; the iterator manages it)
-  * @returns An async generator yielding each matching vaul
+  * @returns An async generator yielding each matching vault
   * @throws {@link KitError} If validation fails or no provider is configured
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const kit = new EarnKit()
   * for await (const vault of kit.exploreVaultsIterator({
   *   chain: 'Arc_Testnet',
@@ -87135,15 +87135,15 @@ var EarnKit = class {
   /**
   * Fetch P&L position data for the connected wallet.
   *
-  * Query balance, principal, earnings, and shares data for the walle
+  * Query balance, principal, earnings, and shares data for the wallet
   * specified in the adapter context.
   *
-  * @param params - Position query parameters with adapter contex
+  * @param params - Position query parameters with adapter context
   * @returns A promise resolving to the wallet's position info
   * @throws {@link KitError} If validation fails or no provider is configured
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const position = await kit.getPosition({
   *   from: { adapter, chain: 'Arc_Testnet' },
   *   vaultAddress: '0xAabbeF1D3971c710276ed41eC791BbE14CdB8E88',
@@ -87174,7 +87174,7 @@ var EarnKit = class {
   * @throws {@link KitError} If the status request fails
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const status = await kit.getCrossChainDepositStatus({
   *   execId: 'e9e77922-c8a4-4158-93de-d73a78417d99',
   * })
@@ -87201,7 +87201,7 @@ var EarnKit = class {
   * @throws {@link KitError} If a status request fails with a non-retryable error
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const result = await kit.waitForCrossChainDeposit({
   *   execId: 'e9e77922-c8a4-4158-93de-d73a78417d99',
   *   maxWaitMs: 1_200_000,
@@ -87243,14 +87243,14 @@ var EarnKit = class {
   * withdrawal on-chain. Return the withdrawal result including the on-chain
   * transaction hash, withdrawn amount, and target vault.
   *
-  * @param params - Withdrawal parameters including vault address and amoun
+  * @param params - Withdrawal parameters including vault address and amount
   * @returns A promise resolving to the withdrawal result with transaction details
   * @throws {@link KitError} If validation fails, no provider is configured,
   *   the chain has no adapter contract configured, the share-token approval
   *   reverts on-chain, or the withdrawal transaction reverts on-chain.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const result = await kit.withdraw({
   *   from: { adapter, chain: 'Arc_Testnet' },
   *   vaultAddress: '0x...',
@@ -87273,16 +87273,16 @@ var EarnKit = class {
   /**
   * Claim rewards from earn vaults.
   *
-  * Build signed claim rewards instructions via the earn service, submi
+  * Build signed claim rewards instructions via the earn service, submit
   * them on-chain through the adapter, and return the confirmed transaction
   * hash. When no rewards are claimable, no transaction is submitted.
   *
-  * @param params - Claim parameters including adapter contex
+  * @param params - Claim parameters including adapter context
   * @returns A promise resolving to the claim result with reward details
   * @throws {@link KitError} If validation fails or no provider is configured
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const result = await kit.claimRewards({
   *   from: { adapter, chain: 'Arc_Testnet' },
   *   vaultAddress: '0xAabbeF1D3971c710276ed41eC791BbE14CdB8E88',
@@ -87314,12 +87314,12 @@ var EarnKit = class {
   * Query expected shares, share price, and APY for the specified
   * deposit amount without executing any transaction.
   *
-  * @param params - Deposit quote parameters including vault address and amoun
+  * @param params - Deposit quote parameters including vault address and amount
   * @returns A promise resolving to the deposit quote information
   * @throws {@link KitError} If validation fails or no provider is configured
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const quote = await kit.getDepositQuote({
   *   from: { adapter, chain: 'Arc_Testnet' },
   *   vaultAddress: '0x...',
@@ -87339,12 +87339,12 @@ var EarnKit = class {
   * Query shares to redeem, max withdrawable, and fees for the specified
   * withdrawal amount without executing any transaction.
   *
-  * @param params - Withdrawal quote parameters including vault address and amoun
+  * @param params - Withdrawal quote parameters including vault address and amount
   * @returns A promise resolving to the withdrawal quote information
   * @throws {@link KitError} If validation fails or no provider is configured
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const quote = await kit.getWithdrawalQuote({
   *   from: { adapter, chain: 'Arc_Testnet' },
   *   vaultAddress: '0x...',
@@ -87368,7 +87368,7 @@ var EarnKit = class {
   * @throws {@link KitError} If validation fails or no provider is configured
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const quote = await kit.getClaimRewardsQuote({
   *   from: { adapter, chain: 'Arc_Testnet' },
   *   vaultAddress: '0x...',
@@ -87454,7 +87454,7 @@ var adapterSchema = external_exports.object({
 var adapterContextSchema$3 = external_exports.object({
   adapter: adapterSchema,
   /**
-  * Note: We cast chainIdentifierSchema to 'never' here to work around a TypeScrip
+  * Note: We cast chainIdentifierSchema to 'never' here to work around a TypeScript
   * limitation (TS2589: Type instantiation is excessively deep and possibly infinite)
   * that can occur with complex Zod unions (e.g., string literals + enums).
   * This cast is safe in this context because runtime validation is correct,
@@ -87535,7 +87535,7 @@ var prepareSend = async (params2) => {
   if (tokenValidation.isAlias) {
     const requestParams = {
       to: toAddress2,
-      amoun
+      amount
     };
     switch (token) {
       case "USDC": {
@@ -87569,7 +87569,7 @@ var prepareSend = async (params2) => {
     const requestParams = {
       tokenAddress: token,
       to: toAddress2,
-      amoun
+      amount
     };
     preparedSendRequest = await fromAdapter.prepareAction("token.transfer", requestParams, operationContext);
   }
@@ -87926,7 +87926,7 @@ async function validateDepositBalance(adapter2, chain2, amountBigInt, operationC
     amount: amountBigInt.toString(),
     token,
     tokenAddress,
-    operationContex
+    operationContext
   });
 }
 function buildResult(params2, txHash, chain2, signerAddress) {
@@ -87961,7 +87961,7 @@ async function deposit$1(params2) {
       chain: chain2,
       amount: valueBigInt,
       token: tokenAddress,
-      operationContext: resolvedContex
+      operationContext: resolvedContext
     });
   } else {
     txHash = await performEvmDeposit({
@@ -87997,7 +87997,7 @@ async function depositFor$1(params2) {
       amount: valueBigInt,
       token: tokenAddress,
       depositAccount: params2.depositAccount,
-      operationContext: resolvedContex
+      operationContext: resolvedContext
     });
   } else {
     txHash = await performEvmDeposit({
@@ -88760,7 +88760,7 @@ function buildBurnIntents(allocations, destChain, recipientAddress, token, custo
   const feeTotal = customFee ? parseUnits3(customFee.value, USDC_DECIMALS$1) : 0n;
   const allocsForFee = allocations.map((a) => ({
     chain: a.chain.name,
-    amount: a.amoun
+    amount: a.amount
   }));
   const feeMap = getFeeMap(allocsForFee, feeTotal);
   const { devShare } = splitFeeByBps(feeTotal, circleBps);
@@ -88773,7 +88773,7 @@ function buildBurnIntents(allocations, destChain, recipientAddress, token, custo
       token,
       feeTotal,
       devShare,
-      resolvedFeeRecipien
+      resolvedFeeRecipient
     }, intents);
   }
   return intents;
@@ -88859,7 +88859,7 @@ function resolveGatewayApiSources(normalizedSources) {
     if (!source.chains || source.chains.length === 0) {
       return [
         {
-          depositor: source.accoun
+          depositor: source.account
         }
       ];
     }
@@ -89336,7 +89336,7 @@ function serializeTransferSpec(spec) {
     sourceSigner: spec.sourceSigner,
     destinationCaller: spec.destinationCaller,
     value: spec.value.toString(),
-    salt: spec.sal
+    salt: spec.salt
   };
   if (spec.hookData && spec.hookData !== "0x") {
     result["hookData"] = spec.hookData;
@@ -89461,7 +89461,7 @@ function parseEstimateResponse(response, originalIntents) {
     if (estimated === void 0) {
       throw createValidationFailedError$1(`estimateResponse[${i.toString()}]`, {
         sourceDomain: original.spec.sourceDomain,
-        salt: original.spec.sal
+        salt: original.spec.salt
       }, `no matching intent for domain+salt`);
     }
     nextIndexByKey.set(key2, nextIdx + 1);
@@ -89711,7 +89711,7 @@ async function fetchChainBalances(params2, destChain, requestConfig) {
     let querySource;
     if (source.sourceAccount) {
       querySource = {
-        address: source.sourceAccoun
+        address: source.sourceAccount
       };
     } else {
       querySource = {
@@ -90331,7 +90331,7 @@ async function getDelegateStatus$1(params2, requestConfig) {
   try {
     finalizedResult = await executeAdapterReadAction(adapter2, "gateway.v1.isDelegate", {
       ...baseActionParams,
-      blockNumber: processedHeigh
+      blockNumber: processedHeight
     }, operationContext);
   } catch (error) {
     if (isBlockRangeError(error)) {
@@ -90526,7 +90526,7 @@ function createGatewayV1Provider(config = {}) {
     depositFor: async (params2) => withEvents("depositFor", extractChainInfo(params2.from.chain).name, {
       amount: params2.amount,
       token: params2.token ?? "USDC",
-      depositAccount: params2.depositAccoun
+      depositAccount: params2.depositAccount
     }, params2, depositFor$1),
     spend: async (params2, options) => {
       const destChainName = extractChainInfo(params2.to.chain).name;
@@ -91080,7 +91080,7 @@ function assertDeveloperFeeWithinBounds(resolved) {
           cause: {
             trace: {
               rawError: err2,
-              amount: alloc.amoun
+              amount: alloc.amount
             }
           }
         });
@@ -91387,7 +91387,7 @@ async function mergeCustomFeeConfig(resolved, policy, feeRecipients) {
 async function spend(context, params2, onBroadcast) {
   assertSpendParams(params2);
   const callSpend = async (prov, spendParams) => onBroadcast ? prov.spend(spendParams, {
-    onBroadcas
+    onBroadcast
   }) : prov.spend(spendParams);
   const isRetry = !!params2.config?.retry;
   if (isRetry) {
@@ -91645,7 +91645,7 @@ async function resolveRemoveFundParams(params2) {
   if ("amount" in params2) {
     return {
       ...base3,
-      amount: params2.amoun
+      amount: params2.amount
     };
   }
   return base3;
@@ -91963,7 +91963,7 @@ var UnifiedBalanceKit = class _UnifiedBalanceKit {
   * @see UnifiedBalanceKit.removeDelegate to revoke a delegate.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const status = await kit.getDelegateStatus({
   *   from: { adapter, chain: 'Ethereum' },
   *   delegateAddress: '0xDELE…',
@@ -92005,7 +92005,7 @@ var UnifiedBalanceKit = class _UnifiedBalanceKit {
   * Remove the custom fee policy for the kit.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * kit.removeCustomFeePolicy()
   * ```
   */
@@ -92032,7 +92032,7 @@ var UnifiedBalanceKit = class _UnifiedBalanceKit {
   *   no matching entry throws before any fee collection is attempted.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * kit.setFeeRecipients({
   *   evm: '0x1234567890123456789012345678901234567890',
   *   solana: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
@@ -92047,7 +92047,7 @@ var UnifiedBalanceKit = class _UnifiedBalanceKit {
   * Remove the declarative fee recipient map for the kit.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * kit.removeFeeRecipients()
   * ```
   */
@@ -92066,7 +92066,7 @@ var AppKitUnifiedBalance = class {
   *   {@link UnifiedBalanceKit}.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const ub = new AppKitUnifiedBalance()
   * const ubWithConfig = new AppKitUnifiedBalance({ providers: [] })
   * ```
@@ -92086,7 +92086,7 @@ var AppKitUnifiedBalance = class {
   * @returns void
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const kit = new AppKit()
   *
   * kit.unifiedBalance.on('gateway.spend.started', (payload) => {
@@ -92109,7 +92109,7 @@ var AppKitUnifiedBalance = class {
   * @returns void
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const kit = new AppKit()
   * const handler = (payload: unknown) => console.log(payload)
   *
@@ -92129,7 +92129,7 @@ var AppKitUnifiedBalance = class {
   *   does not support Gateway v1.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const result = await kit.unifiedBalance.deposit({
   *   from: { adapter, chain: 'Ethereum' },
   *   amount: '100',
@@ -92150,7 +92150,7 @@ var AppKitUnifiedBalance = class {
   *   does not support Gateway v1.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const result = await kit.unifiedBalance.depositFor({
   *   from: { adapter, chain: 'Ethereum' },
   *   amount: '50',
@@ -92171,7 +92171,7 @@ var AppKitUnifiedBalance = class {
   *   unsupported, or the on-chain transaction fails.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const result = await kit.unifiedBalance.spend({
   *   from: { adapter, allocations: [{ amount: '100', chain: 'Ethereum' }] },
   *   to: { adapter, chain: 'Base' },
@@ -92192,7 +92192,7 @@ var AppKitUnifiedBalance = class {
   *   unsupported.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const estimate = await kit.unifiedBalance.estimateSpend({
   *   from: { adapter, allocations: [{ amount: '100', chain: 'Ethereum' }] },
   *   to: { adapter, chain: 'Base' },
@@ -92211,7 +92211,7 @@ var AppKitUnifiedBalance = class {
   * @throws {KitError} If the query parameters are invalid.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const balances = await kit.unifiedBalance.getBalances({
   *   token: 'USDC',
   *   sources: { address: '0x1234…abcd' },
@@ -92230,7 +92230,7 @@ var AppKitUnifiedBalance = class {
   *   transaction fails.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const result = await kit.unifiedBalance.addDelegate({
   *   from: { adapter, chain: 'Ethereum' },
   *   delegateAddress: '0xDelegate…',
@@ -92249,7 +92249,7 @@ var AppKitUnifiedBalance = class {
   *   transaction fails.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const result = await kit.unifiedBalance.removeDelegate({
   *   from: { adapter, chain: 'Ethereum' },
   *   delegateAddress: '0xDelegate…',
@@ -92273,7 +92273,7 @@ var AppKitUnifiedBalance = class {
   *   transaction fails.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const result = await kit.unifiedBalance.initiateRemoveFund({
   *   from: { adapter, chain: 'Ethereum' },
   *   amount: '50',
@@ -92298,7 +92298,7 @@ var AppKitUnifiedBalance = class {
   *   on-chain transaction fails.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const result = await kit.unifiedBalance.removeFund({
   *   from: { adapter, chain: 'Ethereum' },
   *   token: 'USDC',
@@ -92318,7 +92318,7 @@ var AppKitUnifiedBalance = class {
   *   is unsupported.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const status = await kit.unifiedBalance.getDelegateStatus({
   *   from: { adapter, chain: 'Ethereum' },
   *   delegateAddress: '0xDelegate…',
@@ -92337,7 +92337,7 @@ var AppKitUnifiedBalance = class {
   * @returns Array of supported chain definitions.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const chains = kit.unifiedBalance.getSupportedChains()
   * const usdcChains = kit.unifiedBalance.getSupportedChains('USDC')
   * ```
@@ -92354,7 +92354,7 @@ var AppKitUnifiedBalance = class {
   * @param policy - The fee computation and recipient resolution policy.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * kit.unifiedBalance.setCustomFeePolicy({
   *   computeFee: () => '0.10',
   *   resolveFeeRecipientAddress: () => '0xFeeRecipient…',
@@ -92368,7 +92368,7 @@ var AppKitUnifiedBalance = class {
   * Remove the custom fee policy.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * kit.unifiedBalance.removeCustomFeePolicy()
   * ```
   */
@@ -92395,7 +92395,7 @@ var AppKitUnifiedBalance = class {
   *   `{ evm: '0x...', solana: 'Sol...' }`).
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * kit.unifiedBalance.setFeeRecipients({
   *   evm: '0x1234567890123456789012345678901234567890',
   *   solana: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
@@ -92409,7 +92409,7 @@ var AppKitUnifiedBalance = class {
   * Remove the declarative fee recipient map.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * kit.unifiedBalance.removeFeeRecipients()
   * ```
   */
@@ -92452,7 +92452,7 @@ var AppKit = class {
   * @see {@link AppKitEarnOperations}
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { AppKit, EarnChain } from '@circle-fin/app-kit'
   *
   * const kit = new AppKit()
@@ -92470,7 +92470,7 @@ var AppKit = class {
   * balance queries, delegation, fund removal).
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const kit = new AppKit()
   *
   * const balances = await kit.unifiedBalance.getBalances({
@@ -92493,7 +92493,7 @@ var AppKit = class {
   *   fees, and the underlying UnifiedBalanceKit.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { AppKit } from '@circle-fin/app-kit'
   *
   * // Minimal — all defaults
@@ -92510,7 +92510,7 @@ var AppKit = class {
       assertAppKitCustomFeePolicy(config.customFeePolicy);
     }
     const unifiedBalance = new AppKitUnifiedBalance({
-      // Top-level headers act as the shared default; an explici
+      // Top-level headers act as the shared default; an explicit
       // `unifiedBalance.headers` overrides them by coming later in the spread.
       ...config.headers != null && {
         headers: config.headers
@@ -92534,7 +92534,7 @@ var AppKit = class {
     });
     this.unifiedBalance = unifiedBalance;
     this.earn = {
-      // A single implementation cannot satisfy the per-branch deposi
+      // A single implementation cannot satisfy the per-branch deposit
       // overloads, so assert the overloaded interface shape; the
       // earnOperations.deposit overloads enforce the same narrowing.
       deposit: async (params2) => deposit$2(this.context, params2),
@@ -92565,7 +92565,7 @@ var AppKit = class {
   * @throws If the bridge route is not supported
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const result = await kit.bridge({
   *   from: { adapter: sourceAdapter, chain: 'Ethereum' },
   *   to: { adapter: destAdapter, chain: 'Polygon' },
@@ -92595,7 +92595,7 @@ var AppKit = class {
   * @throws If the retry operation fails
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { AppKit, isRetryableError } from '@circle-fin/app-kit'
   *
   * const kit = new AppKit()
@@ -92638,7 +92638,7 @@ var AppKit = class {
    * @throws If the send operation is not supported
    *
    * @example
-   * ```typescrip
+   * ```typescript
    * // Send USDC to a recipient adapter (same chain)
    * const result = await kit.send({
    *   from: { adapter: sourceAdapter, chain: 'Ethereum' },
@@ -92650,7 +92650,7 @@ var AppKit = class {
    * console.log('Send completed:', result.txHash)
    * ```
    * @example
-   * ```typescrip
+   * ```typescript
    * // Send a custom token to an explicit address
    * const result = await kit.send({
    *   from: { adapter: sourceAdapter, chain: 'Ethereum' },
@@ -92662,7 +92662,7 @@ var AppKit = class {
    * ```
    *
    * @example
-   * ```typescrip
+   * ```typescript
    * // Send USDT to an explicit address
    * const result = await kit.send({
    *   from: { adapter: sourceAdapter, chain: 'Ethereum' },
@@ -92690,7 +92690,7 @@ var AppKit = class {
   * @throws If the send operation is not supported
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const estimate = await kit.estimateSend({
   *   from: { adapter: sourceAdapter, chain: 'Ethereum' },
   *   to: recipientAdapter,
@@ -92702,7 +92702,7 @@ var AppKit = class {
   * ```
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const estimate = await kit.estimateSend({
   *   from: { adapter: sourceAdapter, chain: 'Ethereum' },
   *   to: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
@@ -92728,7 +92728,7 @@ var AppKit = class {
   * @throws If the swap route is not supported
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const result = await kit.swap({
   *   from: { adapter, chain: 'Ethereum' },
   *   tokenIn: 'USDC',
@@ -92759,7 +92759,7 @@ var AppKit = class {
   * @throws If the swap route is not supported
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const estimate = await kit.estimateSwap({
   *   from: { adapter, chain: 'Ethereum' },
   *   tokenIn: 'USDC',
@@ -92798,7 +92798,7 @@ var AppKit = class {
   *
   * @example
   * Single snapshot:
-  * ```typescrip
+  * ```typescript
   * const result = await kit.swap(swapParams)
   *
   * const status = await kit.getSwapStatus({
@@ -92813,7 +92813,7 @@ var AppKit = class {
   *
   * @example
   * Poll until terminal (or just call `kit.waitForSwap` instead):
-  * ```typescrip
+  * ```typescript
   * let status = await kit.getSwapStatus({
   *   txHash: result.txHash,
   *   chainIn: result.chainIn,
@@ -92842,19 +92842,19 @@ var AppKit = class {
   * to collapse the `while (status === 'PENDING')` polling loop into a
   * single awaitable. Same-chain swaps return on the first poll because
   * they are already terminal at `swap` time; cross-chain swaps follow an
-  * escalating backoff (3s → 6s → 12s → 24s → 24s) until the wait budge
+  * escalating backoff (3s → 6s → 12s → 24s → 24s) until the wait budget
   * expires. Timeouts surface as a RETRYABLE `KitError` so callers can
   * re-invoke with the same `txHash`.
   *
   * @param params - Wait configuration: identifiers, API key, and optional
   *                 `timeoutMs` / `onProgress`.
   * @returns The first terminal {@link SwapStatusResult} observed.
-  * @throws \{KitError\} (`NETWORK.TIMEOUT`, RETRYABLE) when the wai
+  * @throws \{KitError\} (`NETWORK.TIMEOUT`, RETRYABLE) when the wait
   *         budget elapses without a terminal status.
   *
   * @example
   * Pipe a `SwapResult` straight in — the common case:
-  * ```typescrip
+  * ```typescript
   * const result = await kit.swap(swapParams)
   *
   * const final = await kit.waitForSwap({
@@ -92870,7 +92870,7 @@ var AppKit = class {
   *
   * @example
   * Resume from a persisted tx hash (no `SwapResult` on hand):
-  * ```typescrip
+  * ```typescript
   * const final = await kit.waitForSwap({
   *   txHash: persisted.txHash,
   *   chainIn: persisted.chainIn,
@@ -92915,7 +92915,7 @@ var AppKit = class {
   *         well-formed address for `chain`.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const { rates } = await kit.getTokenRates({
   *   chain: 'Ethereum',
   *   tokens: ['USDC', 'EURC'],
@@ -92945,7 +92945,7 @@ var AppKit = class {
   * @throws \{KitError\} If `policy` or a provided operation policy is invalid.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * kit.setCustomFeePolicy({
   *   bridge: {
   *     computeFee: () => '1.00',
@@ -92976,7 +92976,7 @@ var AppKit = class {
   * @throws \{KitError\} If `operation` is invalid.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * kit.removeCustomFeePolicy('bridge')
   * ```
   */
@@ -93848,7 +93848,7 @@ var formatters2 = {
       });
       return {
         transactions,
-        stateRoot: args.stateRoo
+        stateRoot: args.stateRoot
       };
     }
   }),
@@ -94688,7 +94688,7 @@ var fees = {
      * Estimates the fees per gas for a transaction.
 
      * If the transaction is to be paid in a token (feeCurrency is present) then the fees
-     * are estimated in the value of the token. Otherwise falls back to the defaul
+     * are estimated in the value of the token. Otherwise falls back to the default
      * estimation by returning null.
      *
      * @param params fee estimation function parameters
@@ -94758,7 +94758,7 @@ var formatters3 = {
           ...formatted3,
           ...transaction.gatewayFee ? {
             gatewayFee: hexToBigInt(transaction.gatewayFee),
-            gatewayFeeRecipient: transaction.gatewayFeeRecipien
+            gatewayFeeRecipient: transaction.gatewayFeeRecipient
           } : {},
           feeCurrency: transaction.feeCurrency
         };
@@ -96457,7 +96457,7 @@ async function estimateFeesPerGas2({ client: client2, multiply, request, type: t
   try {
     const response = await estimateGas2(client2, {
       ...request,
-      account: request?.accoun
+      account: request?.account
     });
     const { priorityFeePerGas: maxPriorityFeePerGas } = response;
     const baseFeePerGas = multiply(BigInt(response.baseFeePerGas));
@@ -99780,7 +99780,7 @@ __export(MultisigConfig_exports, {
   toId: () => toId,
   toTuple: () => toTuple3,
   validate: () => validate11,
-  zeroSalt: () => zeroSal
+  zeroSalt: () => zeroSalt
 });
 init_browser_buffer_global();
 init_Errors();
@@ -100869,7 +100869,7 @@ function toTuple5(authorization) {
     },
     { value: callsValue, placeholder: "0x" },
     { value: witness, placeholder: "0x" },
-    // TIP-1049: admin marker. Present = `0x01` (RLP integer 1); absen
+    // TIP-1049: admin marker. Present = `0x01` (RLP integer 1); absent
     // skipped or omitted. Any other value is a hard decode error on the node.
     { value: isAdmin2 ? "0x01" : void 0, placeholder: "0x" },
     // TIP-1049: optional account binding. Last field — never a placeholder.
@@ -107257,7 +107257,7 @@ function Field5(ORDER, bitLenOrOpts, isLE7 = false, opts = {}) {
     },
     // TODO: we don't need it here, move out to separate fn
     invertBatch: (lst) => FpInvertBatch4(f2, lst),
-    // We can't move this out because Fp6, Fp12 implement i
+    // We can't move this out because Fp6, Fp12 implement it
     // and it's unclear what to return in there.
     cmov: (a, b, c) => c ? b : a
   });
@@ -107770,7 +107770,7 @@ var wNAF5 = class {
   /**
    * Implements ec unsafe (non const-time) multiplication using precomputed tables and w-ary non-adjacent form.
    * @param acc accumulator point to add result of multiplication
-   * @returns poin
+   * @returns point
    */
   wNAFUnsafe(W, precomputes, n, acc = this.ZERO) {
     const wo = calcWOpts4(W, this.bits);
@@ -108393,7 +108393,7 @@ function weierstrassN2(params2, extraOpts = {}) {
      * Uses precomputes when available.
      * Uses endomorphism for Koblitz curves.
      * @param scalar by which the point would be multiplied
-     * @returns New poin
+     * @returns New point
      */
     multiply(scalar) {
       const { endo: endo2 } = extraOpts;
@@ -108416,7 +108416,7 @@ function weierstrassN2(params2, extraOpts = {}) {
     }
     /**
      * Non-constant-time multiplication. Uses double-and-add algorithm.
-     * It's faster, but should only be used when you don't care abou
+     * It's faster, but should only be used when you don't care about
      * an exposed secret key e.g. sig verification, which works over *public* keys.
      */
     multiplyUnsafe(sc) {
@@ -109380,11 +109380,11 @@ andulka
 anekdota
 anketa
 antika
-anulova
+anulovat
 archa
 arogance
-asfal
-asisten
+asfalt
+asistent
 aspirace
 astma
 astronom
@@ -109409,9 +109409,9 @@ balonek
 balvan
 balza
 bambus
-bankoma
+bankomat
 barbar
-bare
+baret
 barman
 baroko
 barva
@@ -109438,33 +109438,33 @@ biograf
 biolog
 bitva
 bizon
-blahoby
+blahobyt
 blatouch
 blecha
 bledule
 blesk
-blika
+blikat
 blizna
-blokova
-bloudi
+blokovat
+bloudit
 blud
 bobek
 bobr
 bodlina
-bodnou
-bohatos
-bojko
-bojova
+bodnout
+bohatost
+bojkot
+bojovat
 bokorys
-boles
+bolest
 borec
 borovice
 bota
 boubel
-boucha
+bouchat
 bouda
 boule
-boura
+bourat
 boxer
 bradavka
 brambora
@@ -109481,13 +109481,13 @@ brusinka
 brzda
 brzy
 bublina
-bubnova
+bubnovat
 buchta
 buditel
 budka
 budova
-bufe
-bujaros
+bufet
+bujarost
 bukvice
 buldok
 bulva
@@ -109497,11 +109497,11 @@ burza
 butik
 buvol
 buzola
-bydle
+bydlet
 bylina
 bytovka
-bzuko
-capar
+bzukot
+capart
 carevna
 cedr
 cedule
@@ -109512,7 +109512,7 @@ celer
 celkem
 celnice
 cenina
-cennos
+cennost
 cenovka
 centrum
 cenzor
@@ -109522,60 +109522,60 @@ chalupa
 chapadlo
 charita
 chata
-chechta
+chechtat
 chemie
-chicho
+chichot
 chirurg
 chlad
 chleba
-chlubi
+chlubit
 chmel
 chmura
-chobo
+chobot
 chochol
 chodba
 cholera
-chomou
-chopi
+chomout
+chopit
 choroba
 chov
-chrapo
-chrli
-chr
+chrapot
+chrlit
+chrt
 chrup
-chtivos
+chtivost
 chudina
-chutna
-chva
+chutnat
+chvat
 chvilka
-chvos
+chvost
 chyba
-chysta
-chyti
+chystat
+chytit
 cibule
 cigareta
 cihelna
 cihla
-cinko
+cinkot
 cirkus
 cisterna
 citace
 citrus
 cizinec
-cizos
+cizost
 clona
 cokoliv
-couva
+couvat
 ctitel
-ctnos
-cudnos
+ctnost
+cudnost
 cuketa
 cukr
-cupo
-cvaknou
+cupot
+cvaknout
 cval
 cvik
-cvrko
+cvrkot
 cyklista
 daleko
 dareba
@@ -109585,17 +109585,17 @@ dcera
 debata
 dechovka
 decibel
-defici
+deficit
 deflace
 dekl
-dekre
-demokra
+dekret
+demokrat
 deprese
 derby
 deska
 detektiv
 dikobraz
-diktova
+diktovat
 dioda
 diplom
 disk
@@ -109608,8 +109608,8 @@ dluhopis
 dnes
 dobro
 dobytek
-docen
-dochuti
+docent
+dochutit
 dodnes
 dohled
 dohoda
@@ -109619,24 +109619,24 @@ dojnice
 doklad
 dokola
 doktor
-dokumen
+dokument
 dolar
 doleva
 dolina
 doma
-dominan
-domluvi
+dominant
+domluvit
 domov
-donuti
+donutit
 dopad
 dopis
-doplni
+doplnit
 doposud
 doprovod
-dopusti
-dorazi
-doros
-dor
+dopustit
+dorazit
+dorost
+dort
 dosah
 doslov
 dostatek
@@ -109644,12 +109644,12 @@ dosud
 dosyta
 dotaz
 dotek
-dotknou
-doufa
-doutna
+dotknout
+doufat
+doutnat
 dovozce
 dozadu
-dozna
+doznat
 dozorce
 drahota
 drak
@@ -109657,23 +109657,23 @@ dramatik
 dravec
 draze
 drdol
-drobnos
+drobnost
 drogerie
 drozd
-drsnos
-drti
-drzos
+drsnost
+drtit
+drzost
 duben
 duchovno
 dudek
 duha
 duhovka
-dusi
+dusit
 dusno
-dutos
+dutost
 dvojice
 dvorec
-dynami
+dynamit
 ekolog
 ekonomie
 elektron
@@ -109697,21 +109697,21 @@ exekuce
 exkurze
 expedice
 exploze
-expor
-extrak
+export
+extrakt
 facka
 fajfka
 fakulta
 fanatik
 fantazie
 farmacie
-favori
+favorit
 fazole
 federace
 fejeton
 fenka
 fialka
-figuran
+figurant
 filozof
 filtr
 finance
@@ -109719,7 +109719,7 @@ finta
 fixace
 fjord
 flanel
-flir
+flirt
 flotila
 fond
 fosfor
@@ -109733,12 +109733,12 @@ fukar
 funkce
 fyzika
 galeje
-garan
+garant
 genetika
 geolog
 gilotina
 glazura
-glej
+glejt
 golem
 golfista
 gotika
@@ -109759,7 +109759,7 @@ hanopis
 harfa
 harpuna
 havran
-hebkos
+hebkost
 hejkal
 hejno
 hejtman
@@ -109774,28 +109774,28 @@ historik
 hladovka
 hlasivky
 hlava
-hleda
+hledat
 hlen
 hlodavec
 hloh
-hloupos
-hlta
+hloupost
+hltat
 hlubina
 hluchota
-hma
+hmat
 hmota
 hmyz
 hnis
 hnojivo
-hnou
+hnout
 hoblina
 hoboj
 hoch
 hodiny
-hodla
+hodlat
 hodnota
-hodova
-hojnos
+hodovat
+hojnost
 hokej
 holinka
 holka
@@ -109805,7 +109805,7 @@ honitba
 honorace
 horal
 horda
-horizon
+horizont
 horko
 horlivec
 hormon
@@ -109814,39 +109814,39 @@ horoskop
 horstvo
 hospoda
 hostina
-hotovos
+hotovost
 houba
 houf
-houpa
+houpat
 houska
 hovor
 hradba
 hranice
-hravos
+hravost
 hrazda
 hrbolek
 hrdina
 hrdlo
-hrdos
+hrdost
 hrnek
 hrobka
 hromada
-hro
+hrot
 hrouda
 hrozen
 hrstka
-hrubos
-hryza
-hubenos
-hubnou
+hrubost
+hryzat
+hubenost
+hubnout
 hudba
-huko
+hukot
 humr
 husita
 hustota
 hvozd
-hybnos
-hydran
+hybnost
+hydrant
 hygiena
 hymna
 hysterik
@@ -109860,7 +109860,7 @@ inflace
 inkaso
 inovace
 inspekce
-interne
+internet
 invalida
 investor
 inzerce
@@ -109869,7 +109869,7 @@ jablko
 jachta
 jahoda
 jakmile
-jakos
+jakost
 jalovec
 jantar
 jarmark
@@ -109883,14 +109883,14 @@ jedinec
 jedle
 jednatel
 jehlan
-jeko
+jekot
 jelen
 jelito
-jemnos
+jemnost
 jenom
 jepice
 jeseter
-jevi
+jevit
 jezdec
 jezero
 jinak
@@ -109900,14 +109900,14 @@ jiskra
 jistota
 jitrnice
 jizva
-jmenova
-jogur
+jmenovat
+jogurt
 jurta
-kabare
+kabaret
 kabel
-kabine
+kabinet
 kachna
-kade
+kadet
 kadidlo
 kahan
 kajak
@@ -109917,7 +109917,7 @@ kaktus
 kalamita
 kalhoty
 kalibr
-kalnos
+kalnost
 kamera
 kamkoliv
 kamna
@@ -109944,7 +109944,7 @@ kauza
 kavalec
 kazajka
 kazeta
-kazivos
+kazivost
 kdekoliv
 kdesi
 kedluben
@@ -109954,13 +109954,13 @@ kino
 klacek
 kladivo
 klam
-klapo
+klapot
 klasika
 klaun
 klec
 klenba
-klepa
-klesnou
+klepat
+klesnout
 klid
 klima
 klisna
@@ -109969,20 +109969,20 @@ klokan
 klopa
 kloub
 klubovna
-klusa
-kluzkos
+klusat
+kluzkost
 kmen
-kmita
+kmitat
 kmotr
 kniha
-kno
+knot
 koalice
 koberec
 kobka
 kobliha
 kobyla
 kocour
-kohou
+kohout
 kojenec
 kokos
 koktejl
@@ -109997,19 +109997,19 @@ komnata
 komora
 kompas
 komunita
-kona
-koncep
+konat
+koncept
 kondice
 konec
 konfese
 kongres
 konina
 konkurs
-kontak
+kontakt
 konzerva
 kopanec
 kopie
-kopnou
+kopnout
 koprovka
 korbel
 korektor
@@ -110018,13 +110018,13 @@ koroptev
 korpus
 koruna
 koryto
-korze
+korzet
 kosatec
 kostka
 kotel
 kotleta
 kotoul
-kouka
+koukat
 koupelna
 kousek
 kouzlo
@@ -110034,14 +110034,14 @@ kozoroh
 krabice
 krach
 krajina
-kralova
+kralovat
 krasopis
 kravata
-kredi
+kredit
 krejcar
 kresba
 kreveta
-krike
+kriket
 kritik
 krize
 krkavec
@@ -110050,30 +110050,30 @@ krmivo
 krocan
 krok
 kronika
-kropi
+kropit
 kroupa
 krovka
 krtek
 kruhadlo
 krupice
-krutos
+krutost
 krvinka
 krychle
 krypta
 krystal
-kry
+kryt
 kudlanka
 kufr
-kujnos
+kujnost
 kukla
 kulajda
 kulich
 kulka
-kulome
+kulomet
 kultura
 kuna
 kupodivu
-kur
+kurt
 kurzor
 kutil
 kvalita
@@ -110088,7 +110088,7 @@ kytovec
 kyvadlo
 labrador
 lachtan
-ladnos
+ladnost
 laik
 lakomec
 lamela
@@ -110109,8 +110109,8 @@ legenda
 legie
 legrace
 lehce
-lehkos
-lehnou
+lehkost
+lehnout
 lektvar
 lenochod
 lentilka
@@ -110120,13 +110120,13 @@ letadlo
 letec
 letmo
 letokruh
-levhar
+levhart
 levitace
 levobok
 libra
 lichotka
 lidojed
-lidskos
+lidskost
 lihovina
 lijavec
 lilek
@@ -110136,14 +110136,14 @@ linka
 linoleum
 listopad
 litina
-litova
+litovat
 lobista
 lodivod
 logika
 logoped
 lokalita
-loke
-lomcova
+loket
+lomcovat
 lopata
 lopuch
 lord
@@ -110152,9 +110152,9 @@ lotr
 loudal
 louh
 louka
-louska
+louskat
 lovec
-lstivos
+lstivost
 lucerna
 lucifer
 lump
@@ -110176,21 +110176,21 @@ makovice
 makrela
 malba
 malina
-malova
+malovat
 malvice
 maminka
 mandle
 manko
-marnos
+marnost
 masakr
-masko
-masopus
+maskot
+masopust
 matice
 matrika
 maturita
 mazanec
 mazivo
-mazli
+mazlit
 mazurka
 mdloba
 mechanik
@@ -110204,31 +110204,31 @@ metoda
 metr
 mezera
 migrace
-mihnou
+mihnout
 mihule
 mikina
 mikrofon
 milenec
 milimetr
-milos
+milost
 mimika
 mincovna
 minibar
-minome
-minulos
+minomet
+minulost
 miska
 mistr
-mixova
-mlados
+mixovat
+mladost
 mlha
 mlhovina
 mlok
-mlsa
-mluvi
+mlsat
+mluvit
 mnich
 mnohem
 mobil
-mocnos
+mocnost
 modelka
 modlitba
 mohyla
@@ -110238,16 +110238,16 @@ momentka
 monarcha
 monokl
 monstrum
-montova
+montovat
 monzun
 mosaz
-mosky
-mos
+moskyt
+most
 motivace
 motorka
 motyka
 moucha
-moudros
+moudrost
 mozaika
 mozek
 mozol
@@ -110255,82 +110255,82 @@ mramor
 mravenec
 mrkev
 mrtvola
-mrze
-mrzutos
+mrzet
+mrzutost
 mstitel
 mudrc
 muflon
-mula
+mulat
 mumie
 munice
-muse
+muset
 mutace
 muzeum
-muzikan
+muzikant
 myslivec
 mzda
-naboura
-nachyta
+nabourat
+nachytat
 nadace
 nadbytek
 nadhoz
 nadobro
 nadpis
 nahlas
-nahna
+nahnat
 nahodile
-nahradi
+nahradit
 naivita
 najednou
 najisto
-najmou
-nakloni
+najmout
+naklonit
 nakonec
-nakrmi
+nakrmit
 nalevo
-namaza
-namluvi
+namazat
+namluvit
 nanometr
 naoko
 naopak
 naostro
-napada
+napadat
 napevno
-naplni
-napnou
+naplnit
+napnout
 naposled
 naprosto
-narodi
+narodit
 naruby
 narychlo
-nasadi
-naseka
+nasadit
+nasekat
 naslepo
-nasta
+nastat
 natolik
 navenek
 navrch
 navzdory
-nazva
+nazvat
 nebe
-necha
+nechat
 necky
 nedaleko
-nedba
+nedbat
 neduh
 negace
-nehe
+nehet
 nehoda
 nejen
 nejprve
 neklid
-nelibos
-nemilos
+nelibost
+nemilost
 nemoc
 neochota
 neonka
 nepokoj
-neros
+nerost
 nerv
 nesmysl
 nesoulad
@@ -110351,132 +110351,132 @@ nominace
 nora
 norek
 nositel
-nosnos
+nosnost
 nouze
 noviny
 novota
 nozdra
 nuda
 nudle
-nuge
-nuti
-nutnos
+nuget
+nutit
+nutnost
 nutrie
 nymfa
 obal
-obarvi
+obarvit
 obava
 obdiv
 obec
-obehna
-obejmou
+obehnat
+obejmout
 obezita
 obhajoba
 obilnice
-objasni
-objek
-obklopi
-oblas
+objasnit
+objekt
+obklopit
+oblast
 oblek
 obliba
 obloha
 obluda
 obnos
-obohati
+obohatit
 obojek
-obou
+obout
 obrazec
 obrna
 obruba
 obrys
 obsah
 obsluha
-obstara
+obstarat
 obuv
 obvaz
-obvini
+obvinit
 obvod
 obvykle
 obyvatel
 obzor
 ocas
 ocel
-oceni
-ochladi
+ocenit
+ochladit
 ochota
 ochrana
-ocitnou
+ocitnout
 odboj
-odby
+odbyt
 odchod
-odcizi
-odebra
-odesla
-odevzda
+odcizit
+odebrat
+odeslat
+odevzdat
 odezva
 odhadce
-odhodi
-odje
+odhodit
+odjet
 odjinud
 odkaz
-odkoupi
+odkoupit
 odliv
 odluka
 odmlka
-odolnos
+odolnost
 odpad
 odpis
-odplou
+odplout
 odpor
-odpusti
-odpyka
+odpustit
+odpykat
 odrazka
-odsoudi
+odsoudit
 odstup
 odsun
 odtok
 odtud
 odvaha
 odveta
-odvola
-odvrace
+odvolat
+odvracet
 odznak
 ofina
 ofsajd
 ohlas
 ohnisko
 ohrada
-ohrozi
+ohrozit
 ohryzek
 okap
 okenice
 oklika
 okno
-okouzli
+okouzlit
 okovy
 okrasa
 okres
 okrsek
 okruh
-okupan
+okupant
 okurka
-okusi
+okusit
 olejnina
-olizova
+olizovat
 omak
 omeleta
-omezi
+omezit
 omladina
-omlouva
+omlouvat
 omluva
 omyl
 onehdy
-opakova
+opakovat
 opasek
 operace
 opice
-opilos
-opisova
+opilost
+opisovat
 opora
 opozice
 opravdu
@@ -110488,52 +110488,52 @@ orlice
 orloj
 ortel
 osada
-oschnou
+oschnout
 osika
 osivo
 oslava
-oslepi
-oslni
-oslovi
+oslepit
+oslnit
+oslovit
 osnova
 osoba
-osoli
+osolit
 ospalec
 osten
 ostraha
 ostuda
 ostych
-osvoji
-otepli
+osvojit
+oteplit
 otisk
 otop
-otrha
-otrlos
+otrhat
+otrlost
 otrok
 otruby
 otvor
-ovanou
+ovanout
 ovar
 oves
-ovlivni
+ovlivnit
 ovoce
 oxid
 ozdoba
 pachatel
-pacien
+pacient
 padouch
 pahorek
-pak
+pakt
 palanda
 palec
 palivo
 paluba
-pamfle
+pamflet
 pamlsek
 panenka
 panika
 panna
-panova
+panovat
 panstvo
 pantofle
 paprika
@@ -110545,10 +110545,10 @@ paryba
 paseka
 pasivita
 pastelka
-paten
+patent
 patrona
 pavouk
-pazneh
+pazneht
 pazourek
 pecka
 pedagog
@@ -110560,7 +110560,7 @@ pendrek
 penze
 periskop
 pero
-pestros
+pestrost
 petarda
 petice
 petrolej
@@ -110572,7 +110572,7 @@ pijavice
 pikle
 piknik
 pilina
-pilnos
+pilnost
 pilulka
 pinzeta
 pipeta
@@ -110582,11 +110582,11 @@ pitevna
 pivnice
 pivovar
 placenta
-plaka
+plakat
 plamen
 planeta
 plastika
-plati
+platit
 plavidlo
 plaz
 plech
@@ -110595,27 +110595,27 @@ plenta
 ples
 pletivo
 plevel
-pliva
-plni
+plivat
+plnit
 plno
 plocha
 plodina
 plomba
-plou
+plout
 pluk
 plyn
-pobavi
-poby
+pobavit
+pobyt
 pochod
-poci
+pocit
 poctivec
-poda
-podceni
-podepsa
+podat
+podcenit
+podepsat
 podhled
-podivi
+podivit
 podklad
-podmani
+podmanit
 podnik
 podoba
 podpora
@@ -110631,8 +110631,8 @@ pohroma
 pohyb
 pointa
 pojistka
-pojmou
-pokazi
+pojmout
+pokazit
 pokles
 pokoj
 pokrok
@@ -110640,36 +110640,36 @@ pokuta
 pokyn
 poledne
 polibek
-polknou
+polknout
 poloha
 polynom
 pomalu
-pominou
+pominout
 pomlka
 pomoc
 pomsta
-pomysle
-ponecha
+pomyslet
+ponechat
 ponorka
-ponuros
-popada
+ponurost
+popadat
 popel
 popisek
 poplach
-poprosi
-popsa
+poprosit
+popsat
 popud
 poradce
 porce
 porod
 porucha
 poryv
-posadi
+posadit
 posed
 posila
 poskok
 poslanec
-posoudi
+posoudit
 pospolu
 postava
 posudek
@@ -110689,15 +110689,15 @@ povidla
 povlak
 povoz
 povrch
-povsta
+povstat
 povyk
 povzdech
 pozdrav
 pozemek
 poznatek
 pozor
-pozva
-pracova
+pozvat
+pracovat
 prahory
 praktika
 prales
@@ -110707,15 +110707,15 @@ prase
 pravda
 princip
 prkno
-probudi
+probudit
 procento
 prodej
 profese
 prohra
-projek
-prolomi
+projekt
+prolomit
 promile
-pronika
+pronikat
 propad
 prorok
 prosba
@@ -110724,8 +110724,8 @@ proutek
 provaz
 prskavka
 prsten
-prudkos
-pru
+prudkost
+prut
 prvek
 prvohory
 psanec
@@ -110738,24 +110738,24 @@ pudl
 pukavec
 puklina
 pukrle
-pul
+pult
 pumpa
 punc
 pupen
 pusa
 pusinka
 pustina
-putova
+putovat
 putyka
 pyramida
 pysk
 pytel
 racek
-racho
+rachot
 radiace
 radnice
 radon
-raf
+raft
 ragby
 raketa
 rakovina
@@ -110766,26 +110766,26 @@ rarach
 rarita
 rasovna
 rastr
-ratoles
+ratolest
 razance
 razidlo
-reagova
+reagovat
 reakce
-recep
+recept
 redaktor
-referen
+referent
 reflex
 rejnok
 reklama
 rekord
-rekru
+rekrut
 rektor
 reputace
 revize
 revma
 revolver
 rezerva
-riskova
+riskovat
 riziko
 robotika
 rodokmen
@@ -110809,8 +110809,8 @@ rovina
 rovnice
 rozbor
 rozchod
-rozda
-rozezna
+rozdat
+rozeznat
 rozhodce
 rozinka
 rozjezd
@@ -110829,32 +110829,32 @@ rukavice
 rukopis
 ryba
 rybolov
-rychlos
+rychlost
 rydlo
 rypadlo
 rytina
-ryzos
+ryzost
 sadista
-saha
+sahat
 sako
 samec
-samizda
+samizdat
 samota
 sanitka
 sardinka
 sasanka
-sateli
+satelit
 sazba
 sazenice
 sbor
-schova
+schovat
 sebranka
 secese
 sedadlo
-sedimen
+sediment
 sedlo
-sehna
-sejmou
+sehnat
+sejmout
 sekera
 sekta
 sekunda
@@ -110862,22 +110862,22 @@ sekvoje
 semeno
 seno
 servis
-sesadi
+sesadit
 seshora
 seskok
-sesla
+seslat
 sestra
 sesuv
-sesypa
+sesypat
 setba
 setina
-setka
-setnou
-setrva
+setkat
+setnout
+setrvat
 sever
 seznam
 shoda
-shrnou
+shrnout
 sifon
 silnice
 sirka
@@ -110887,7 +110887,7 @@ situace
 skafandr
 skalisko
 skanzen
-skau
+skaut
 skeptik
 skica
 skladba
@@ -110900,14 +110900,14 @@ skoro
 skripta
 skrz
 skupina
-skvos
+skvost
 skvrna
 slabika
 sladidlo
 slanina
-slas
-slavnos
-sledova
+slast
+slavnost
+sledovat
 slepec
 sleva
 slezina
@@ -110942,7 +110942,7 @@ sokol
 sopka
 sotva
 souboj
-souci
+soucit
 soudce
 souhlas
 soulad
@@ -110950,7 +110950,7 @@ soumrak
 souprava
 soused
 soutok
-souvise
+souviset
 spalovna
 spasitel
 spis
@@ -110959,18 +110959,18 @@ spodek
 spojenec
 spolu
 sponzor
-spornos
+spornost
 spousta
 sprcha
-spusti
+spustit
 sranda
 sraz
 srdce
 srna
 srnec
-srovna
+srovnat
 srpen
-srs
+srst
 srub
 stanice
 starosta
@@ -110982,23 +110982,23 @@ stodola
 stolek
 stopa
 storno
-stoupa
+stoupat
 strach
 stres
-strhnou
+strhnout
 strom
 struna
 studna
 stupnice
 stvol
 styk
-subjek
+subjekt
 subtropy
 suchar
-sudos
+sudost
 sukno
-sunda
-sunou
+sundat
+sunout
 surikata
 surovina
 svah
@@ -111013,26 +111013,26 @@ svodidlo
 svorka
 svrab
 sykavka
-syko
+sykot
 synek
 synovec
-sypa
-sypkos
-syrovos
+sypat
+sypkost
+syrovost
 sysel
-sytos
+sytost
 tabletka
 tabule
 tahoun
 tajemno
 tajfun
 tajga
-taji
-tajnos
+tajit
+tajnost
 taktika
 tamhle
 tampon
-tancova
+tancovat
 tanec
 tanker
 tapeta
@@ -111058,8 +111058,8 @@ titulek
 tkadlec
 tkanina
 tlapka
-tleska
-tluko
+tleskat
+tlukot
 tlupa
 tmel
 toaleta
@@ -111073,8 +111073,8 @@ traktor
 tramp
 trasa
 traverza
-trefi
-tres
+trefit
+trest
 trezor
 trhavina
 trhlina
@@ -111084,79 +111084,79 @@ troska
 trouba
 trpce
 trpitel
-trpkos
+trpkost
 trubec
-truchli
+truchlit
 truhlice
 trus
-trva
+trvat
 tudy
-tuhnou
-tuhos
+tuhnout
+tuhost
 tundra
 turista
 turnaj
 tuzemsko
 tvaroh
 tvorba
-tvrdos
+tvrdost
 tvrz
 tygr
 tykev
-ubohos
+ubohost
 uboze
-ubra
+ubrat
 ubrousek
 ubrus
 ubytovna
 ucho
-uctivos
-udivi
-uhradi
-ujedna
-ujisti
-ujmou
+uctivost
+udivit
+uhradit
+ujednat
+ujistit
+ujmout
 ukazatel
-uklidni
-ukloni
-ukotvi
-ukroji
+uklidnit
+uklonit
+ukotvit
+ukrojit
 ulice
 ulita
-ulovi
+ulovit
 umyvadlo
-unavi
+unavit
 uniforma
-uniknou
-upadnou
-uplatni
-uplynou
-upouta
-upravi
+uniknout
+upadnout
+uplatnit
+uplynout
+upoutat
+upravit
 uran
-urazi
-usednou
-usilova
-usmrti
-usnadni
-usnou
-usoudi
-ustla
-ustrnou
-utahova
-utka
-utlumi
-utonou
+urazit
+usednout
+usilovat
+usmrtit
+usnadnit
+usnout
+usoudit
+ustlat
+ustrnout
+utahovat
+utkat
+utlumit
+utonout
 utopenec
-utrousi
-uvali
-uvolni
+utrousit
+uvalit
+uvolnit
 uvozovka
-uzdravi
+uzdravit
 uzel
 uzenina
 uzlina
-uzna
+uznat
 vagon
 valcha
 valoun
@@ -111165,7 +111165,7 @@ vandal
 vanilka
 varan
 varhany
-varova
+varovat
 vcelku
 vchod
 vdova
@@ -111194,7 +111194,7 @@ vidina
 vidle
 vila
 vinice
-vise
+viset
 vitalita
 vize
 vizitka
@@ -111205,213 +111205,213 @@ vlajka
 vlak
 vlasec
 vlevo
-vlhkos
+vlhkost
 vliv
 vlnovka
-vloupa
-vnucova
+vloupat
+vnucovat
 vnuk
 voda
-vodivos
+vodivost
 vodoznak
 vodstvo
 vojensky
 vojna
 vojsko
-volan
+volant
 volba
-voli
+volit
 volno
 voskovka
 vozidlo
 vozovna
 vpravo
 vrabec
-vrace
+vracet
 vrah
 vrata
 vrba
 vrcholek
-vrha
+vrhat
 vrstva
 vrtule
-vsadi
-vstoupi
+vsadit
+vstoupit
 vstup
 vtip
-vybavi
-vybra
-vychova
-vyda
+vybavit
+vybrat
+vychovat
+vydat
 vydra
-vyfoti
-vyhleda
-vyhnou
-vyhodi
-vyhradi
-vyhubi
-vyjasni
-vyje
-vyjmou
-vyklopi
-vykona
-vyleka
-vymaza
-vymezi
-vymize
-vymysle
-vynecha
-vynika
-vynuti
-vypada
-vyplati
-vypravi
-vypusti
-vyrazi
-vyrovna
-vyrva
-vyslovi
+vyfotit
+vyhledat
+vyhnout
+vyhodit
+vyhradit
+vyhubit
+vyjasnit
+vyjet
+vyjmout
+vyklopit
+vykonat
+vylekat
+vymazat
+vymezit
+vymizet
+vymyslet
+vynechat
+vynikat
+vynutit
+vypadat
+vyplatit
+vypravit
+vypustit
+vyrazit
+vyrovnat
+vyrvat
+vyslovit
 vysoko
-vystavi
-vysunou
-vysypa
-vytasi
-vytesa
-vytrati
-vyvinou
-vyvola
+vystavit
+vysunout
+vysypat
+vytasit
+vytesat
+vytratit
+vyvinout
+vyvolat
 vyvrhel
-vyzdobi
-vyzna
+vyzdobit
+vyznat
 vzadu
-vzbudi
-vzchopi
+vzbudit
+vzchopit
 vzdor
 vzduch
-vzdycha
+vzdychat
 vzestup
 vzhledem
 vzkaz
-vzlyka
+vzlykat
 vznik
 vzorek
 vzpoura
 vztah
 vztek
 xylofon
-zabra
-zabydle
-zachova
+zabrat
+zabydlet
+zachovat
 zadarmo
-zadusi
-zafouka
-zahlti
-zahodi
+zadusit
+zafoukat
+zahltit
+zahodit
 zahrada
-zahynou
+zahynout
 zajatec
-zaje
-zajisti
-zaklepa
-zakoupi
-zalepi
-zamezi
-zamota
-zamysle
-zanecha
-zanika
-zaplati
-zapoji
-zapsa
-zarazi
-zastavi
-zasunou
-zataji
-zatemni
-zatknou
-zaujmou
-zavali
-zavele
-zavini
-zavola
-zavrta
-zazvoni
-zbavi
+zajet
+zajistit
+zaklepat
+zakoupit
+zalepit
+zamezit
+zamotat
+zamyslet
+zanechat
+zanikat
+zaplatit
+zapojit
+zapsat
+zarazit
+zastavit
+zasunout
+zatajit
+zatemnit
+zatknout
+zaujmout
+zavalit
+zavelet
+zavinit
+zavolat
+zavrtat
+zazvonit
+zbavit
 zbrusu
-zbudova
+zbudovat
 zbytek
 zdaleka
 zdarma
-zdatnos
+zdatnost
 zdivo
-zdobi
+zdobit
 zdroj
 zdvih
 zdymadlo
 zelenina
 zeman
 zemina
-zepta
+zeptat
 zezadu
 zezdola
-zhati
-zhltnou
+zhatit
+zhltnout
 zhluboka
-zhotovi
+zhotovit
 zhruba
 zima
 zimnice
-zjemni
-zklama
-zkouma
+zjemnit
+zklamat
+zkoumat
 zkratka
 zkumavka
 zlato
 zlehka
 zloba
 zlom
-zlos
+zlost
 zlozvyk
-zmapova
+zmapovat
 zmar
 zmatek
 zmije
-zmize
-zmocni
-zmodra
+zmizet
+zmocnit
+zmodrat
 zmrzlina
-zmutova
+zmutovat
 znak
-znalos
-znamena
+znalost
+znamenat
 znovu
-zobrazi
-zotavi
+zobrazit
+zotavit
 zoubek
 zoufale
-zplodi
-zpomali
+zplodit
+zpomalit
 zprava
-zprosti
+zprostit
 zprudka
 zprvu
 zrada
-zrani
+zranit
 zrcadlo
-zrnitos
+zrnitost
 zrno
 zrovna
-zrychli
-zrzavos
+zrychlit
+zrzavost
 zticha
-ztrati
+ztratit
 zubovina
 zubr
-zvednou
+zvednout
 zvenku
 zvesela
 zvon
-zvra
+zvrat
 zvukovod
 zvyk`.split("\n");
 
@@ -111420,34 +111420,34 @@ init_browser_buffer_global();
 var wordlist2 = `abandon
 ability
 able
-abou
+about
 above
-absen
+absent
 absorb
-abstrac
+abstract
 absurd
 abuse
 access
-acciden
-accoun
+accident
+account
 accuse
 achieve
 acid
 acoustic
 acquire
 across
-ac
+act
 action
 actor
 actress
 actual
-adap
+adapt
 add
-addic
+addict
 address
-adjus
-admi
-adul
+adjust
+admit
+adult
 advance
 advice
 aerobic
@@ -111456,22 +111456,22 @@ afford
 afraid
 again
 age
-agen
+agent
 agree
 ahead
 aim
 air
-airpor
+airport
 aisle
 alarm
 album
 alcohol
-aler
+alert
 alien
 all
 alley
 allow
-almos
+almost
 alone
 alpha
 already
@@ -111481,11 +111481,11 @@ always
 amateur
 amazing
 among
-amoun
+amount
 amused
-analys
+analyst
 anchor
-ancien
+ancient
 anger
 angle
 angry
@@ -111499,7 +111499,7 @@ antenna
 antique
 anxiety
 any
-apar
+apart
 apology
 appear
 apple
@@ -111516,18 +111516,18 @@ armor
 army
 around
 arrange
-arres
+arrest
 arrive
 arrow
-ar
-artefac
-artis
+art
+artefact
+artist
 artwork
 ask
-aspec
-assaul
-asse
-assis
+aspect
+assault
+asset
+assist
 assume
 asthma
 athlete
@@ -111535,11 +111535,11 @@ atom
 attack
 attend
 attitude
-attrac
+attract
 auction
-audi
-augus
-aun
+audit
+august
+aunt
 author
 auto
 autumn
@@ -111570,7 +111570,7 @@ bargain
 barrel
 base
 basic
-baske
+basket
 battle
 beach
 bean
@@ -111584,10 +111584,10 @@ behave
 behind
 believe
 below
-bel
+belt
 bench
-benefi
-bes
+benefit
+best
 betray
 better
 between
@@ -111603,8 +111603,8 @@ bitter
 black
 blade
 blame
-blanke
-blas
+blanket
+blast
 bleak
 bless
 blind
@@ -111615,14 +111615,14 @@ blue
 blur
 blush
 board
-boa
+boat
 body
 boil
 bomb
 bone
 bonus
 book
-boos
+boost
 border
 boring
 borrow
@@ -111631,7 +111631,7 @@ bottom
 bounce
 box
 boy
-bracke
+bracket
 brain
 brand
 brass
@@ -111641,7 +111641,7 @@ breeze
 brick
 bridge
 brief
-brigh
+bright
 bring
 brisk
 broccoli
@@ -111653,17 +111653,17 @@ brown
 brush
 bubble
 buddy
-budge
+budget
 buffalo
 build
 bulb
 bulk
-bulle
+bullet
 bundle
 bunker
 burden
 burger
-burs
+burst
 bus
 business
 busy
@@ -111695,26 +111695,26 @@ car
 carbon
 card
 cargo
-carpe
+carpet
 carry
-car
+cart
 case
 cash
 casino
 castle
 casual
-ca
+cat
 catalog
 catch
 category
 cattle
-caugh
+caught
 cause
 caution
 cave
 ceiling
 celery
-cemen
+cement
 census
 century
 cereal
@@ -111727,13 +111727,13 @@ chaos
 chapter
 charge
 chase
-cha
+chat
 cheap
 check
 cheese
 chef
 cherry
-ches
+chest
 chicken
 chief
 child
@@ -111759,7 +111759,7 @@ clean
 clerk
 clever
 click
-clien
+client
 cliff
 climb
 clinic
@@ -111775,26 +111775,26 @@ clump
 cluster
 clutch
 coach
-coas
-coconu
+coast
+coconut
 code
 coffee
 coil
 coin
-collec
+collect
 color
 column
 combine
 come
-comfor
+comfort
 comic
 common
 company
-concer
-conduc
+concert
+conduct
 confirm
 congress
-connec
+connect
 consider
 control
 convince
@@ -111805,8 +111805,8 @@ copy
 coral
 core
 corn
-correc
-cos
+correct
+cost
 cotton
 couch
 country
@@ -111817,7 +111817,7 @@ cover
 coyote
 crack
 cradle
-craf
+craft
 cram
 crane
 crash
@@ -111825,10 +111825,10 @@ crater
 crawl
 crazy
 cream
-credi
+credit
 creek
 crew
-cricke
+cricket
 crime
 crisp
 critic
@@ -111849,7 +111849,7 @@ culture
 cup
 cupboard
 curious
-curren
+current
 curtain
 curve
 cushion
@@ -111885,22 +111885,22 @@ deliver
 demand
 demise
 denial
-dentis
+dentist
 deny
-depar
+depart
 depend
-deposi
+deposit
 depth
 deputy
 derive
 describe
-deser
+desert
 design
 desk
 despair
 destroy
 detail
-detec
+detect
 develop
 device
 devote
@@ -111910,15 +111910,15 @@ diamond
 diary
 dice
 diesel
-die
+diet
 differ
 digital
 dignity
 dilemma
 dinner
 dinosaur
-direc
-dir
+direct
+dirt
 disagree
 discover
 disease
@@ -111927,12 +111927,12 @@ dismiss
 disorder
 display
 distance
-diver
+divert
 divide
 divorce
 dizzy
 doctor
-documen
+document
 dog
 doll
 dolphin
@@ -111944,14 +111944,14 @@ door
 dose
 double
 dove
-draf
+draft
 dragon
 drama
 drastic
 draw
 dream
 dress
-drif
+drift
 drill
 drink
 drip
@@ -111963,7 +111963,7 @@ duck
 dumb
 dune
 during
-dus
+dust
 dutch
 duty
 dwarf
@@ -111974,24 +111974,24 @@ early
 earn
 earth
 easily
-eas
+east
 easy
 echo
 ecology
 economy
 edge
-edi
+edit
 educate
-effor
+effort
 egg
-eigh
+eight
 either
 elbow
 elder
 electric
-elegan
-elemen
-elephan
+elegant
+element
+elephant
 elevator
 elite
 else
@@ -112004,7 +112004,7 @@ employ
 empower
 empty
 enable
-enac
+enact
 end
 endless
 endorse
@@ -112015,7 +112015,7 @@ engage
 engine
 enhance
 enjoy
-enlis
+enlist
 enough
 enrich
 enroll
@@ -112032,7 +112032,7 @@ erase
 erode
 erosion
 error
-erup
+erupt
 escape
 essay
 essence
@@ -112043,7 +112043,7 @@ evidence
 evil
 evoke
 evolve
-exac
+exact
 example
 excess
 exchange
@@ -112052,14 +112052,14 @@ exclude
 excuse
 execute
 exercise
-exhaus
-exhibi
+exhaust
+exhibit
 exile
-exis
-exi
+exist
+exit
 exotic
 expand
-expec
+expect
 expire
 explain
 expose
@@ -112072,7 +112072,7 @@ fabric
 face
 faculty
 fade
-fain
+faint
 faith
 fall
 false
@@ -112084,11 +112084,11 @@ fancy
 fantasy
 farm
 fashion
-fa
+fat
 fatal
 father
 fatigue
-faul
+fault
 favorite
 feature
 february
@@ -112116,21 +112116,21 @@ finger
 finish
 fire
 firm
-firs
+first
 fiscal
 fish
-fi
+fit
 fitness
 fix
 flag
 flame
 flash
-fla
+flat
 flavor
 flee
-fligh
+flight
 flip
-floa
+float
 flock
 floor
 flower
@@ -112144,10 +112144,10 @@ foil
 fold
 follow
 food
-foo
+foot
 force
-fores
-forge
+forest
+forget
 fork
 fortune
 forum
@@ -112158,23 +112158,23 @@ found
 fox
 fragile
 frame
-frequen
+frequent
 fresh
 friend
 fringe
 frog
-fron
-fros
+front
+frost
 frown
 frozen
-frui
+fruit
 fuel
 fun
 funny
 furnace
 fury
 future
-gadge
+gadget
 gain
 galaxy
 gallery
@@ -112184,7 +112184,7 @@ garage
 garbage
 garden
 garlic
-garmen
+garment
 gas
 gasp
 gate
@@ -112197,9 +112197,9 @@ genre
 gentle
 genuine
 gesture
-ghos
-gian
-gif
+ghost
+giant
+gift
 giggle
 ginger
 giraffe
@@ -112217,7 +112217,7 @@ glory
 glove
 glow
 glue
-goa
+goat
 goddess
 gold
 good
@@ -112230,27 +112230,27 @@ gown
 grab
 grace
 grain
-gran
+grant
 grape
 grass
 gravity
-grea
+great
 green
 grid
 grief
-gri
+grit
 grocery
 group
 grow
-grun
+grunt
 guard
 guess
 guide
-guil
+guilt
 guitar
 gun
 gym
-habi
+habit
 hair
 half
 hammer
@@ -112260,26 +112260,26 @@ happy
 harbor
 hard
 harsh
-harves
-ha
+harvest
+hat
 have
 hawk
 hazard
 head
 health
-hear
+heart
 heavy
 hedgehog
-heigh
+height
 hello
-helme
+helmet
 help
 hen
 hero
 hidden
 high
 hill
-hin
+hint
 hip
 hire
 history
@@ -112297,7 +112297,7 @@ horn
 horror
 horse
 hospital
-hos
+host
 hotel
 hour
 hover
@@ -112308,10 +112308,10 @@ humble
 humor
 hundred
 hungry
-hun
+hunt
 hurdle
 hurry
-hur
+hurt
 husband
 hybrid
 ice
@@ -112327,7 +112327,7 @@ image
 imitate
 immense
 immune
-impac
+impact
 impose
 improve
 impulse
@@ -112339,28 +112339,28 @@ index
 indicate
 indoor
 industry
-infan
-inflic
+infant
+inflict
 inform
 inhale
-inheri
+inherit
 initial
-injec
+inject
 injury
 inmate
 inner
-innocen
-inpu
+innocent
+input
 inquiry
 insane
-insec
+insect
 inside
 inspire
 install
-intac
-interes
+intact
+interest
 into
-inves
+invest
 invite
 involve
 iron
@@ -112369,7 +112369,7 @@ isolate
 issue
 item
 ivory
-jacke
+jacket
 jaguar
 jar
 jazz
@@ -112388,7 +112388,7 @@ jump
 jungle
 junior
 junk
-jus
+just
 kangaroo
 keen
 keep
@@ -112400,7 +112400,7 @@ kidney
 kind
 kingdom
 kiss
-ki
+kit
 kitchen
 kite
 kitten
@@ -112426,7 +112426,7 @@ laundry
 lava
 law
 lawn
-lawsui
+lawsuit
 layer
 lazy
 leader
@@ -112434,7 +112434,7 @@ leaf
 learn
 leave
 lecture
-lef
+left
 leg
 legal
 legend
@@ -112452,15 +112452,15 @@ liberty
 library
 license
 life
-lif
-ligh
+lift
+light
 like
 limb
-limi
+limit
 link
 lion
 liquid
-lis
+list
 little
 live
 lizard
@@ -112488,7 +112488,7 @@ lyrics
 machine
 mad
 magic
-magne
+magnet
 maid
 mail
 main
@@ -112506,7 +112506,7 @@ marble
 march
 margin
 marine
-marke
+market
 marriage
 mask
 mass
@@ -112521,26 +112521,26 @@ maze
 meadow
 mean
 measure
-mea
+meat
 mechanic
 medal
 media
 melody
-mel
+melt
 member
 memory
 mention
 menu
 mercy
 merge
-meri
+merit
 merry
 mesh
 message
 metal
 method
 middle
-midnigh
+midnight
 milk
 million
 mimic
@@ -112560,7 +112560,7 @@ mobile
 model
 modify
 mom
-momen
+moment
 monitor
 monkey
 monster
@@ -112585,7 +112585,7 @@ muscle
 museum
 mushroom
 music
-mus
+must
 mutual
 myself
 mystery
@@ -112601,19 +112601,19 @@ near
 neck
 need
 negative
-neglec
+neglect
 neither
 nephew
 nerve
-nes
-ne
+nest
+net
 network
 neutral
 never
 news
-nex
+next
 nice
-nigh
+night
 noble
 noise
 nominee
@@ -112630,10 +112630,10 @@ now
 nuclear
 number
 nurse
-nu
+nut
 oak
 obey
-objec
+object
 oblige
 obscure
 observe
@@ -112652,7 +112652,7 @@ okay
 old
 olive
 olympic
-omi
+omit
 once
 one
 onion
@@ -112664,19 +112664,19 @@ opinion
 oppose
 option
 orange
-orbi
+orbit
 orchard
 order
 ordinary
 organ
-orien
+orient
 original
 orphan
 ostrich
 other
 outdoor
 outer
-outpu
+output
 outside
 oval
 oven
@@ -112686,7 +112686,7 @@ owner
 oxygen
 oyster
 ozone
-pac
+pact
 paddle
 page
 pair
@@ -112698,33 +112698,33 @@ panic
 panther
 paper
 parade
-paren
+parent
 park
-parro
+parrot
 party
 pass
 patch
 path
-patien
+patient
 patrol
 pattern
 pause
 pave
-paymen
+payment
 peace
-peanu
+peanut
 pear
-peasan
+peasant
 pelican
 pen
 penalty
 pencil
 people
 pepper
-perfec
-permi
+perfect
+permit
 person
-pe
+pet
 phone
 photo
 phrase
@@ -112736,7 +112736,7 @@ piece
 pig
 pigeon
 pill
-pilo
+pilot
 pink
 pioneer
 pipe
@@ -112744,7 +112744,7 @@ pistol
 pitch
 pizza
 place
-plane
+planet
 plastic
 plate
 play
@@ -112754,8 +112754,8 @@ pluck
 plug
 plunge
 poem
-poe
-poin
+poet
+point
 polar
 pole
 police
@@ -112766,7 +112766,7 @@ popular
 portion
 position
 possible
-pos
+post
 potato
 pottery
 poverty
@@ -112774,16 +112774,16 @@ powder
 power
 practice
 praise
-predic
+predict
 prefer
 prepare
-presen
+present
 pretty
-preven
+prevent
 price
 pride
 primary
-prin
+print
 priority
 prison
 private
@@ -112791,14 +112791,14 @@ prize
 problem
 process
 produce
-profi
+profit
 program
-projec
+project
 promote
 proof
 property
 prosper
-protec
+protect
 proud
 provide
 public
@@ -112815,7 +112815,7 @@ purity
 purpose
 purse
 push
-pu
+put
 puzzle
 pyramid
 quality
@@ -112823,10 +112823,10 @@ quantum
 quarter
 question
 quick
-qui
+quit
 quiz
 quote
-rabbi
+rabbit
 raccoon
 race
 rack
@@ -112858,13 +112858,13 @@ recipe
 record
 recycle
 reduce
-reflec
+reflect
 reform
 refuse
 region
-regre
+regret
 regular
-rejec
+reject
 relax
 release
 relief
@@ -112875,21 +112875,21 @@ remind
 remove
 render
 renew
-ren
+rent
 reopen
 repair
-repea
+repeat
 replace
-repor
+report
 require
 rescue
 resemble
-resis
+resist
 resource
 response
-resul
+result
 retire
-retrea
+retreat
 return
 reunion
 reveal
@@ -112903,20 +112903,20 @@ rich
 ride
 ridge
 rifle
-righ
+right
 rigid
 ring
-rio
+riot
 ripple
 risk
 ritual
 rival
 river
 road
-roas
-robo
-robus
-rocke
+roast
+robot
+robust
+rocket
 romance
 roof
 rookie
@@ -112942,7 +112942,7 @@ sail
 salad
 salmon
 salon
-sal
+salt
 salute
 same
 sample
@@ -112963,23 +112963,23 @@ school
 science
 scissors
 scorpion
-scou
+scout
 scrap
 screen
-scrip
+script
 scrub
 sea
 search
 season
-sea
+seat
 second
-secre
+secret
 section
 security
 seed
 seek
-segmen
-selec
+segment
+select
 sell
 seminar
 senior
@@ -112992,22 +112992,22 @@ settle
 setup
 seven
 shadow
-shaf
+shaft
 shallow
 share
 shed
 shell
 sheriff
 shield
-shif
+shift
 shine
 ship
 shiver
 shock
 shoe
-shoo
+shoot
 shop
-shor
+short
 shoulder
 shove
 shrimp
@@ -113018,9 +113018,9 @@ sibling
 sick
 side
 siege
-sigh
+sight
 sign
-silen
+silent
 silk
 silly
 silver
@@ -113038,7 +113038,7 @@ sketch
 ski
 skill
 skin
-skir
+skirt
 skull
 slab
 slam
@@ -113046,14 +113046,14 @@ sleep
 slender
 slice
 slide
-sligh
+slight
 slim
 slogan
-slo
+slot
 slow
 slush
 small
-smar
+smart
 smile
 smoke
 smooth
@@ -113067,7 +113067,7 @@ soccer
 social
 sock
 soda
-sof
+soft
 solar
 soldier
 solid
@@ -113077,7 +113077,7 @@ someone
 song
 soon
 sorry
-sor
+sort
 soul
 sound
 soup
@@ -113097,13 +113097,13 @@ spice
 spider
 spike
 spin
-spiri
-spli
+spirit
+split
 spoil
 sponsor
 spoon
-spor
-spo
+sport
+spot
 spray
 spread
 spring
@@ -113118,7 +113118,7 @@ stage
 stairs
 stamp
 stand
-star
+start
 state
 stay
 steak
@@ -113136,28 +113136,28 @@ stool
 story
 stove
 strategy
-stree
+street
 strike
 strong
 struggle
-studen
+student
 stuff
 stumble
 style
-subjec
-submi
+subject
+submit
 subway
 success
 such
 sudden
 suffer
 sugar
-sugges
-sui
+suggest
+suit
 summer
 sun
 sunny
-sunse
+sunset
 super
 supply
 supreme
@@ -113167,15 +113167,15 @@ surge
 surprise
 surround
 survey
-suspec
+suspect
 sustain
 swallow
 swamp
 swap
 swarm
 swear
-swee
-swif
+sweet
+swift
 swim
 swing
 switch
@@ -113188,11 +113188,11 @@ table
 tackle
 tag
 tail
-talen
+talent
 talk
 tank
 tape
-targe
+target
 task
 taste
 tattoo
@@ -113201,14 +113201,14 @@ teach
 team
 tell
 ten
-tenan
+tenant
 tennis
-ten
+tent
 term
-tes
-tex
+test
+text
 thank
-tha
+that
 theme
 then
 theory
@@ -113216,16 +113216,16 @@ there
 they
 thing
 this
-though
+thought
 three
 thrive
 throw
 thumb
 thunder
-ticke
+ticket
 tide
 tiger
-til
+tilt
 timber
 time
 tiny
@@ -113233,19 +113233,19 @@ tip
 tired
 tissue
 title
-toas
+toast
 tobacco
 today
 toddler
 toe
 together
-toile
+toilet
 token
 tomato
 tomorrow
 tone
 tongue
-tonigh
+tonight
 tool
 tooth
 top
@@ -113256,7 +113256,7 @@ tornado
 tortoise
 toss
 total
-touris
+tourist
 toward
 tower
 town
@@ -113271,7 +113271,7 @@ trap
 trash
 travel
 tray
-trea
+treat
 tree
 trend
 trial
@@ -113285,8 +113285,8 @@ trouble
 truck
 true
 truly
-trumpe
-trus
+trumpet
+trust
 truth
 try
 tube
@@ -113301,7 +113301,7 @@ twelve
 twenty
 twice
 twin
-twis
+twist
 two
 type
 typical
@@ -113318,7 +113318,7 @@ unfold
 unhappy
 uniform
 unique
-uni
+unit
 universe
 unknown
 unlock
@@ -113330,7 +113330,7 @@ upgrade
 uphold
 upon
 upper
-upse
+upset
 urban
 urge
 usage
@@ -113340,7 +113340,7 @@ useful
 useless
 usual
 utility
-vacan
+vacant
 vacuum
 vague
 valid
@@ -113350,10 +113350,10 @@ van
 vanish
 vapor
 various
-vas
-vaul
+vast
+vault
 vehicle
-velve
+velvet
 vendor
 venture
 venue
@@ -113364,7 +113364,7 @@ very
 vessel
 veteran
 viable
-vibran
+vibrant
 vicious
 victory
 video
@@ -113375,7 +113375,7 @@ violin
 virtual
 virus
 visa
-visi
+visit
 visual
 vital
 vivid
@@ -113388,11 +113388,11 @@ vote
 voyage
 wage
 wagon
-wai
+wait
 walk
 wall
-walnu
-wan
+walnut
+want
 warfare
 warm
 warrior
@@ -113412,11 +113412,11 @@ wedding
 weekend
 weird
 welcome
-wes
-we
+west
+wet
 whale
-wha
-whea
+what
+wheat
 wheel
 when
 where
@@ -113452,7 +113452,7 @@ worth
 wrap
 wreck
 wrestle
-wris
+wrist
 write
 wrong
 yard
@@ -113480,7 +113480,7 @@ abrasif
 abreuver
 abriter
 abroger
-abrup
+abrupt
 absence
 absolu
 absurde
@@ -113496,7 +113496,7 @@ accolade
 accroche
 accuser
 acerbe
-acha
+achat
 acheter
 aciduler
 acier
@@ -113507,7 +113507,7 @@ acteur
 actif
 actuel
 adepte
-ade\u0301qua
+ade\u0301quat
 adhe\u0301sif
 adjectif
 adjuger
@@ -113517,7 +113517,7 @@ adopter
 adorer
 adoucir
 adresse
-adroi
+adroit
 adulte
 adverbe
 ae\u0301rer
@@ -113547,7 +113547,7 @@ alerte
 alge\u0300bre
 algue
 alie\u0301ner
-alimen
+aliment
 alle\u0301ger
 alliage
 allouer
@@ -113568,7 +113568,7 @@ amour
 amovible
 amphibie
 ampleur
-amusan
+amusant
 analyse
 anaphore
 anarchie
@@ -113603,10 +113603,10 @@ arbitre
 arbuste
 ardeur
 ardoise
-argen
+argent
 arlequin
 armature
-armemen
+armement
 armoire
 armure
 arpenter
@@ -113616,15 +113616,15 @@ arroser
 arsenic
 arte\u0301riel
 article
-aspec
+aspect
 asphalte
 aspirer
-assau
+assaut
 asservir
 assiette
 associer
 assurer
-astico
+asticot
 astre
 astuce
 atelier
@@ -113708,7 +113708,7 @@ binaire
 biologie
 biopsie
 biotype
-biscui
+biscuit
 bison
 bistouri
 bitume
@@ -113716,7 +113716,7 @@ bizarre
 blafard
 blague
 blanchir
-blessan
+blessant
 blinder
 blond
 bloquer
@@ -113751,7 +113751,7 @@ bre\u0300che
 breuvage
 bricoler
 brigade
-brillan
+brillant
 brioche
 brique
 brochure
@@ -113762,7 +113762,7 @@ broyeur
 brume
 brusque
 brutal
-bruyan
+bruyant
 buffle
 buisson
 bulletin
@@ -113852,9 +113852,9 @@ chien
 chiffre
 chignon
 chime\u0300re
-chio
+chiot
 chlorure
-chocola
+chocolat
 choisir
 chose
 chouette
@@ -113877,14 +113877,14 @@ clameur
 claquer
 classe
 clavier
-clien
+client
 cligner
-clima
+climat
 clivage
 cloche
 clonage
 cloporte
-cobal
+cobalt
 cobra
 cocasse
 cocotier
@@ -113900,17 +113900,17 @@ colibri
 colline
 colmater
 colonel
-comba
+combat
 come\u0301die
 commande
-compac
-concer
+compact
+concert
 conduire
 confier
 congeler
 connoter
 consonne
-contac
+contact
 convexe
 copain
 copie
@@ -113919,7 +113919,7 @@ corbeau
 cordage
 corniche
 corpus
-correc
+correct
 corte\u0300ge
 cosmique
 costume
@@ -113973,7 +113973,7 @@ de\u0301battre
 de\u0301biter
 de\u0301border
 de\u0301brider
-de\u0301butan
+de\u0301butant
 de\u0301caler
 de\u0301cembre
 de\u0301chirer
@@ -114002,7 +114002,7 @@ de\u0301nicher
 de\u0301nouer
 dentelle
 de\u0301nuder
-de\u0301par
+de\u0301part
 de\u0301penser
 de\u0301phaser
 de\u0301placer
@@ -114011,7 +114011,7 @@ de\u0301ranger
 de\u0301rober
 de\u0301sastre
 descente
-de\u0301ser
+de\u0301sert
 de\u0301signer
 de\u0301sobe\u0301ir
 dessiner
@@ -114026,7 +114026,7 @@ deviner
 devoir
 diable
 dialogue
-diaman
+diamant
 dicter
 diffe\u0301rer
 dige\u0301rer
@@ -114047,7 +114047,7 @@ diviser
 docile
 docteur
 dogme
-doig
+doigt
 domaine
 domicile
 dompter
@@ -114099,7 +114099,7 @@ e\u0301duquer
 effacer
 effectif
 effigie
-effor
+effort
 effrayer
 effusion
 e\u0301galiser
@@ -114108,8 +114108,8 @@ e\u0301jecter
 e\u0301laborer
 e\u0301largir
 e\u0301lectron
-e\u0301le\u0301gan
-e\u0301le\u0301phan
+e\u0301le\u0301gant
+e\u0301le\u0301phant
 e\u0301le\u0300ve
 e\u0301ligible
 e\u0301litisme
@@ -114135,7 +114135,7 @@ enclave
 encoche
 endiguer
 endosser
-endroi
+endroit
 enduire
 e\u0301nergie
 enfance
@@ -114166,7 +114166,7 @@ enzyme
 e\u0301olien
 e\u0301paissir
 e\u0301pargne
-e\u0301patan
+e\u0301patant
 e\u0301paule
 e\u0301picerie
 e\u0301pide\u0301mie
@@ -114178,7 +114178,7 @@ e\u0301pitaphe
 e\u0301poque
 e\u0301preuve
 e\u0301prouver
-e\u0301puisan
+e\u0301puisant
 e\u0301querre
 e\u0301quipe
 e\u0301riger
@@ -114190,7 +114190,7 @@ espadon
 espe\u0300ce
 espie\u0300gle
 espoir
-espri
+esprit
 esquiver
 essayer
 essence
@@ -114212,10 +114212,10 @@ ethnie
 e\u0301tirer
 e\u0301toffer
 e\u0301toile
-e\u0301tonnan
+e\u0301tonnant
 e\u0301tourdir
 e\u0301trange
-e\u0301troi
+e\u0301troit
 e\u0301tude
 euphorie
 e\u0301valuer
@@ -114225,11 +114225,11 @@ e\u0301vidence
 e\u0301viter
 e\u0301volutif
 e\u0301voquer
-exac
+exact
 exage\u0301rer
 exaucer
 exceller
-excitan
+excitant
 exclusif
 excuse
 exe\u0301cuter
@@ -114348,7 +114348,7 @@ froid
 fromage
 frontal
 frotter
-frui
+fruit
 fugitif
 fuite
 fureur
@@ -114366,7 +114366,7 @@ garnir
 garrigue
 gazelle
 gazon
-ge\u0301an
+ge\u0301ant
 ge\u0301latine
 ge\u0301lule
 gendarme
@@ -114397,7 +114397,7 @@ gorge
 gorille
 goudron
 gouffre
-goulo
+goulot
 goupille
 gourmand
 goutte
@@ -114406,9 +114406,9 @@ graffiti
 graine
 grand
 grappin
-gratui
+gratuit
 gravir
-grena
+grenat
 griffure
 griller
 grimper
@@ -114426,14 +114426,14 @@ guimauve
 guitare
 gustatif
 gymnaste
-gyrosta
+gyrostat
 habitude
 hachoir
 halte
 hameau
 hangar
 hanneton
-harico
+haricot
 harmonie
 harpon
 hasard
@@ -114447,7 +114447,7 @@ he\u0301siter
 heureux
 hiberner
 hibou
-hilaran
+hilarant
 histoire
 hiver
 homard
@@ -114463,7 +114463,7 @@ hormone
 horrible
 houleux
 housse
-hublo
+hublot
 huileux
 humain
 humble
@@ -114485,7 +114485,7 @@ imiter
 immense
 immobile
 immuable
-impac
+impact
 impe\u0301rial
 implorer
 imposer
@@ -114493,15 +114493,15 @@ imprimer
 imputer
 incarner
 incendie
-inciden
+incident
 incliner
 incolore
 indexer
 indice
 inductif
-ine\u0301di
+ine\u0301dit
 ineptie
-inexac
+inexact
 infini
 infliger
 informer
@@ -114511,7 +114511,7 @@ inhaler
 inhiber
 injecter
 injure
-innocen
+innocent
 inoculer
 inonder
 inscrire
@@ -114519,9 +114519,9 @@ insecte
 insigne
 insolite
 inspirer
-instinc
+instinct
 insulter
-intac
+intact
 intense
 intime
 intrigue
@@ -114545,7 +114545,7 @@ janvier
 jardin
 jauger
 jaune
-javelo
+javelot
 jetable
 jeton
 jeudi
@@ -114560,7 +114560,7 @@ jovial
 joyau
 joyeux
 jubiler
-jugemen
+jugement
 junior
 jupon
 juriste
@@ -114615,7 +114615,7 @@ limite
 limonade
 limpide
 line\u0301aire
-lingo
+lingot
 lionceau
 liquide
 lisie\u0300re
@@ -114639,7 +114639,7 @@ lucide
 lucratif
 lueur
 lugubre
-luisan
+luisant
 lumie\u0300re
 lunaire
 lundi
@@ -114664,7 +114664,7 @@ mallette
 mammouth
 mandater
 maniable
-manquan
+manquant
 manteau
 manuel
 marathon
@@ -114684,7 +114684,7 @@ maudire
 maussade
 mauve
 maximal
-me\u0301chan
+me\u0301chant
 me\u0301connu
 me\u0301daille
 me\u0301decin
@@ -114736,7 +114736,7 @@ monnaie
 monotone
 monstre
 montagne
-monumen
+monument
 moqueur
 morceau
 morsure
@@ -114748,7 +114748,7 @@ moufle
 moulin
 mousson
 mouton
-mouvan
+mouvant
 multiple
 munition
 muraille
@@ -114831,7 +114831,7 @@ octroyer
 octupler
 oculaire
 odeur
-odoran
+odorant
 offenser
 officier
 offrir
@@ -114862,7 +114862,7 @@ oreille
 organe
 orgueil
 orifice
-ornemen
+ornement
 orque
 ortie
 osciller
@@ -114937,7 +114937,7 @@ persil
 perte
 peser
 pe\u0301tale
-peti
+petit
 pe\u0301trir
 peuple
 pharaon
@@ -115051,7 +115051,7 @@ querelle
 question
 quie\u0301tude
 quitter
-quotien
+quotient
 racine
 raconter
 radieux
@@ -115102,7 +115102,7 @@ remonter
 remplir
 remuer
 renard
-renfor
+renfort
 renifler
 renoncer
 rentrer
@@ -115115,9 +115115,9 @@ requin
 re\u0301serve
 re\u0301sineux
 re\u0301soudre
-respec
+respect
 rester
-re\u0301sulta
+re\u0301sultat
 re\u0301tablir
 retenir
 re\u0301ticule
@@ -115187,11 +115187,11 @@ saugrenu
 saumon
 sauter
 sauvage
-savan
+savant
 savonner
 scalpel
 scandale
-sce\u0301le\u0301ra
+sce\u0301le\u0301rat
 sce\u0301nario
 sceptre
 sche\u0301ma
@@ -115220,7 +115220,7 @@ sentence
 se\u0301parer
 se\u0301quence
 serein
-sergen
+sergent
 se\u0301rieux
 serrure
 se\u0301rum
@@ -115249,7 +115249,7 @@ social
 socle
 sodium
 soigneux
-solda
+soldat
 soleil
 solitude
 soluble
@@ -115282,12 +115282,12 @@ station
 sternum
 stimulus
 stipuler
-stric
+strict
 studieux
 stupeur
 styliste
 sublime
-substra
+substrat
 subtil
 subvenir
 succe\u0300s
@@ -115302,9 +115302,9 @@ surface
 suricate
 surmener
 surprise
-sursau
+sursaut
 survie
-suspec
+suspect
 syllabe
 symbole
 syme\u0301trie
@@ -115315,7 +115315,7 @@ tabac
 tablier
 tactile
 tailler
-talen
+talent
 talisman
 talonner
 tambour
@@ -115358,7 +115358,7 @@ titane
 titre
 tituber
 toboggan
-tole\u0301ran
+tole\u0301rant
 tomate
 tonique
 tonneau
@@ -115367,7 +115367,7 @@ torche
 tordre
 tornade
 torpille
-torren
+torrent
 torse
 tortue
 totem
@@ -115421,7 +115421,7 @@ unitaire
 univers
 uranium
 urbain
-urtican
+urticant
 usage
 usine
 usuel
@@ -115432,7 +115432,7 @@ vacarme
 vaccin
 vagabond
 vague
-vaillan
+vaillant
 vaincre
 vaisseau
 valable
@@ -115466,7 +115466,7 @@ vertu
 veston
 ve\u0301te\u0301ran
 ve\u0301tuste
-vexan
+vexant
 vexer
 viaduc
 viande
@@ -115480,7 +115480,7 @@ village
 vinaigre
 violon
 vipe\u0300re
-viremen
+virement
 virtuose
 virus
 visage
@@ -115511,7 +115511,7 @@ voyage
 voyelle
 wagon
 xe\u0301non
-yach
+yacht
 ze\u0300bre
 ze\u0301nith
 zeste
@@ -116719,7 +116719,7 @@ ottagono
 ottimo
 ottobre
 ovale
-oves
+ovest
 ovino
 oviparo
 ovocito
@@ -126856,7 +126856,7 @@ malla
 malo
 mama\u0301
 mambo
-mamu
+mamut
 manco
 mando
 manejar
@@ -127582,7 +127582,7 @@ tarde
 tarea
 tarifa
 tarjeta
-taro
+tarot
 tarro
 tarta
 tatuaje
@@ -130031,7 +130031,7 @@ var KitError2 = class extends Error {
       // not dump a `[Symbol(circle.KitError)]: true` line into operator
       // logs, but observable to anyone holding `KIT_ERROR_BRAND`. The
       // symbol is registered (`Symbol.for`) so distinct `dist/*` copies
-      // of `@core/errors` resolve to the same identity, which is wha
+      // of `@core/errors` resolve to the same identity, which is what
       // makes the brand a cross-bundle-safe replacement for the
       // `instanceof KitError` check used previously.
       [KIT_ERROR_BRAND2]: {
@@ -134354,7 +134354,7 @@ var ActionRegistry = class {
   * @throws TypeError When handler parameter is not a function.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { ActionRegistry } from '@core/adapter'
   * import type { ActionHandler } from '@core/adapter'
   *
@@ -134398,7 +134398,7 @@ var ActionRegistry = class {
   * @throws {Error} When any individual handler registration fails.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { ActionRegistry } from '@core/adapter'
   * import type { ActionHandler, ActionHandlers } from '@core/adapter'
   *
@@ -134445,7 +134445,7 @@ var ActionRegistry = class {
   * @throws {Error} When action parameter is not a valid string.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { ActionRegistry } from '@core/adapter'
   *
   * const registry = new ActionRegistry()
@@ -134457,7 +134457,7 @@ var ActionRegistry = class {
   *   console.log('Token approval not available')
   * }
   *
-  * // Conditional logic based on suppor
+  * // Conditional logic based on support
   * const action = 'cctp.v2.depositForBurn'
   * if (registry.supportsAction(action)) {
   *   // Safe to execute
@@ -134491,7 +134491,7 @@ var ActionRegistry = class {
   * @throws {Error} When the handler execution fails with an unstructured error.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { ActionRegistry } from '@core/adapter'
   * import type { ChainEnum } from '@core/chains'
   *
@@ -134647,7 +134647,7 @@ var Adapter = class {
   * type safety in bridge operations.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * // User-controlled adapter (private key, browser wallet)
   * capabilities = {
   *   addressContext: 'user-controlled', // Address implicit in bridge operations
@@ -134683,8 +134683,8 @@ var Adapter = class {
   *
   * **Compile-time Address Validation**: When used with typed adapters that have capabilities,
   * this method enforces address requirements at compile time:
-  * - **User-controlled adapters**: The `address` field is forbidden in the contex
-  * - **Developer-controlled adapters**: The `address` field is required in the contex
+  * - **User-controlled adapters**: The `address` field is forbidden in the context
+  * - **Developer-controlled adapters**: The `address` field is required in the context
   * - **Legacy adapters**: The `address` field remains optional for backward compatibility
   *
   * @remarks
@@ -134701,7 +134701,7 @@ var Adapter = class {
   * @throws Error If the operation context cannot be resolved.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * // User-controlled adapter (address forbidden)
   * const userAdapter: Adapter<{ addressContext: 'user-controlled', supportedChains: [] }>
   * await userAdapter.prepareAction('token.approve', params, {
@@ -134739,7 +134739,7 @@ var Adapter = class {
   * @throws Error When the operation context or action handler fails.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { Ethereum } from '@core/chains'
   *
   * const balance = await adapter.readAction(
@@ -134774,7 +134774,7 @@ var Adapter = class {
   * @throws Error When the operation context or action handler fails.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import type { Adapter } from '@core/adapter'
   * import { Ethereum } from '@core/chains'
   *
@@ -134799,7 +134799,7 @@ var Adapter = class {
   * This method provides a unified interface for establishing chain preconditions across different adapter types.
   * The behavior varies based on the adapter's capabilities:
   * - **Private key adapters**: Recreate clients with new RPC endpoints
-  * - **Browser wallet adapters**: Request chain switch via EIP-1193 or equivalen
+  * - **Browser wallet adapters**: Request chain switch via EIP-1193 or equivalent
   * - **Multi-entity adapters**: Validate chain support (operations are contextual)
   *
   * @param chain - The target chain for operations.
@@ -134812,7 +134812,7 @@ var Adapter = class {
   * gracefully handle switching to the current chain, private key adapters recreate lightweight clients).
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * // Private key adapter - switches chains seamlessly
   * await privateKeyAdapter.ensureChain(Base)
   *
@@ -143048,7 +143048,7 @@ var transfer$3 = async (params2, adapter2, context) => {
   return adapter2.prepare({
     type: "evm",
     address: to2,
-    value: amoun
+    value: amount
   }, context);
 };
 var balanceOf$2 = async (params2, adapter2, context) => {
@@ -143250,7 +143250,7 @@ var approve = async (params2, adapter2, context) => {
     functionName: "approve",
     args: [
       delegate,
-      amoun
+      amount
     ]
   }, context);
 };
@@ -143269,7 +143269,7 @@ var transfer$2 = async (params2, adapter2, context) => {
     functionName: "transfer",
     args: [
       params2.to,
-      params2.amoun
+      params2.amount
     ]
   }, context);
 };
@@ -143286,7 +143286,7 @@ var increaseAllowance = async (params2, adapter2, context) => {
     functionName: "increaseAllowance",
     args: [
       delegate,
-      amoun
+      amount
     ]
   }, context);
 };
@@ -143341,7 +143341,7 @@ var transfer$1 = async (params2, adapter2, context) => {
   return transfer$2({
     tokenAddress,
     to: params2.to,
-    amount: params2.amoun
+    amount: params2.amount
   }, adapter2, context);
 };
 var transfer = async (params2, adapter2, context) => {
@@ -143357,7 +143357,7 @@ var transfer = async (params2, adapter2, context) => {
   return transfer$2({
     tokenAddress,
     to: params2.to,
-    amount: params2.amoun
+    amount: params2.amount
   }, adapter2, context);
 };
 var getHandlers = (adapter2) => {
@@ -143537,7 +143537,7 @@ var getHandlers = (adapter2) => {
     * Handler for earn claim rewards execution on EVM chains.
     *
     * Forwards the earn service's signed `executeParams` and `signature` to the
-    * on-chain adapter contract's `execute` function. Claim rewards does no
+    * on-chain adapter contract's `execute` function. Claim rewards does not
     * require approvals because the adapter does not pull user tokens.
     */
     "earn.claimRewards": async (params2, context) => {
@@ -143546,7 +143546,7 @@ var getHandlers = (adapter2) => {
     /**
     * Handler for CCTP v2 custom burn with hook operations on EVM chains.
     *
-    * Burns USDC tokens using a custom bridge contract with hook data tha
+    * Burns USDC tokens using a custom bridge contract with hook data that
     * signals to Circle's Orbit relayer that forwarding is requested.
     * Combines the custom bridge functionality (preapproval/permit) with
     * automated attestation and destination mint execution.
@@ -143717,7 +143717,7 @@ var EvmAdapter = class extends Adapter {
   /**
   * Fetches the current EIP-2612 nonce for a token owner.
   *
-  * This method queries the token contract's `nonces(address)` function to ge
+  * This method queries the token contract's `nonces(address)` function to get
   * the current nonce value for permit signatures. It uses the adapter's `prepare`
   * method to handle the contract interaction, making it framework-agnostic.
   *
@@ -143727,7 +143727,7 @@ var EvmAdapter = class extends Adapter {
   * @throws Error when the contract call fails or the token doesn't support EIP-2612
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * // Get current nonce for permit signing
   * const nonce = await adapter.fetchEIP2612Nonce(
   *   '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC
@@ -143767,7 +143767,7 @@ var EvmAdapter = class extends Adapter {
   * @throws Error when gas price retrieval fails.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { ViemAdapter } from '@circle-fin/adapter-viem-v2'
   * import { Ethereum } from '@core/chains'
   *
@@ -144264,7 +144264,7 @@ function adaptUnifiedMiddleware(unified) {
       ctx,
       name: ctx.name,
       state: void 0,
-      nex
+      next
     };
     return unified.middleware(context);
   };
@@ -144413,7 +144413,7 @@ function validateDecimals2(decimals, context) {
   if (!Number.isInteger(decimals) || decimals < 0 || decimals > MAX_DECIMALS2) {
     throw createAmountError2("INVALID_DECIMALS", `${context}: decimals must be an integer between 0 and ${String(MAX_DECIMALS2)}, got ${String(decimals)}`, {
       decimals,
-      contex
+      context
     });
   }
 }
@@ -144440,7 +144440,7 @@ function parse4(input, options, ctx) {
   const str2 = typeof input === "number" ? input.toString() : input;
   if (typeof str2 !== "string" || str2.trim() === "") {
     throw createAmountError2("PARSE_ERROR", `${ctx}: input must be a non-empty string or number`, {
-      inpu
+      input
     });
   }
   let normalized = str2.trim();
@@ -144448,7 +144448,7 @@ function parse4(input, options, ctx) {
   if (isNegative) {
     if (!allowNegative) {
       throw createAmountError2("NEGATIVE_NOT_ALLOWED", `${ctx}: negative values not allowed`, {
-        inpu
+        input
       });
     }
     normalized = normalized.slice(1);
@@ -144459,7 +144459,7 @@ function parse4(input, options, ctx) {
   const parts = normalized.split(".");
   if (parts.length > 2) {
     throw createAmountError2("PARSE_ERROR", `${ctx}: invalid number format (multiple decimal points)`, {
-      inpu
+      input
     });
   }
   let integerPart = parts[0] ?? "";
@@ -144469,7 +144469,7 @@ function parse4(input, options, ctx) {
   }
   if (!/^\d+$/.test(integerPart) || decimalPart && !/^\d+$/.test(decimalPart)) {
     throw createAmountError2("PARSE_ERROR", `${ctx}: input contains non-numeric characters`, {
-      inpu
+      input
     });
   }
   const truncatedDecimal = decimalPart.slice(0, decimals).padEnd(decimals, "0");
@@ -144650,7 +144650,7 @@ var Amount2 = class _Amount {
   * @throws KitError If raw is not a bigint or decimals is invalid.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * // Get decimals from token registry
   * const amount = Amount.of(1_000_000n, { decimals: 6 })
   * ```
@@ -144673,7 +144673,7 @@ var Amount2 = class _Amount {
   * @throws KitError If input is invalid or parsing fails.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const amount = Amount.parse('100.50', { decimals: 6 })
   * ```
   */
@@ -144695,8 +144695,8 @@ var Amount2 = class _Amount {
   * For such values, provide a `string` representation instead.
   *
   * @example
-  * ```typescrip
-  * Amount.from(1_000_000n, { decimals: 6 })  // from bigin
+  * ```typescript
+  * Amount.from(1_000_000n, { decimals: 6 })  // from bigint
   * Amount.from('1.00', { decimals: 6 })      // from string
   * Amount.from(existingAmount)               // pass-through
   * ```
@@ -144712,7 +144712,7 @@ var Amount2 = class _Amount {
     }
     if (config === void 0) {
       throw createAmountError2("INVALID_INPUT", "Amount.from: config with decimals is required for non-Amount inputs", {
-        inpu
+        input
       });
     }
     if (typeof input === "bigint") {
@@ -144727,7 +144727,7 @@ var Amount2 = class _Amount {
   * @returns A zero Amount instance.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const zero = Amount.zero({ decimals: 6 })
   * ```
   */
@@ -144741,7 +144741,7 @@ var Amount2 = class _Amount {
   * @returns True if the value has Amount shape (raw: bigint, decimals: number).
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * Amount.isAmount({ raw: 1000000n, decimals: 6 }) // true
   * Amount.isAmount({ value: 100 })                 // false
   * ```
@@ -144757,7 +144757,7 @@ var Amount2 = class _Amount {
   * @throws KitError If amounts array is empty or decimals don't match.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const fee1 = Amount.parse('0.10', { decimals: 6 })
   * const fee2 = Amount.parse('0.25', { decimals: 6 })
   * const fee3 = Amount.parse('0.15', { decimals: 6 })
@@ -144793,7 +144793,7 @@ var Amount2 = class _Amount {
   * @throws KitError If the JSON structure is invalid.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const json = JSON.parse('{"raw":"1500000","decimals":6}')
   * const amount = Amount.fromJSON(json)
   * ```
@@ -144820,7 +144820,7 @@ var Amount2 = class _Amount {
   * @throws KitError If amounts have different decimals.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.5', { decimals: 6 })
   * const b = Amount.parse('2.0', { decimals: 6 })
   * a.compare(b) // -1
@@ -144837,7 +144837,7 @@ var Amount2 = class _Amount {
   * @throws KitError If amounts have different decimals.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.5', { decimals: 6 })
   * const b = Amount.parse('1.5', { decimals: 6 })
   * a.eq(b) // true
@@ -144854,7 +144854,7 @@ var Amount2 = class _Amount {
   * @throws KitError If amounts have different decimals.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.0', { decimals: 6 })
   * const b = Amount.parse('2.0', { decimals: 6 })
   * a.lt(b) // true
@@ -144871,7 +144871,7 @@ var Amount2 = class _Amount {
   * @throws KitError If amounts have different decimals.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.5', { decimals: 6 })
   * const b = Amount.parse('1.5', { decimals: 6 })
   * a.lte(b) // true
@@ -144888,7 +144888,7 @@ var Amount2 = class _Amount {
   * @throws KitError If amounts have different decimals.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('2.0', { decimals: 6 })
   * const b = Amount.parse('1.0', { decimals: 6 })
   * a.gt(b) // true
@@ -144905,7 +144905,7 @@ var Amount2 = class _Amount {
   * @throws KitError If amounts have different decimals.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('2.0', { decimals: 6 })
   * const b = Amount.parse('2.0', { decimals: 6 })
   * a.gte(b) // true
@@ -144922,7 +144922,7 @@ var Amount2 = class _Amount {
   * @throws KitError If amounts have different decimals.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.0', { decimals: 6 })
   * const b = Amount.parse('2.0', { decimals: 6 })
   * a.min(b).toString() // "1"
@@ -144939,7 +144939,7 @@ var Amount2 = class _Amount {
   * @throws KitError If amounts have different decimals.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.0', { decimals: 6 })
   * const b = Amount.parse('2.0', { decimals: 6 })
   * a.max(b).toString() // "2"
@@ -144959,7 +144959,7 @@ var Amount2 = class _Amount {
   * @throws KitError If amounts have different decimals.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.5', { decimals: 6 })
   * const b = Amount.parse('0.5', { decimals: 6 })
   * a.add(b).toString() // "2"
@@ -144977,7 +144977,7 @@ var Amount2 = class _Amount {
   * @throws KitError If amounts have different decimals.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('2.0', { decimals: 6 })
   * const b = Amount.parse('0.5', { decimals: 6 })
   * a.sub(b).toString() // "1.5"
@@ -144999,7 +144999,7 @@ var Amount2 = class _Amount {
   * high-precision calculations, provide the multiplier as a `bigint`.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.5', { decimals: 6 })
   * a.mul(2n).toString() // "3"
   * a.mul(3).toString()  // "4.5"
@@ -145022,7 +145022,7 @@ var Amount2 = class _Amount {
   * high-precision calculations, provide the divisor as a `bigint`.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('6.0', { decimals: 6 })
   * a.div(2n).toString() // "3"
   * a.div(4).toString()  // "1.5"
@@ -145038,7 +145038,7 @@ var Amount2 = class _Amount {
   * @returns A new Amount with the absolute value.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.of(-1_500_000n, { decimals: 6 })
   * a.abs().toString() // "1.5"
   * ```
@@ -145053,7 +145053,7 @@ var Amount2 = class _Amount {
   * @returns A new Amount with the negated value.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.5', { decimals: 6 })
   * a.neg().raw // -1_500_000n
   * ```
@@ -145071,7 +145071,7 @@ var Amount2 = class _Amount {
   * @returns True if the raw value is 0n.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * Amount.zero({ decimals: 6 }).isZero() // true
   * Amount.parse('0.001', { decimals: 6 }).isZero() // false
   * ```
@@ -145085,7 +145085,7 @@ var Amount2 = class _Amount {
   * @returns True if the raw value is greater than 0n.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * Amount.parse('1.0', { decimals: 6 }).isPositive() // true
   * Amount.zero({ decimals: 6 }).isPositive() // false
   * ```
@@ -145099,7 +145099,7 @@ var Amount2 = class _Amount {
   * @returns True if the raw value is less than 0n.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * Amount.of(-1_000_000n, { decimals: 6 }).isNegative() // true
   * Amount.parse('1.0', { decimals: 6 }).isNegative() // false
   * ```
@@ -145118,7 +145118,7 @@ var Amount2 = class _Amount {
   * @throws KitError If newDecimals is invalid.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * // Scale up: 6 decimals → 18 decimals
   * const usdc = Amount.parse('1.5', { decimals: 6 })
   * const scaled = usdc.toDecimals(18)
@@ -145146,7 +145146,7 @@ var Amount2 = class _Amount {
   * @returns A formatted string (e.g., "1,000.50").
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1000.5', { decimals: 6 })
   * a.formatted()                              // "1,000.5"
   * a.formatted({ minimumFractionDigits: 2 }) // "1,000.50"
@@ -145163,12 +145163,12 @@ var Amount2 = class _Amount {
   *
   * @remarks
   * For display with a token symbol, combine with the token registry:
-  * ```typescrip
+  * ```typescript
   * `${amount.toString()} ${token.symbol}`
   * ```
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.5', { decimals: 6 })
   * a.toString() // "1.5"
   * ```
@@ -145182,7 +145182,7 @@ var Amount2 = class _Amount {
   * @returns An object with raw (as string), decimals, and formatted value.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const a = Amount.parse('1.5', { decimals: 6 })
   * a.toJSON()
   * // { raw: "1500000", decimals: 6, formatted: "1.5" }
@@ -145209,7 +145209,7 @@ async function resolveContexts(operation, adapterCtx, options) {
   return Object.freeze({
     invocation,
     operation: operationCtx,
-    actionContex
+    actionContext
   });
 }
 var NOOP_CONFIRMATION = Object.freeze({
@@ -145909,7 +145909,7 @@ var swapTokenRecipientSchema = external_exports.object({
 }).strict();
 var MAX_SWAP_INSTRUCTIONS = 64;
 var swapExecuteParamsSchema = external_exports.object({
-  // A swap with zero instructions is a no-op on-chain — reject early a
+  // A swap with zero instructions is a no-op on-chain — reject early at
   // the schema layer rather than letting it surface as a confusing revert.
   instructions: external_exports.array(swapInstructionSchema).min(1).max(MAX_SWAP_INSTRUCTIONS),
   tokens: external_exports.array(swapTokenRecipientSchema),
@@ -146069,7 +146069,7 @@ async function resolveEVMTokenDecimalsFromContract(readContract2, tokenAddress, 
 }
 var hexString = external_exports.custom((val) => (
   // Byte-aligned only: `0x` (zero bytes) or an even number of hex digits.
-  // Odd-length hex (e.g. `0xabc`) is not valid calldata and would rever
+  // Odd-length hex (e.g. `0xabc`) is not valid calldata and would revert
   // opaquely on-chain.
   typeof val === "string" && /^0x([0-9a-fA-F]{2})*$/.test(val)
 ), {
@@ -146408,14 +146408,14 @@ var ViemAdapter = class extends EvmAdapter {
   * @throws Error when capabilities.supportedChains contains non-EVM chains.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { createPublicClient, createWalletClient, http } from 'viem';
   * import { privateKeyToAccount } from 'viem/accounts';
   * import { mainnet } from 'viem/chains';
   * import { ViemAdapter } from '@circle-fin/adapter-viem-v2';
   * import { Ethereum, Base } from '@core/chains';
   *
-  * // Server-side adapter with private key accoun
+  * // Server-side adapter with private key account
   * const account = privateKeyToAccount('0x...');
   * const adapter = new ViemAdapter({
   *   getPublicClient: ({ chain }) => createPublicClient({
@@ -146434,7 +146434,7 @@ var ViemAdapter = class extends EvmAdapter {
   * ```
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { createPublicClient, createWalletClient, custom } from 'viem';
   * import { ViemAdapter } from '@circle-fin/adapter-viem-v2';
   * import { Ethereum } from '@core/chains';
@@ -146456,7 +146456,7 @@ var ViemAdapter = class extends EvmAdapter {
   * ```
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { createPublicClient, createWalletClient, http } from 'viem';
   * import { ViemAdapter } from '@circle-fin/adapter-viem-v2';
   * import { Ethereum, Base, Polygon } from '@core/chains';
@@ -146483,7 +146483,7 @@ var ViemAdapter = class extends EvmAdapter {
   * ```
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { ViemAdapter } from '@circle-fin/adapter-viem-v2';
   * import { Ethereum } from '@core/chains';
   *
@@ -146527,7 +146527,7 @@ var ViemAdapter = class extends EvmAdapter {
   * also cleared, so subsequent calls will re-query `wallet_getCapabilities`.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * // Called automatically during chain switches or account changes
   * adapter.resetState()
   *
@@ -146734,7 +146734,7 @@ var ViemAdapter = class extends EvmAdapter {
   * @throws Error when function call simulation fails.
   * @throws Error when OperationContext resolution fails.
   * @example
-  * ```typescrip
+  * ```typescript
   * import { Ethereum, Base } from '@core/chains';
   *
   * const adapter = new ViemAdapter({
@@ -146752,7 +146752,7 @@ var ViemAdapter = class extends EvmAdapter {
   *   functionName: 'approve',
   *   args: ['0xspender', BigInt(1000)]
   * }, {
-  *   chain: 'Base' // Chain specified in contex
+  *   chain: 'Base' // Chain specified in context
   * });
   *
   * const estimatedGas = await prepared.estimate();
@@ -146856,12 +146856,12 @@ var ViemAdapter = class extends EvmAdapter {
   /**
   * Resolves the effective account to use for signing based on the adapter's address context.
   *
-  * For developer-controlled adapters (Fireblocks, Circle Wallets), creates a JSON-RPC accoun
-  * that delegates signing to the transport. For user-controlled adapters, uses the walle
+  * For developer-controlled adapters (Fireblocks, Circle Wallets), creates a JSON-RPC account
+  * that delegates signing to the transport. For user-controlled adapters, uses the wallet
   * client's connected account.
   *
   * @param walletClient - The wallet client to resolve the account from
-  * @param resolvedAddress - The resolved sender address from operation contex
+  * @param resolvedAddress - The resolved sender address from operation context
   * @returns The effective account for signing transactions or typed data
   * @throws {KitError} If no wallet is connected for user-controlled adapters
   */
@@ -146889,7 +146889,7 @@ var ViemAdapter = class extends EvmAdapter {
   *
   * @param params - Transaction parameters
   * @param targetChain - Target chain definition
-  * @param resolvedAddress - Resolved sender address from operation contex
+  * @param resolvedAddress - Resolved sender address from operation context
   * @returns Transaction hash
   */
   async sendTransaction(params2, targetChain, resolvedAddress, overrides) {
@@ -146921,14 +146921,14 @@ var ViemAdapter = class extends EvmAdapter {
   * @param address - The recipient address for the native token transfer
   * @param value - The amount of native tokens to send (in wei)
   * @param targetChain - The target chain definition
-  * @param resolvedAddress - The resolved sender address from operation contex
+  * @param resolvedAddress - The resolved sender address from operation context
   * @returns Prepared chain request for native transfer
   * @throws Error when gas estimation fails without fallback
   * @throws Error when gas price retrieval fails
   * @throws Error when transaction execution fails
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * // Internal usage - called by prepare() when native transfer is detected
   * const prepared = this.prepareNativeTransfer(
   *   '0x1234567890123456789012345678901234567890',
@@ -146994,7 +146994,7 @@ var ViemAdapter = class extends EvmAdapter {
   * @throws When the wallet has no addresses available.
   * @throws When no chain is provided (should not happen with OperationContext pattern).
   * @example
-  * ```typescrip
+  * ```typescript
   * import { Ethereum } from '@core/chains';
   *
   * const adapter = new ViemAdapter({
@@ -147030,7 +147030,7 @@ var ViemAdapter = class extends EvmAdapter {
   * @param chain - The chain definition to get the Viem Chain object for.
   * @returns The Viem Chain object for the given chain definition.
   * @example
-  * ```typescrip
+  * ```typescript
   * import { Ethereum, EthereumSepolia } from '@core/chains';
   *
   * const adapter = new ViemAdapter({
@@ -147057,7 +147057,7 @@ var ViemAdapter = class extends EvmAdapter {
   * The chain parameter is required to prevent accidentally using the wrong chain,
   * which could lead to serious issues and real costs for users.
   * @example
-  * ```typescrip
+  * ```typescript
   * const adapter = new ViemAdapter(options, capabilities);
   * const publicClient = await adapter.getPublicClient(Ethereum);
   * const blockNumber = await publicClient.getBlockNumber();
@@ -147078,8 +147078,8 @@ var ViemAdapter = class extends EvmAdapter {
   /**
   * Wallet client initialization with proper caching and error handling.
   *
-  * @param chain - The chain definition for the wallet clien
-  * @returns Promise resolving to initialized WalletClien
+  * @param chain - The chain definition for the wallet client
+  * @returns Promise resolving to initialized WalletClient
   * @throws Error when wallet client is not available or getter function fails.
   * @remarks
   * This method ensures we only initialize the WalletClient once per chain, even if it's provided as a getter function.
@@ -147089,7 +147089,7 @@ var ViemAdapter = class extends EvmAdapter {
   * Wallet clients are cached per chain ID to enable seamless multi-chain operations within a single adapter instance.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * // Get wallet client for specific chain (explicit and clear)
   * const walletClient = await adapter.initializeWalletClient(Base);
   *
@@ -147140,7 +147140,7 @@ var ViemAdapter = class extends EvmAdapter {
   * @throws Error when transaction is not found or network issues occur.
   * @throws Error when timeout is exceeded before transaction confirmation.
   * @example
-  * ```typescrip
+  * ```typescript
   * import { Ethereum } from '@core/chains';
   *
   * const adapter = new ViemAdapter({
@@ -147171,7 +147171,7 @@ var ViemAdapter = class extends EvmAdapter {
     const receipt = await publicClient.waitForTransactionReceipt({
       hash: txHash,
       confirmations: config?.confirmations,
-      timeout: config?.timeou
+      timeout: config?.timeout
     });
     return {
       txHash: receipt.transactionHash,
@@ -147204,7 +147204,7 @@ var ViemAdapter = class extends EvmAdapter {
   * @throws Error when balance retrieval fails.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const balance = await adapter.readNativeBalance(
   *   '0x1234...',
   *   Ethereum
@@ -147238,7 +147238,7 @@ var ViemAdapter = class extends EvmAdapter {
   * Reads the on-chain bytecode for a given address via viem's `getCode`.
   *
   * Normalizes viem's `undefined` no-code response to `'0x'` so callers
-  * can compare against a single EOA sentinel. Used by Gateway burn-inten
+  * can compare against a single EOA sentinel. Used by Gateway burn-intent
   * signing to detect smart-contract accounts, which are not supported by
   * Gateway's ecrecover-based verification path.
   */
@@ -147281,12 +147281,12 @@ var ViemAdapter = class extends EvmAdapter {
   * @throws Error when OperationContext resolution fails
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { Ethereum } from '@core/chains';
   *
   * // OperationContext is required - chain must be specified
   * const signature = await adapter.signTypedData(typedData, {
-  *   chain: 'Base' // Chain specified in contex
+  *   chain: 'Base' // Chain specified in context
   * });
   * ```
   */
@@ -147327,14 +147327,14 @@ var ViemAdapter = class extends EvmAdapter {
   * @returns A promise that resolves to the result of the contract function read.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const result = await adapter.readContract<bigint>({
   *   address: '0x1234...',
   *   abi: erc20Abi,
   *   functionName: 'balanceOf',
   *   args: ['0x1234...'],
   * })
-  * console.log(result) // 1000000n (for 1 USDC with 6 decimals) - properly typed as bigin
+  * console.log(result) // 1000000n (for 1 USDC with 6 decimals) - properly typed as bigint
   * ```
   *
   * @param params - The parameters for the contract function read.
@@ -147360,7 +147360,7 @@ var ViemAdapter = class extends EvmAdapter {
   *
   * `input` is validated at runtime, exactly as `prepare()` validates its
   * params: this is a public method on an exported class, so a plain-JS
-  * caller can reach it with a malformed address, ABI, or function name tha
+  * caller can reach it with a malformed address, ABI, or function name that
   * TypeScript would have rejected.
   *
   * @param input - The contract address, ABI, function name, and arguments.
@@ -147371,7 +147371,7 @@ var ViemAdapter = class extends EvmAdapter {
   * @throws Error when `meta.chain` does not resolve to an EVM chain.
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * const isAuthorized = await adapter.read(
   *   {
   *     type: 'evm',
@@ -147416,7 +147416,7 @@ var ViemAdapter = class extends EvmAdapter {
   * chain, before address validation or any contract read.
   * @throws `KitError` with `INPUT_INVALID_ADDRESS` when `tokenAddress` is
   * malformed or fails its EIP-55 checksum, before any RPC call.
-  * @throws A classified `KitError` when the `decimals()` read fails. Transien
+  * @throws A classified `KitError` when the `decimals()` read fails. Transient
   * RPC failures use `RPC_ENDPOINT_ERROR`; permanent contract failures remain
   * fatal.
   * @throws `KitError` with `INPUT_VALIDATION_FAILED` when `decimals()`
@@ -147428,7 +147428,7 @@ var ViemAdapter = class extends EvmAdapter {
   * - Rejects floating-point values and non-integer numbers
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { ViemAdapter } from '@circle-fin/adapter-viem-v2'
   * import { Ethereum } from '@core/chains'
   *
@@ -147467,7 +147467,7 @@ var ViemAdapter = class extends EvmAdapter {
   *
   * Queries `wallet_getCapabilities` via the wallet client and caches the
   * result per chain ID for the lifetime of the adapter (cleared by
-  * {@link resetState}). If the RPC call fails (e.g. the wallet does no
+  * {@link resetState}). If the RPC call fails (e.g. the wallet does not
   * implement EIP-5792), this method returns `false` silently.
   *
   * @param chain - The EVM chain to check capability for.
@@ -147476,7 +147476,7 @@ var ViemAdapter = class extends EvmAdapter {
   * @since 2.0.0
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { Base } from '@core/chains'
   *
   * if (await adapter.supportsAtomicBatch(Base)) {
@@ -147533,7 +147533,7 @@ var ViemAdapter = class extends EvmAdapter {
   * @since 2.0.0
   *
   * @example
-  * ```typescrip
+  * ```typescript
   * import { Base } from '@core/chains'
   *
   * const approveCallData = approveRequest.getCallData?.()
@@ -147624,7 +147624,7 @@ var ViemAdapter = class extends EvmAdapter {
   * Poll `wallet_getCallsStatus` until a terminal status is reached.
   *
   * Handle both viem-normalised responses (`status: 'success'`) and raw
-  * EIP-5792 v2 numeric codes (`statusCode: 200`). When the walle
+  * EIP-5792 v2 numeric codes (`statusCode: 200`). When the wallet
   * executes the batch atomically as a single on-chain transaction,
   * only one receipt is returned; this method expands it so callers
   * always get one receipt per submitted call.
@@ -147915,7 +147915,7 @@ safe-buffer/index.js:
 
 @solana/buffer-layout/lib/Layout.js:
   (**
-   * Support for translating between Uint8Array instances and JavaScrip
+   * Support for translating between Uint8Array instances and JavaScript
    * native types.
    *
    * {@link module:Layout~Layout|Layout} is the basis of a class
@@ -147988,19 +147988,19 @@ safe-buffer/index.js:
    * after construction, to prevent internal state from becoming
    * inconsistent.
    *
-   * @local Layou
-   * @local ExternalLayou
-   * @local GreedyCoun
-   * @local OffsetLayou
-   * @local UIn
+   * @local Layout
+   * @local ExternalLayout
+   * @local GreedyCount
+   * @local OffsetLayout
+   * @local UInt
    * @local UIntBE
-   * @local In
+   * @local Int
    * @local IntBE
    * @local NearUInt64
    * @local NearUInt64BE
    * @local NearInt64
    * @local NearInt64BE
-   * @local Floa
+   * @local Float
    * @local FloatBE
    * @local Double
    * @local DoubleBE
@@ -148009,17 +148009,17 @@ safe-buffer/index.js:
    * @local UnionDiscriminator
    * @local UnionLayoutDiscriminator
    * @local Union
-   * @local VariantLayou
+   * @local VariantLayout
    * @local BitStructure
    * @local BitField
    * @local Boolean
    * @local Blob
    * @local CString
-   * @local Constan
-   * @local bindConstructorLayou
-   * @module Layou
+   * @local Constant
+   * @local bindConstructorLayout
+   * @module Layout
    * @license MIT
-   * @author Peter A. Bigo
+   * @author Peter A. Bigot
    * @see {@link https://github.com/pabigot/buffer-layout|buffer-layout on GitHub}
    *)
 
@@ -148032,7 +148032,7 @@ safe-buffer/index.js:
 
 buffer-layout/lib/Layout.js:
   (**
-   * Support for translating between Buffer instances and JavaScrip
+   * Support for translating between Buffer instances and JavaScript
    * native types.
    *
    * {@link module:Layout~Layout|Layout} is the basis of a class
@@ -148105,19 +148105,19 @@ buffer-layout/lib/Layout.js:
    * after construction, to prevent internal state from becoming
    * inconsistent.
    *
-   * @local Layou
-   * @local ExternalLayou
-   * @local GreedyCoun
-   * @local OffsetLayou
-   * @local UIn
+   * @local Layout
+   * @local ExternalLayout
+   * @local GreedyCount
+   * @local OffsetLayout
+   * @local UInt
    * @local UIntBE
-   * @local In
+   * @local Int
    * @local IntBE
    * @local NearUInt64
    * @local NearUInt64BE
    * @local NearInt64
    * @local NearInt64BE
-   * @local Floa
+   * @local Float
    * @local FloatBE
    * @local Double
    * @local DoubleBE
@@ -148126,17 +148126,17 @@ buffer-layout/lib/Layout.js:
    * @local UnionDiscriminator
    * @local UnionLayoutDiscriminator
    * @local Union
-   * @local VariantLayou
+   * @local VariantLayout
    * @local BitStructure
    * @local BitField
    * @local Boolean
    * @local Blob
    * @local CString
-   * @local Constan
-   * @local bindConstructorLayou
-   * @module Layou
+   * @local Constant
+   * @local bindConstructorLayout
+   * @module Layout
    * @license MIT
-   * @author Peter A. Bigo
+   * @author Peter A. Bigot
    * @see {@link https://github.com/pabigot/buffer-layout|buffer-layout on GitHub}
    *)
 

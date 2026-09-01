@@ -2788,11 +2788,11 @@ function detectCapabilities(address, contract) {
   const names = functions.map((entry) => entry.name ?? "");
   const capabilities = [];
   const has = (pattern) => names.some((name) => pattern.test(name));
-  if (has(/^mint|mintTo|increaseSupply|issue/i)) capabilities.push("mint");
+  if (has(/^(?:mint|mintTo|increaseSupply|issue)/i)) capabilities.push("mint");
   if (has(/blacklist|blocklist|denylist|freeze|wipe|seize/i)) capabilities.push("restrict");
   if (has(/^pause$|^unpause$|setPaused|emergencyPause/i)) capabilities.push("pause");
   if (address?.proxy_type || has(/upgrade|changeAdmin|setImplementation|updateImplementation/i)) capabilities.push("upgrade");
-  if (has(/^(set|update|configure).*(fee|tax)|(fee|tax).*(set|update)/i)) capabilities.push("fee");
+  if (has(/^(?:(?:set|update|configure).*(?:fee|tax)|(?:fee|tax).*(?:set|update))/i)) capabilities.push("fee");
   return capabilities;
 }
 async function fetchMarketDetail(market, force) {

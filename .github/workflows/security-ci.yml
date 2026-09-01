@@ -39,6 +39,9 @@ jobs:
       - name: Test Arc Radar
         run: npm run test-arc-radar
 
+      - name: Test server security boundaries
+        run: npm run test-security-js
+
       - name: Set up Foundry
         uses: foundry-rs/foundry-toolchain@908c540300062bd5a7e473851cdb4282204cee09
 

@@ -8,6 +8,7 @@
   parseUnits,
 } from "viem";
 import type { Address, EIP1193Provider, Hash } from "viem";
+import { codeValue } from "./dom-safety.js";
 
 declare global {
   interface Window {
@@ -238,26 +239,18 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Unknown error.";
 }
 
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (char) => {
-    const replacements: Record<string, string> = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    };
-    return replacements[char] ?? char;
-  });
-}
-
 function chainExplorerTx(chain: ChainKey, hash: string): string {
   return `${chains[chain].explorerUrl}/tx/${hash}`;
 }
 
-function txLink(chain: ChainKey, hash: string): string {
-  const url = chainExplorerTx(chain, hash);
-  return `<a href="${url}" target="_blank" rel="noreferrer">${escapeHtml(hash)}</a>`;
+function txLink(chain: ChainKey, hash: string): HTMLAnchorElement | Text {
+  if (!/^0x[a-fA-F0-9]{64}$/.test(hash)) return document.createTextNode(hash);
+  const anchor = document.createElement("a");
+  anchor.href = chainExplorerTx(chain, hash);
+  anchor.target = "_blank";
+  anchor.rel = "noreferrer";
+  anchor.textContent = hash;
+  return anchor;
 }
 
 function selectedDestination(): Exclude<ChainKey, "Arc_Testnet"> {
@@ -405,18 +398,22 @@ async function refreshBalances(): Promise<void> {
 }
 
 function renderFees(quotes: FeeQuote[], selected: FeeQuote, feeUnits: bigint): void {
-  const rows = quotes
-    .map((quote) => {
-      const label = quote.finalityThreshold === 1000 ? "FAST" : "STANDARD";
-      return `<div><strong>${label}</strong><span>${quote.minimumFee} bps</span></div>`;
-    })
-    .join("");
-
-  el.feesBox.innerHTML = `
-    ${rows}
-    <div><strong>selected</strong><span>${selected.finalityThreshold}</span></div>
-    <div><strong>maxFee</strong><span>${formatUnits(feeUnits, USDC_DECIMALS)} USDC</span></div>
-  `;
+  const row = (label: string, value: string): HTMLDivElement => {
+    const item = document.createElement("div");
+    const heading = document.createElement("strong");
+    const detail = document.createElement("span");
+    heading.textContent = label;
+    detail.textContent = value;
+    item.append(heading, detail);
+    return item;
+  };
+  const rows = quotes.map((quote) => row(
+    quote.finalityThreshold === 1000 ? "FAST" : "STANDARD",
+    `${quote.minimumFee} bps`,
+  ));
+  rows.push(row("selected", String(selected.finalityThreshold)));
+  rows.push(row("maxFee", `${formatUnits(feeUnits, USDC_DECIMALS)} USDC`));
+  el.feesBox.replaceChildren(...rows);
 }
 
 async function fetchFees(): Promise<void> {
@@ -623,7 +620,7 @@ function renderReceipt(next: Record<string, string>): void {
   );
   const merged = { ...current, ...next };
   const destination = selectedDestination();
-  const rows = [
+  const rows: Array<[string, Node | string]> = [
     ["source", "Arc_Testnet"],
     ["destination", destination],
     ["amount", `${el.amount.value.trim()} USDC`],
@@ -631,23 +628,25 @@ function renderReceipt(next: Record<string, string>): void {
     ["burnTx", merged.burnTx ? txLink("Arc_Testnet", merged.burnTx) : "-"],
     ["eventNonce", merged.eventNonce || "-"],
     ["attestationStatus", merged.attestationStatus || "-"],
-    ["message", merged.message ? `<code>${escapeHtml(merged.message)}</code>` : "-"],
+    ["message", merged.message ? codeValue(merged.message) : "-"],
     ["decodedAmount", merged.decodedAmount ? `${formatUnits(BigInt(merged.decodedAmount), USDC_DECIMALS)} USDC` : "-"],
     ["feeExecuted", merged.feeExecuted ? `${formatUnits(BigInt(merged.feeExecuted), USDC_DECIMALS)} USDC` : "-"],
     ["mintTx", merged.mintTx ? txLink(destination, merged.mintTx) : "-"],
   ];
 
-  el.receipt.innerHTML = rows
-    .map(([key, value]) => {
-      const rawValue = merged[key] ?? "";
-      return `
-        <div data-key="${escapeHtml(key)}" data-value="${escapeHtml(rawValue)}">
-          <strong>${escapeHtml(key)}</strong>
-          <span>${value}</span>
-        </div>
-      `;
-    })
-    .join("");
+  const fragment = document.createDocumentFragment();
+  for (const [key, value] of rows) {
+    const row = document.createElement("div");
+    const heading = document.createElement("strong");
+    const detail = document.createElement("span");
+    row.dataset.key = key;
+    row.dataset.value = merged[key] ?? "";
+    heading.textContent = key;
+    detail.append(typeof value === "string" ? document.createTextNode(value) : value);
+    row.append(heading, detail);
+    fragment.append(row);
+  }
+  el.receipt.replaceChildren(fragment);
 }
 
 el.connect.addEventListener("click", () => void connect());
@@ -663,5 +662,5 @@ el.speed.addEventListener("change", () => {
   message = null;
   attestation = null;
   setButtons(Boolean(account));
-  el.feesBox.innerHTML = `<div><strong>fees</strong><span>-</span></div>`;
+  renderFees([], { finalityThreshold: finalityThreshold(), minimumFee: 0 }, 0n);
 });

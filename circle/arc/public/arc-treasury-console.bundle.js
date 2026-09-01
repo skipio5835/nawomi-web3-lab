@@ -23943,6 +23943,32 @@ init_formatEther();
 init_formatGwei();
 init_formatUnits();
 
+// circle/arc/src/dom-safety.ts
+init_browser_buffer_global();
+var ARC_SCAN_ORIGIN = "https://testnet.arcscan.app";
+function arcScanLink(path, value, label = value) {
+  const expectedLength = path === "address" ? 40 : 64;
+  if (!new RegExp(`^0x[a-fA-F0-9]{${expectedLength}}$`).test(value)) {
+    return document.createTextNode(label);
+  }
+  const anchor = document.createElement("a");
+  anchor.href = `${ARC_SCAN_ORIGIN}/${path}/${value}`;
+  anchor.target = "_blank";
+  anchor.rel = "noreferrer";
+  anchor.textContent = label;
+  return anchor;
+}
+function renderStatus(container, message, hash3, linkLabel = "ArcScan") {
+  container.replaceChildren(document.createTextNode(message));
+  if (!hash3) return;
+  container.append(document.createTextNode(" "), arcScanLink("tx", hash3, linkLabel));
+}
+function codeValue(value) {
+  const code = document.createElement("code");
+  code.textContent = value;
+  return code;
+}
+
 // circle/arc/src/arc-treasury-console.ts
 var arc = {
   id: 5042002,
@@ -23982,11 +24008,29 @@ var el = {
 };
 var activityKey = "ArcTreasuryConsole.activity.v1";
 function setStatus(message, hash3) {
-  el.status.innerHTML = hash3 ? `${message} <a href="https://testnet.arcscan.app/tx/${hash3}" target="_blank" rel="noreferrer">View on ArcScan</a>` : message;
+  renderStatus(el.status, message, hash3, "View on ArcScan");
 }
 function renderActivity() {
   const rows = JSON.parse(localStorage.getItem(activityKey) ?? "[]");
-  el.activity.innerHTML = rows.length ? rows.map((row) => `<li><strong>${row.token} ${row.amount}</strong> to <code>${row.recipient}</code><br><a href="https://testnet.arcscan.app/tx/${row.hash}" target="_blank" rel="noreferrer">${row.hash}</a><span>${new Date(row.createdAt).toLocaleString()}</span></li>`).join("") : '<li class="empty">No local transfers recorded yet.</li>';
+  if (rows.length === 0) {
+    const empty = document.createElement("li");
+    empty.className = "empty";
+    empty.textContent = "No local transfers recorded yet.";
+    el.activity.replaceChildren(empty);
+    return;
+  }
+  const fragment = document.createDocumentFragment();
+  for (const row of rows) {
+    const item = document.createElement("li");
+    const heading = document.createElement("strong");
+    const timestamp = document.createElement("span");
+    heading.textContent = `${row.token} ${row.amount}`;
+    timestamp.textContent = new Date(row.createdAt).toLocaleString();
+    item.append(heading, document.createTextNode(" to "), codeValue(row.recipient), document.createElement("br"));
+    item.append(arcScanLink("tx", row.hash), timestamp);
+    fragment.append(item);
+  }
+  el.activity.replaceChildren(fragment);
 }
 async function connect() {
   provider = window.ethereum ?? null;

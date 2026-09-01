@@ -2,6 +2,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { createReadStream, existsSync, statSync } from "node:fs";
 import path from "node:path";
 import { handleArcInvoiceApi } from "./arcinvoice-api.js";
+import { buildProxyTarget } from "./proxy-target.js";
 
 const radarOnly = process.env.ARC_RADAR_ONLY === "1";
 
@@ -49,9 +50,7 @@ async function readRequestBody(req: IncomingMessage): Promise<Buffer> {
 }
 
 async function proxyExternalApi(req: IncomingMessage, res: ServerResponse, prefix: string, baseUrl: string): Promise<void> {
-  const incomingUrl = new URL(req.url ?? "/", `http://localhost:${port}`);
-  const targetPath = incomingUrl.pathname.replace(new RegExp(`^${prefix}`), "");
-  const targetUrl = new URL(targetPath + incomingUrl.search, baseUrl);
+  const targetUrl = buildProxyTarget(req.url ?? "/", prefix, baseUrl, port);
   const body = await readRequestBody(req);
   const requestBody = body.length > 0 ? new Blob([new Uint8Array(body)]) : undefined;
 

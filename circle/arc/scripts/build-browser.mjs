@@ -164,7 +164,7 @@ function resolveExports(exportsField, subpath) {
     if (!subpath.startsWith(prefix) || !subpath.endsWith(suffix ?? "")) continue;
     const wildcard = subpath.slice(prefix.length, subpath.length - (suffix?.length ?? 0));
     const target = pickExportTarget(value);
-    if (target) return target.replace("*", wildcard);
+    if (target) return target.replaceAll("*", wildcard);
   }
 
   return subpath === "." ? pickExportTarget(exportsField) : undefined;
