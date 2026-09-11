@@ -33,6 +33,9 @@ jobs:
       - name: Test dependency security and SDK compatibility
         run: npm run test-dependency-security
 
+      - name: Test pre-push gate
+        run: npm run test-pre-push
+
       - name: Reject all dependency advisories
         run: npm audit --audit-level=low
 
