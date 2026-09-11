@@ -1,21 +1,40 @@
 import {
-  ARC_TESTNET_USDC_ADDRESS,
   decimalValue,
-  latestSyncReserves,
-  logParameter,
-  swapDirection,
-  swapUsdcValue,
-  syncReserves,
 } from "./arc-radar-core.js";
+import { refineMarkets, type DiscoveryOptions, type MarketSort } from "./arc-radar-discovery.js";
+import { createDexAdapter, discoverDexPools, type RadarPool, type DexPricePoint, type DexTrade, type DexLiquidityEvent } from "./arc-radar-dex.js";
+import { resolveRadarNetwork, radarStoragePrefix, radarPoolKey } from "./arc-radar-networks.js";
+import { initializeAdPreview } from "./arc-radar-ads.js";
+import { readPoolRoute, marketUrl, resolveLinkedPool, recentWatchChanges, type CreationPage } from "./arc-radar-navigation.js";
+import { observeSellEvents, groupTokenPools, type SellObservation } from "./arc-radar-market-tools.js";
+import { holderShare, holderMetrics, knownTokenPools, windowPriceChange, tradeActor, sourceState, nextOwnershipSnapshot, type SourceState } from "./arc-radar-quality.js";
+import { detectCapabilities, capabilityText, evidenceSummary, marketBriefs, nextWatchBatch, type CapabilityFinding, type EvidenceBasis } from "./arc-radar-evidence.js";
+import { readAuthoritySnapshot, type AuthoritySnapshot } from "./arc-radar-authority.js";
 
-const API_BASE = "https://testnet.arcscan.app/api/v2";
-const EXPLORER_BASE = "https://testnet.arcscan.app";
-const CACHE_PREFIX = "arc-meme-radar:v1:";
+let routeError = "";
+const linkedPool = (() => {
+  try { return readPoolRoute(new URL(location.href)); }
+  catch (error) { routeError = error instanceof Error ? error.message : "Invalid pool link."; return null; }
+})();
+
+let networkError = "";
+const NETWORK = (() => {
+  try {
+    const network = resolveRadarNetwork(new URLSearchParams(location.search).get("network") ?? undefined);
+    network.sources.forEach(source => createDexAdapter(source, network));
+    return network;
+  }
+  catch (error) { networkError = error instanceof Error ? error.message : "Network unavailable."; return null; }
+})();
+const dexAdapters = NETWORK ? NETWORK.sources.map(source => createDexAdapter(source, NETWORK)) : [];
+const adPreview = initializeAdPreview(Boolean(NETWORK));
+const API_BASE = NETWORK?.apiBase ?? "";
+const EXPLORER_BASE = NETWORK?.explorerBase ?? "";
+const CACHE_PREFIX = NETWORK ? radarStoragePrefix(NETWORK) : "arcrow:unavailable:";
 const WATCHLIST_STORAGE_KEY = `${CACHE_PREFIX}watchlist`;
-const TRACKING_STORAGE_PREFIX = `${CACHE_PREFIX}tracking:v2:`;
-const USDC_ADDRESS = ARC_TESTNET_USDC_ADDRESS;
-const MARKET_FACTORY = "0x7483847D46Db2920DD64eFa676CF72dcF765814f";
+const TRACKING_STORAGE_PREFIX = `${CACHE_PREFIX}tracking:pool:v1:`;
 const MARKET_LIMIT = 15;
+const MAX_MARKETS = 150;
 const LOG_PAGE_LIMIT = 4;
 const TRANSFER_PAGE_LIMIT = 3;
 const DAY_MS = 86_400_000;
@@ -27,7 +46,6 @@ const BURN_ADDRESSES = new Set([
 ]);
 
 type MarketFilter = "all" | "watchlist" | "active" | "new" | "sells" | "risky";
-type Capability = "mint" | "restrict" | "pause" | "upgrade" | "fee";
 type WarningTone = "warning" | "info" | "good";
 type PeriodKey = "m5" | "h1" | "h6" | "h24";
 type WalletSignalCategory = "creator" | "whale" | "entry" | "exit";
@@ -89,7 +107,7 @@ type LogPageParams = Record<string, string | number>;
 type LogResponse = { items?: AddressLog[]; next_page_params?: LogPageParams | null };
 type TokenBalance = { token: Token; value: string };
 type TokenHolder = { address?: AddressSummary; value: string };
-type HolderResponse = { items?: TokenHolder[] };
+type HolderResponse = { items?: TokenHolder[]; next_page_params?: LogPageParams | null };
 
 type TokenTransfer = {
   from?: AddressSummary;
@@ -103,37 +121,13 @@ type TokenTransfer = {
 
 type TransferResponse = { items?: TokenTransfer[]; next_page_params?: LogPageParams | null };
 
-type PairSeed = {
-  createdAt: string;
-  creationTx: string;
-  pairAddress: string;
-  token0: string;
-  token1: string;
-  tokenAddress: string;
-};
+type PairSeed = RadarPool;
 
-type PricePoint = {
-  price: number;
-  timestamp: string;
-};
+type PricePoint = DexPricePoint;
 
-type MarketTrade = {
-  direction: "buy" | "sell";
-  fallbackAddress: string | null;
-  timestamp: string;
-  transactionHash: string;
-  usdcValue: number;
-};
+type MarketTrade = DexTrade;
 
-type LiquidityEvent = {
-  changePercent: number | null;
-  direction: "add" | "remove";
-  fallbackAddress: string | null;
-  timestamp: string;
-  tokenAmount: number;
-  transactionHash: string;
-  usdcAmount: number;
-};
+type LiquidityEvent = DexLiquidityEvent;
 
 type PeriodMetrics = {
   buyCount: number;
@@ -208,6 +202,7 @@ type MarketSnapshot = {
 };
 
 type DetailSnapshot = {
+  poolScope?: string;
   creatorShare: number | null;
   lpBurnedShare: number | null;
   timestamp: string;
@@ -215,6 +210,7 @@ type DetailSnapshot = {
 };
 
 type TokenTracking = {
+  sellObservation?: SellObservation;
   alerts: ObservedAlert[];
   detailSnapshot?: DetailSnapshot;
   marketSnapshot?: MarketSnapshot;
@@ -235,8 +231,13 @@ type WalletSignal = {
 };
 
 type MarketDetail = {
+  checkedAt: number;
+  sources: { holders: SourceState; lp: SourceState; contract: SourceState; creator: SourceState; transfers: SourceState; senders: SourceState };
+  holderHistoryPartial: boolean;
+  lpHistoryPartial: boolean;
+  poolScope: string;
   burnedTokenShare: number | null;
-  capabilities: Capability[];
+  capabilities: CapabilityFinding[];
   contractVisible: boolean;
   creatorShare: number | null;
   holderClusters: HolderCluster[];
@@ -255,6 +256,7 @@ type MarketDetail = {
 };
 
 type RiskWarning = {
+  basis: EvidenceBasis;
   detail: string;
   title: string;
   tone: WarningTone;
@@ -270,17 +272,43 @@ let markets: MarketPair[] = [];
 let selectedPair = "";
 let activeQuery = "";
 let activeFilter: MarketFilter = "all";
+let marketLimit = MARKET_LIMIT;
+let hasMoreMarkets = false;
+let discoveryLimited = false;
+let failedMarketCount = 0;
+let marketLoadFailed = false;
+const discoveryOptions: DiscoveryOptions = { sort: "default", minimumLiquidity: 0, traded24h: false, sellSeen: false };
 let activeWalletSignalFilter: WalletSignalFilter = "all";
 let loading = false;
 let detailRequest = 0;
 let lastRefreshAt = 0;
-let watchlist = readWatchlist();
+let watchlist = NETWORK ? readWatchlist() : new Set<string>();
 const detailCache = new Map<string, DetailCacheEntry>();
+const detailFlights = new Map<string, Promise<MarketDetail>>();
+const authorityReads = new Map<string, { attemptedAt: number; snapshot?: AuthoritySnapshot; error?: string }>();
+let authorityRunning = "";
+const watchCheckAttempts = new Map<string, number>();
+let watchScanRunning = false;
+let lastWatchScanAt = 0;
+const trackingMemory = new Map<string, TokenTracking>();
+let watchReviewedAt = (() => {
+  if (!NETWORK || linkedPool || routeError) return null;
+  try {
+    const previous = Number(localStorage.getItem(`${CACHE_PREFIX}watch-reviewed-at`) ?? localStorage.getItem(`${CACHE_PREFIX}last-market-visit`));
+    const now = Date.now();
+    return previous > 0 && previous <= now ? previous : null;
+  } catch { return null; }
+})();
 
 function byId<T extends Element = HTMLElement>(id: string): T {
   const node = document.getElementById(id);
   if (!node) throw new Error(`Missing element #${id}`);
   return node as unknown as T;
+}
+
+function poolCacheKey(pool: PairSeed): string {
+  if (!NETWORK) throw new Error(networkError);
+  return radarPoolKey(NETWORK, pool.pairAddress);
 }
 
 function element<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
@@ -320,7 +348,8 @@ function writeCache<T>(key: string, data: T): void {
 
 function readWatchlist(): Set<string> {
   try {
-    const stored = JSON.parse(localStorage.getItem(WATCHLIST_STORAGE_KEY) ?? "[]") as unknown;
+    const legacy = NETWORK?.id === "arc-testnet" ? localStorage.getItem("arc-meme-radar:v1:watchlist") : null;
+    const stored = JSON.parse(localStorage.getItem(WATCHLIST_STORAGE_KEY) ?? legacy ?? "[]") as unknown;
     if (!Array.isArray(stored)) return new Set();
     return new Set(stored.filter((value): value is string => typeof value === "string").map((value) => value.toLowerCase()));
   } catch {
@@ -337,15 +366,25 @@ function saveWatchlist(): void {
 }
 
 function readTracking(address: string): TokenTracking | null {
+  const memory = trackingMemory.get(address.toLowerCase());
+  if (memory) return memory;
   try {
     const raw = localStorage.getItem(`${TRACKING_STORAGE_PREFIX}${address.toLowerCase()}`);
-    return raw ? JSON.parse(raw) as TokenTracking : null;
+    const value = raw ? JSON.parse(raw) as TokenTracking : null;
+    if (!value || typeof value.startedAt !== "string" || !Array.isArray(value.alerts)) return null;
+    if (value.sellObservation && !Array.isArray(value.sellObservation.seen)) value.sellObservation = undefined;
+    if (value.detailSnapshot && !value.detailSnapshot.poolScope) value.detailSnapshot = undefined;
+    value.alerts = value.alerts.filter(alert => alert && typeof alert.title === "string" && typeof alert.detail === "string"
+      && typeof alert.observedAt === "string" && ["warning", "info", "good"].includes(alert.tone)).slice(0, 30);
+    trackingMemory.set(address.toLowerCase(), value);
+    return value;
   } catch {
     return null;
   }
 }
 
 function saveTracking(address: string, tracking: TokenTracking): void {
+  trackingMemory.set(address.toLowerCase(), tracking);
   try {
     localStorage.setItem(`${TRACKING_STORAGE_PREFIX}${address.toLowerCase()}`, JSON.stringify(tracking));
   } catch {
@@ -359,6 +398,7 @@ function appendObservedAlerts(tracking: TokenTracking, alerts: ObservedAlert[]):
 }
 
 async function fetchData<T>(path: string, ttlMs: number, force = false): Promise<FetchResult<T>> {
+  if (!NETWORK) throw new Error(networkError);
   const key = path.replace(/[^a-z0-9]+/gi, "-");
   const cached = readCache<T>(key);
   if (!force && cached && Date.now() - cached.savedAt < ttlMs) return { data: cached.data, stale: false };
@@ -378,9 +418,9 @@ async function fetchData<T>(path: string, ttlMs: number, force = false): Promise
   }
 }
 
-async function fetchOptional<T>(path: string, ttlMs: number, force = false): Promise<T | null> {
+async function fetchOptional<T>(path: string, ttlMs: number, force = false): Promise<FetchResult<T> | null> {
   try {
-    return (await fetchData<T>(path, ttlMs, force)).data;
+    return await fetchData<T>(path, ttlMs, force);
   } catch {
     return null;
   }
@@ -549,98 +589,10 @@ function relativeTime(value: string | null | undefined): string {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(new Date(value));
 }
 
-function pairSeeds(response: LogResponse): PairSeed[] {
-  const seen = new Set<string>();
-  const seeds: PairSeed[] = [];
-  for (const log of response.items ?? []) {
-    if (!log.decoded?.method_call?.startsWith("PairCreated(")) continue;
-    const token0 = logParameter(log, "token0");
-    const token1 = logParameter(log, "token1");
-    const pairAddress = logParameter(log, "pair");
-    if (!token0 || !token1 || !pairAddress) continue;
-    const token0Lower = token0.toLowerCase();
-    const token1Lower = token1.toLowerCase();
-    if (token0Lower !== USDC_ADDRESS && token1Lower !== USDC_ADDRESS) continue;
-    const key = pairAddress.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    seeds.push({
-      createdAt: log.block_timestamp ?? "",
-      creationTx: log.transaction_hash ?? "",
-      pairAddress,
-      token0,
-      token1,
-      tokenAddress: token0Lower === USDC_ADDRESS ? token1 : token0,
-    });
-  }
-  return seeds;
-}
-
-function syncPrice(log: AddressLog, seed: PairSeed, tokenDecimals: string | null): PricePoint | null {
-  const reserves = syncReserves(log, seed, tokenDecimals);
-  if (!reserves || reserves.tokenReserve <= 0 || reserves.usdcReserve <= 0) return null;
-  return { price: reserves.usdcReserve / reserves.tokenReserve, timestamp: log.block_timestamp ?? "" };
-}
-
-function liquidityEventsFromLogs(logs: AddressLog[], seed: PairSeed, tokenDecimals: string | null): LiquidityEvent[] {
-  const syncByTransaction = new Map<string, AddressLog[]>();
-  for (const log of logs) {
-    if (!log.decoded?.method_call?.startsWith("Sync(") || !log.transaction_hash) continue;
-    const key = log.transaction_hash.toLowerCase();
-    syncByTransaction.set(key, [...(syncByTransaction.get(key) ?? []), log]);
-  }
-  const tokenIs0 = seed.token0.toLowerCase() !== USDC_ADDRESS;
-  const events: LiquidityEvent[] = [];
-  for (const log of logs) {
-    const method = log.decoded?.method_call ?? "";
-    const direction = method.startsWith("Mint(") ? "add" : method.startsWith("Burn(") ? "remove" : null;
-    if (!direction || !log.transaction_hash) continue;
-    const amount0 = logParameter(log, "amount0");
-    const amount1 = logParameter(log, "amount1");
-    if (!amount0 || !amount1) continue;
-    const tokenAmount = decimalValue(tokenIs0 ? amount0 : amount1, tokenDecimals);
-    const usdcAmount = decimalValue(tokenIs0 ? amount1 : amount0, 6);
-    if (tokenAmount <= 0 && usdcAmount <= 0) continue;
-
-    const sync = [...(syncByTransaction.get(log.transaction_hash.toLowerCase()) ?? [])]
-      .sort((a, b) => Math.abs((a.index ?? 0) - (log.index ?? 0)) - Math.abs((b.index ?? 0) - (log.index ?? 0)))[0];
-    const reservesAfter = sync ? syncReserves(sync, seed, tokenDecimals) : null;
-    const reserveBefore = reservesAfter
-      ? direction === "add" ? reservesAfter.usdcReserve - usdcAmount : reservesAfter.usdcReserve + usdcAmount
-      : 0;
-    const changePercent = reserveBefore > 0 ? (usdcAmount / reserveBefore) * 100 : null;
-    events.push({
-      changePercent,
-      direction,
-      fallbackAddress: logParameter(log, direction === "add" ? "sender" : "to"),
-      timestamp: log.block_timestamp ?? "",
-      tokenAmount,
-      transactionHash: log.transaction_hash,
-      usdcAmount,
-    });
-  }
-  return events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 12);
-}
-
-function tradeFromLog(log: AddressLog, seed: PairSeed): MarketTrade | null {
-  const direction = swapDirection(log, seed);
-  if (!direction) return null;
-  return {
-    direction,
-    fallbackAddress: logParameter(log, "to"),
-    timestamp: log.block_timestamp ?? "",
-    transactionHash: log.transaction_hash ?? "",
-    usdcValue: swapUsdcValue(log, seed),
-  };
-}
-
-function windowPriceChange(pricePoints: PricePoint[], currentPrice: number, cutoffMs: number): number | null {
-  if (currentPrice <= 0 || pricePoints.length === 0) return null;
-  const beforeCutoff = pricePoints.filter((point) => new Date(point.timestamp).getTime() <= cutoffMs).at(-1);
-  const firstInWindow = pricePoints.find((point) => new Date(point.timestamp).getTime() > cutoffMs);
-  const baseline = beforeCutoff ?? firstInWindow;
-  if (!baseline || baseline.price <= 0) return null;
-  return ((currentPrice - baseline.price) / baseline.price) * 100;
+function adapterFor(pool: PairSeed) {
+  const adapter = dexAdapters.find(entry => entry.source.id === pool.sourceId);
+  if (!adapter) throw new Error("Unknown DEX source");
+  return adapter;
 }
 
 function periodMetrics(trades: MarketTrade[], pricePoints: PricePoint[], currentPrice: number, durationMs: number, nowMs: number): PeriodMetrics {
@@ -680,7 +632,7 @@ function snapshotForMarket(market: MarketPair): MarketSnapshot {
 
 function startTracking(market: MarketPair): TokenTracking {
   const now = new Date().toISOString();
-  const tracking: TokenTracking = readTracking(market.tokenAddress) ?? {
+  const tracking: TokenTracking = readTracking(market.pairAddress) ?? {
     alerts: [],
     startedAt: now,
   };
@@ -694,18 +646,19 @@ function startTracking(market: MarketPair): TokenTracking {
       type: "system",
     }]);
   }
-  saveTracking(market.tokenAddress, tracking);
+  if (!tracking.sellObservation) tracking.sellObservation = observeSellEvents(market.trades).state;
+  saveTracking(market.pairAddress, tracking);
   return tracking;
 }
 
 function observeMarketChanges(market: MarketPair): void {
   if (market.stale || !watchlist.has(market.tokenAddress.toLowerCase())) return;
-  const tracking = readTracking(market.tokenAddress) ?? startTracking(market);
+  const tracking = readTracking(market.pairAddress) ?? startTracking(market);
   const previous = tracking.marketSnapshot;
   const next = snapshotForMarket(market);
   if (!previous) {
     tracking.marketSnapshot = next;
-    saveTracking(market.tokenAddress, tracking);
+    saveTracking(market.pairAddress, tracking);
     return;
   }
 
@@ -745,34 +698,41 @@ function observeMarketChanges(market: MarketPair): void {
       type: "holders",
     });
   }
-  if (next.sellCount > previous.sellCount) {
-    const difference = next.sellCount - previous.sellCount;
+  const sellObservation = observeSellEvents(market.trades, tracking.sellObservation);
+  tracking.sellObservation = sellObservation.state;
+  if (sellObservation.added > 0) {
+    const difference = sellObservation.added;
     alerts.push({
-      detail: `${difference} additional token-to-USDC sell${difference === 1 ? " was" : "s were"} indexed.`,
+      detail: `${difference} previously unseen token-to-USDC sell event${difference === 1 ? " was" : "s were"} found in the available indexed history. This may include delayed indexing.`,
       observedAt,
-      title: previous.sellCount === 0 ? "First sell observed" : "New sell observed",
-      tone: "good",
+      title: "Newly observed sell events",
+      tone: "info",
       type: "sell",
     });
   }
   appendObservedAlerts(tracking, alerts);
   tracking.marketSnapshot = next;
-  saveTracking(market.tokenAddress, tracking);
+  saveTracking(market.pairAddress, tracking);
 }
 
 function observeDetailChanges(market: MarketPair, detail: MarketDetail): void {
-  if (!watchlist.has(market.tokenAddress.toLowerCase())) return;
-  const tracking = readTracking(market.tokenAddress) ?? startTracking(market);
-  const next: DetailSnapshot = {
+  if (market.stale || Date.now() - detail.checkedAt >= DETAIL_CACHE_TTL_MS || !watchlist.has(market.tokenAddress.toLowerCase())) return;
+  const tracking = readTracking(market.pairAddress) ?? startTracking(market);
+  const previous = tracking.detailSnapshot;
+  const { next, comparable } = nextOwnershipSnapshot(previous, {
     creatorShare: detail.creatorShare,
     lpBurnedShare: detail.lpBurnedShare,
     timestamp: new Date().toISOString(),
     top10Share: detail.top10Share,
-  };
-  const previous = tracking.detailSnapshot;
+    poolScope: detail.poolScope,
+  }, {
+    creatorShare: detail.sources.holders === "fresh" && detail.sources.creator === "fresh",
+    lpBurnedShare: detail.sources.lp === "fresh",
+    top10Share: detail.sources.holders === "fresh",
+  });
   if (previous) {
     const alerts: ObservedAlert[] = [];
-    if (previous.top10Share !== null && next.top10Share !== null && Math.abs(next.top10Share - previous.top10Share) >= 3) {
+    if (comparable.top10Share && previous.top10Share !== null && next.top10Share !== null && Math.abs(next.top10Share - previous.top10Share) >= 3) {
       const difference = next.top10Share - previous.top10Share;
       alerts.push({
         detail: `Top 10 non-pool ownership changed from ${shareText(previous.top10Share)} to ${shareText(next.top10Share)}.`,
@@ -782,17 +742,17 @@ function observeDetailChanges(market: MarketPair, detail: MarketDetail): void {
         type: "ownership",
       });
     }
-    if (previous.creatorShare !== null && next.creatorShare !== null && Math.abs(next.creatorShare - previous.creatorShare) >= 1) {
+    if (comparable.creatorShare && previous.creatorShare !== null && next.creatorShare !== null && Math.abs(next.creatorShare - previous.creatorShare) >= 1) {
       const difference = next.creatorShare - previous.creatorShare;
       alerts.push({
-        detail: `Pool creator holding changed from ${shareText(previous.creatorShare)} to ${shareText(next.creatorShare)}.`,
+        detail: `Pool-creation sender holding changed from ${shareText(previous.creatorShare)} to ${shareText(next.creatorShare)}. This sender is not necessarily the token team.`,
         observedAt: next.timestamp,
-        title: difference < 0 ? "Pool creator reduced holdings" : "Pool creator holdings increased",
+        title: difference < 0 ? "Creation sender reduced holdings" : "Creation sender holdings increased",
         tone: difference < 0 ? "warning" : "info",
         type: "ownership",
       });
     }
-    if (previous.lpBurnedShare !== null && next.lpBurnedShare !== null && Math.abs(next.lpBurnedShare - previous.lpBurnedShare) >= 1) {
+    if (comparable.lpBurnedShare && previous.lpBurnedShare !== null && next.lpBurnedShare !== null && Math.abs(next.lpBurnedShare - previous.lpBurnedShare) >= 1) {
       const difference = next.lpBurnedShare - previous.lpBurnedShare;
       alerts.push({
         detail: `LP tokens held by burn addresses changed from ${shareText(previous.lpBurnedShare)} to ${shareText(next.lpBurnedShare)}.`,
@@ -805,7 +765,7 @@ function observeDetailChanges(market: MarketPair, detail: MarketDetail): void {
     appendObservedAlerts(tracking, alerts);
   }
   tracking.detailSnapshot = next;
-  saveTracking(market.tokenAddress, tracking);
+  saveTracking(market.pairAddress, tracking);
 }
 
 async function mapLimited<T, R>(values: T[], limit: number, mapper: (value: T) => Promise<R>): Promise<R[]> {
@@ -824,6 +784,7 @@ async function mapLimited<T, R>(values: T[], limit: number, mapper: (value: T) =
 
 async function loadMarketPair(seed: PairSeed, force: boolean): Promise<MarketPair | null> {
   try {
+    const adapter = adapterFor(seed);
     const nowMs = Date.now();
     const [tokenResult, logResult] = await Promise.all([
       fetchData<Token>(`/tokens/${seed.tokenAddress}`, 300_000, force),
@@ -831,7 +792,7 @@ async function loadMarketPair(seed: PairSeed, force: boolean): Promise<MarketPai
     ]);
     const token = tokenResult.data;
     const logs = logResult.items;
-    const latestSync = latestSyncReserves(logs, seed, token.decimals);
+    const latestSync = adapter.latestReserves(logs, seed, token.decimals);
     let tokenReserve = latestSync?.tokenReserve ?? 0;
     let usdcReserve = latestSync?.usdcReserve ?? 0;
     let balanceStale = false;
@@ -839,26 +800,24 @@ async function loadMarketPair(seed: PairSeed, force: boolean): Promise<MarketPai
     if (!latestSync) {
       const balanceResult = await fetchData<TokenBalance[]>(`/addresses/${seed.pairAddress}/token-balances`, 30_000, force);
       const tokenBalance = balanceResult.data.find((balance) => balance.token.address_hash.toLowerCase() === seed.tokenAddress.toLowerCase());
-      const usdcBalance = balanceResult.data.find((balance) => balance.token.address_hash.toLowerCase() === USDC_ADDRESS);
+      const usdcBalance = balanceResult.data.find((balance) => balance.token.address_hash.toLowerCase() === seed.quoteAsset.address.toLowerCase());
       tokenReserve = decimalValue(tokenBalance?.value, tokenBalance?.token.decimals);
       usdcReserve = decimalValue(usdcBalance?.value, usdcBalance?.token.decimals);
       balanceStale = balanceResult.stale;
     }
     const currentPrice = tokenReserve > 0 ? usdcReserve / tokenReserve : 0;
     const supply = decimalValue(token.total_supply, token.decimals);
-    const swaps = logs.filter((log) => log.decoded?.method_call?.startsWith("Swap("));
-    const trades = swaps
-      .map((log) => tradeFromLog(log, seed))
+    const trades = logs
+      .map((log) => adapter.trade(log, seed))
       .filter((trade): trade is MarketTrade => trade !== null)
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     const buys = trades.filter((trade) => trade.direction === "buy");
     const sells = trades.filter((trade) => trade.direction === "sell");
-    const liquidityEvents = liquidityEventsFromLogs(logs, seed, token.decimals);
+    const liquidityEvents = adapter.liquidityEvents(logs, seed, token.decimals);
     const pricePoints = logs
-      .map((log) => syncPrice(log, seed, token.decimals))
+      .map((log) => adapter.pricePoint(log, seed, token.decimals))
       .filter((point): point is PricePoint => point !== null)
       .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-    if (currentPrice > 0 && pricePoints.length === 0) pricePoints.push({ price: currentPrice, timestamp: seed.createdAt });
     const firstPrice = pricePoints[0]?.price;
     const priceChange = firstPrice && currentPrice ? ((currentPrice - firstPrice) / firstPrice) * 100 : null;
     const market: MarketPair = {
@@ -891,8 +850,8 @@ async function loadMarketPair(seed: PairSeed, force: boolean): Promise<MarketPai
   }
 }
 
-function lightweightRisk(market: MarketPair): number {
-  return (market.sellCount === 0 ? 2 : 0) + (market.usdcReserve < 10 ? 2 : market.usdcReserve < 100 ? 1 : 0);
+function needsReview(market: MarketPair): boolean {
+  return market.sellCount === 0 || market.usdcReserve < 10;
 }
 
 function visibleMarkets(): MarketPair[] {
@@ -905,17 +864,19 @@ function visibleMarkets(): MarketPair[] {
     if (activeFilter === "active") return market.periods.h24.swapCount > 0;
     if (activeFilter === "new") return Date.now() - new Date(market.createdAt).getTime() <= 7 * 86_400_000;
     if (activeFilter === "sells") return market.sellCount > 0;
-    if (activeFilter === "risky") return lightweightRisk(market) >= 2;
+    if (activeFilter === "risky") return needsReview(market);
     return true;
   });
-  return filtered.sort((a, b) => {
+  const eligible = refineMarkets(filtered, { ...discoveryOptions, sort: "default" });
+  const representatives = groupTokenPools(eligible).map(group => group.primary);
+  return refineMarkets(representatives.sort((a, b) => {
     if (activeFilter === "active") return b.periods.h24.volumeUsdc - a.periods.h24.volumeUsdc
       || b.periods.h24.swapCount - a.periods.h24.swapCount
       || new Date(b.lastTradeAt ?? 0).getTime() - new Date(a.lastTradeAt ?? 0).getTime();
     if (activeFilter === "sells") return b.sellCount - a.sellCount;
-    if (activeFilter === "risky") return lightweightRisk(b) - lightweightRisk(a);
+    if (activeFilter === "risky") return a.usdcReserve - b.usdcReserve;
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
+  }), discoveryOptions);
 }
 
 function renderMarketSummary(): void {
@@ -923,7 +884,71 @@ function renderMarketSummary(): void {
   const trades = shown.reduce((sum, market) => sum + market.swapCount, 0);
   const liquidity = shown.reduce((sum, market) => sum + market.totalLiquidity, 0);
   const partial = shown.filter((market) => market.historyTruncated).length;
-  byId("marketSummary").textContent = `${shown.length} newest pools · ${trades} indexed swaps · ${formatValue(liquidity)} USDC liquidity${partial > 0 ? ` · ${partial} partial histories` : ""}`;
+  byId("marketSummary").textContent = `${shown.length} tokens · ${markets.length} loaded pools · representative pools: ${trades} indexed swaps · ${formatValue(liquidity)} USDC liquidity${partial > 0 ? ` · ${partial} partial histories` : ""}`;
+}
+
+function renderDiscoveryControls(): void {
+  const button = byId<HTMLButtonElement>("loadMoreMarkets");
+  button.disabled = loading || (!marketLoadFailed && (!hasMoreMarkets || marketLimit >= MAX_MARKETS));
+  button.textContent = loading ? "Loading pools..." : marketLoadFailed ? "Retry loading"
+    : hasMoreMarkets && marketLimit < MAX_MARKETS ? "Load 15 more"
+    : discoveryLimited || (hasMoreMarkets && marketLimit >= MAX_MARKETS) ? "Scan limit reached" : "No more pools";
+  byId("discoveryCoverage").textContent = `${markets.length} pools loaded · ${dexAdapters.length} ${NETWORK?.label ?? ""} USDC market source${dexAdapters.length === 1 ? "" : "s"}${discoveryLimited ? " · Scan limit reached" : ""}${marketLimit >= MAX_MARKETS && hasMoreMarkets ? " · 150-pool limit" : ""}${failedMarketCount ? ` · ${failedMarketCount} unavailable` : ""}`;
+  renderCoverage();
+}
+
+function renderCoverage(): void {
+  const cached = markets.filter(market => market.stale).length;
+  const partial = markets.filter(market => market.historyTruncated).length;
+  byId("coverageSummary").textContent = `${NETWORK?.label ?? "Unavailable"} · ${dexAdapters.length} configured v2 source(s) · ${markets.length} loaded pools · Not the whole chain`;
+  byId("coverageStatus").textContent = `${cached} cached · ${partial} partial histories${marketLoadFailed ? " · Refresh failed" : ""}`;
+  const sources = byId("coverageSources");
+  sources.replaceChildren();
+  for (const adapter of dexAdapters) {
+    const link = element("a", "", `${adapter.source.label} · ${shortHash(adapter.source.factoryAddress)}`);
+    link.href = `${EXPLORER_BASE}/address/${adapter.source.factoryAddress}`;
+    link.target = "_blank";
+    link.rel = "noreferrer";
+    sources.append(link);
+  }
+}
+
+function renderMarketBrief(): void {
+  const list = byId("marketBriefList");
+  const expanded = list.querySelector<HTMLDetailsElement>(".brief-more")?.open ?? false;
+  list.replaceChildren();
+  const briefs = marketLoadFailed ? [] : marketBriefs(markets, Date.now());
+  byId("marketBriefCount").textContent = `${briefs.length} token${briefs.length === 1 ? "" : "s"}`;
+  if (!briefs.length) {
+    list.append(element("p", "brief-empty", marketLoadFailed ? "Market refresh failed. Recent changes cannot be assessed." : "No qualifying recent change in the loaded pools. This is not an all-clear."));
+    return;
+  }
+  const more = element("details", "brief-more");
+  more.open = expanded;
+  const moreList = element("div", "brief-more-list");
+  more.append(element("summary", "", `${Math.max(0, briefs.length - 3)} more changes`), moreList);
+  for (const [index, brief] of briefs.entries()) {
+    const row = element("article", "brief-row");
+    const copy = element("div", "brief-copy");
+    const title = element("a", "", `${brief.market.token.symbol || "Token"} · ${brief.title}`);
+    title.href = marketUrl(location.href, NETWORK!.id, brief.market.pairAddress);
+    const description = brief.kind === "liquidity" ? `${formatValue(brief.value, 4)} USDC removed; ${brief.secondaryValue!.toFixed(1)}% of prior USDC reserve.`
+      : brief.kind === "price" ? `1H reserve-price change: ${compactChange(brief.value)}. Not an executable quote.`
+      : "Pool creation and subsequent trades appear in the available index. Not a token endorsement.";
+    copy.append(title, element("p", "", description), element("small", "", `Pool ${shortHash(brief.market.pairAddress)} · ${relativeTime(brief.timestamp)} ago${brief.market.historyTruncated ? " · partial history" : ""}`));
+    const evidence = element("div", "brief-evidence");
+    evidence.append(element("span", `evidence-label ${brief.basis}`, brief.basis === "observed" ? "Indexed event" : "Calculated"));
+    if (brief.transactionHash) {
+      const link = element("a", "", "Source TX");
+      link.href = `${EXPLORER_BASE}/tx/${brief.transactionHash}`;
+      link.target = "_blank";
+      link.rel = "noreferrer";
+      evidence.append(link);
+    }
+    row.append(copy, evidence);
+    (index < 3 ? list : moreList).append(row);
+  }
+  if (briefs.length > 3) list.append(more);
 }
 
 function renderMarketPulse(): void {
@@ -945,7 +970,8 @@ function renderMarketPulse(): void {
   byId("pulseNewestAge").textContent = newest ? `${relativeTime(newest.createdAt)} old` : "No pool indexed";
   byId("pulseSellVerified").textContent = `${sellVerified} / ${markets.length}`;
   const swapTotal = buys + sells;
-  const coverage = partial > 0 ? ` · ${partial} pool${partial === 1 ? "" : "s"} partial` : "";
+  const cached = markets.filter(market => market.stale).length;
+  const coverage = `${partial > 0 ? ` · ${partial} pool${partial === 1 ? "" : "s"} partial` : ""}${cached > 0 ? ` · ${cached} cached pools` : ""}`;
   byId("pulseStatus").textContent = swapTotal > 0 ? `${swapTotal} swaps indexed in the last 24 hours${coverage}` : `No swaps indexed in the available 24-hour history${coverage}`;
 }
 
@@ -958,8 +984,11 @@ function renderMarketRows(): void {
   const container = byId("marketRows");
   container.replaceChildren();
   const shown = visibleMarkets();
+  adPreview.setContentAvailable(shown.length > 0);
   renderMarketSummary();
   renderMarketPulse();
+  renderMarketBrief();
+  renderWatchDigest();
   if (shown.length === 0) {
     const message = activeFilter === "active"
       ? "No token has indexed trading activity in the last 24 hours."
@@ -970,9 +999,10 @@ function renderMarketRows(): void {
   for (const market of shown) {
     const row = element("button", "market-row");
     row.type = "button";
-    const isSelected = selectedPair === market.pairAddress.toLowerCase();
+    row.title = `${adapterFor(market).source.label} · ${market.pairAddress}`;
+    const selected = markets.find(entry => entry.pairAddress.toLowerCase() === selectedPair);
+    const isSelected = selected?.tokenAddress.toLowerCase() === market.tokenAddress.toLowerCase();
     row.classList.toggle("selected", isSelected);
-    row.classList.toggle("risky", lightweightRisk(market) >= 2);
     row.setAttribute("aria-pressed", String(isSelected));
     row.setAttribute("aria-label", `Open ${market.token.symbol || market.token.name || "token"} market`);
 
@@ -980,10 +1010,12 @@ function renderMarketRows(): void {
     const icon = element("span", "market-token-icon", (market.token.symbol || market.token.name || "?").slice(0, 2).toUpperCase());
     const copy = element("span", "market-token-copy");
     const watched = watchlist.has(market.tokenAddress.toLowerCase());
+    const poolCount = markets.filter(entry => entry.tokenAddress.toLowerCase() === market.tokenAddress.toLowerCase()).length;
     copy.append(
       element("strong", watched ? "watched-token" : "", `${watched ? "★ " : ""}${market.token.symbol || "Unknown"}`),
       element("span", "", market.token.name || shortHash(market.tokenAddress)),
-      element("small", "", `${fullNumber(market.token.holders_count)} holders`),
+      element("small", "", `${fullNumber(market.token.holders_count)} holders · ${poolCount} pool${poolCount === 1 ? "" : "s"}`),
+      element("small", "market-data-state", `${market.stale ? "Cached" : "Fetched"}${market.historyTruncated ? " · Partial history" : ""}`),
     );
     identity.append(icon, copy);
 
@@ -1017,20 +1049,13 @@ function renderMarketRows(): void {
   }
 }
 
-function holderShare(raw: string | number | null | undefined, totalSupply: string | null | undefined): number | null {
-  const amount = Number(raw);
-  const total = Number(totalSupply);
-  if (!Number.isFinite(amount) || !Number.isFinite(total) || total <= 0) return null;
-  return (amount / total) * 100;
-}
-
 function classifyWalletSignals(
   market: MarketPair,
   transfers: TokenTransfer[],
   holders: TokenHolder[],
   creatorAddress: string | null,
+  pools: Set<string>,
 ): WalletSignal[] {
-  const pair = market.pairAddress.toLowerCase();
   const creator = creatorAddress?.toLowerCase() ?? null;
   const currentHolders = new Set(holders
     .filter((holder) => Number(holder.value || 0) > 0 && holder.address?.hash)
@@ -1038,7 +1063,7 @@ function classifyWalletSignals(
   const topHolders = new Set(holders
     .filter((holder) => {
       const hash = holder.address?.hash?.toLowerCase();
-      return Boolean(hash && hash !== pair && !BURN_ADDRESSES.has(hash));
+      return Boolean(hash && !pools.has(hash) && !BURN_ADDRESSES.has(hash));
     })
     .slice(0, 10)
     .map((holder) => holder.address!.hash!.toLowerCase()));
@@ -1066,18 +1091,19 @@ function classifyWalletSignals(
     const share = holderShare(transfer.total?.value, market.token.total_supply);
     if (amount <= 0 || share === null) continue;
 
-    const fromPool = from === pair;
-    const toPool = to === pair;
+    const fromPool = pools.has(from);
+    const toPool = pools.has(to);
+    if (fromPool && toPool) continue;
     const creatorInvolved = Boolean(creator && (from === creator || to === creator));
     const topHolderInvolved = topHolders.has(from) || topHolders.has(to);
-    const fullExit = !fromPool && toPool && !currentHolders.has(from);
+    const poolOutflow = !fromPool && toPool;
     const firstEntry = !toPool && !transfer.to?.is_contract && firstIndexedReceipt && currentHolders.has(to) && share >= 0.1;
     const whaleMove = share >= 1 || topHolderInvolved;
     const categories = new Set<WalletSignalCategory>();
     if (creatorInvolved) categories.add("creator");
     if (whaleMove) categories.add("whale");
     if (firstEntry) categories.add("entry");
-    if (fullExit) categories.add("exit");
+    if (poolOutflow) categories.add("exit");
     if (categories.size === 0) continue;
 
     let title = "Wallet movement";
@@ -1085,40 +1111,36 @@ function classifyWalletSignals(
     let tone: WalletSignal["tone"] = "info";
     if (creatorInvolved) {
       if (from === creator && toPool) {
-        title = "Pool creator sold";
+        title = "Creation sender sent to pool";
         detail = "The PairCreated transaction sender moved tokens into the pool.";
         tone = "warning";
       } else if (to === creator && fromPool) {
-        title = "Pool creator bought";
+        title = "Creation sender received from pool";
         detail = "The PairCreated transaction sender acquired tokens from the pool.";
         tone = "info";
       } else if (from === creator) {
-        title = "Pool creator sent tokens";
+        title = "Creation sender sent tokens";
         detail = "The PairCreated transaction sender transferred tokens to another address.";
         tone = "warning";
       } else {
-        title = "Pool creator received tokens";
+        title = "Creation sender received tokens";
         detail = "Tokens moved into the PairCreated transaction sender.";
       }
-    } else if (fullExit) {
-      title = "Wallet fully exited";
-      detail = "This wallet sold into the pool and no longer appears in the current holder index.";
+    } else if (poolOutflow) {
+      title = topHolders.has(from) ? "Top holder sent to pool" : "Wallet sent to pool";
+      detail = "Tokens moved into a known pool. A transfer alone does not confirm a sale or a full exit.";
       tone = "warning";
     } else if (whaleMove) {
       if (fromPool) {
-        title = topHolders.has(to) ? "Top holder bought" : "Whale-sized buy";
-        detail = "A large or current top holder acquired tokens from the pool.";
-        tone = "good";
-      } else if (toPool) {
-        title = topHolders.has(from) ? "Top holder sold" : "Whale-sized sell";
-        detail = "A large or current top holder moved tokens into the pool.";
-        tone = "warning";
+        title = topHolders.has(to) ? "Top holder received from pool" : "Large transfer from pool";
+        detail = "Tokens moved out of a known pool; this may be a swap or a liquidity withdrawal.";
+        tone = "info";
       } else {
         title = topHolders.has(from) ? "Top holder transferred" : "Large wallet transfer";
         detail = "A large token position moved directly between addresses.";
       }
     } else if (firstEntry) {
-      title = "New holder entered";
+      title = "First visible receipt";
       detail = "This is the wallet's first receipt in the visible indexed transfer history.";
       tone = "good";
     }
@@ -1146,9 +1168,9 @@ function analyzeHolderConnections(
   market: MarketPair,
   transfers: TokenTransfer[],
   positions: HolderPosition[],
+  pools: Set<string>,
 ): { clusters: HolderCluster[]; connections: HolderConnection[] } {
   const positionByAddress = new Map(positions.map((position) => [position.address.toLowerCase(), position]));
-  const pair = market.pairAddress.toLowerCase();
   const createdAt = new Date(market.createdAt).getTime();
   const connectionMap = new Map<string, HolderConnection>();
   const sharedSources = new Map<string, { address: string; recipients: Set<string> }>();
@@ -1161,7 +1183,7 @@ function analyzeHolderConnections(
     if (Number.isFinite(createdAt) && timestamp < createdAt) continue;
     const from = transfer.from.hash.toLowerCase();
     const to = transfer.to.hash.toLowerCase();
-    if (from === pair || to === pair || BURN_ADDRESSES.has(from) || BURN_ADDRESSES.has(to)) continue;
+    if (pools.has(from) || pools.has(to) || BURN_ADDRESSES.has(from) || BURN_ADDRESSES.has(to)) continue;
 
     if (positionByAddress.has(from) && positionByAddress.has(to) && from !== to) {
       connectionMap.set(connectionKey(from, to), {
@@ -1249,19 +1271,6 @@ function contractFunctions(contract: ContractDetails | null): AbiEntry[] {
   return (contract?.abi ?? []).filter((entry) => entry.type === "function" && Boolean(entry.name));
 }
 
-function detectCapabilities(address: AddressDetails | null, contract: ContractDetails | null): Capability[] {
-  const functions = contractFunctions(contract).filter((entry) => !["view", "pure"].includes(entry.stateMutability ?? ""));
-  const names = functions.map((entry) => entry.name ?? "");
-  const capabilities: Capability[] = [];
-  const has = (pattern: RegExp) => names.some((name) => pattern.test(name));
-  if (has(/^(?:mint|mintTo|increaseSupply|issue)/i)) capabilities.push("mint");
-  if (has(/blacklist|blocklist|denylist|freeze|wipe|seize/i)) capabilities.push("restrict");
-  if (has(/^pause$|^unpause$|setPaused|emergencyPause/i)) capabilities.push("pause");
-  if (address?.proxy_type || has(/upgrade|changeAdmin|setImplementation|updateImplementation/i)) capabilities.push("upgrade");
-  if (has(/^(?:(?:set|update|configure).*(?:fee|tax)|(?:fee|tax).*(?:set|update))/i)) capabilities.push("fee");
-  return capabilities;
-}
-
 async function fetchMarketDetail(market: MarketPair, force: boolean): Promise<MarketDetail> {
   const transactionHashes = [...new Set([
     ...market.trades.map((trade) => trade.transactionHash),
@@ -1275,41 +1284,29 @@ async function fetchMarketDetail(market: MarketPair, force: boolean): Promise<Ma
       transaction: await fetchOptional<TransactionDetails>(`/transactions/${hash}`, 300_000, force),
     }),
   );
-  const [holderData, lpHolderData, pairToken, address, transaction, resolvedTransactions, transferHistory] = await Promise.all([
+  const [holderData, lpHolderData, pairToken, addressResult, transaction, resolvedTransactions, transferHistory] = await Promise.all([
     fetchOptional<HolderResponse>(`/tokens/${market.tokenAddress}/holders`, 120_000, force),
     fetchOptional<HolderResponse>(`/tokens/${market.pairAddress}/holders`, 120_000, force),
     fetchOptional<Token>(`/tokens/${market.pairAddress}`, 300_000, force),
     fetchOptional<AddressDetails>(`/addresses/${market.tokenAddress}`, 120_000, force),
     market.creationTx ? fetchOptional<TransactionDetails>(`/transactions/${market.creationTx}`, 300_000, force) : Promise.resolve(null),
     transactionRequests,
-    fetchTokenTransfers(market.tokenAddress, force).catch(() => ({ items: [], stale: false, truncated: false })),
+    fetchTokenTransfers(market.tokenAddress, force).catch(() => null),
   ]);
+  const address = addressResult?.data ?? null;
   const implementationAddress = address?.implementations?.[0]?.address_hash;
   const [proxyContract, implementationContract] = await Promise.all([
     address?.is_verified ? fetchOptional<ContractDetails>(`/smart-contracts/${market.tokenAddress}`, 300_000, force) : Promise.resolve(null),
     implementationAddress ? fetchOptional<ContractDetails>(`/smart-contracts/${implementationAddress}`, 300_000, force) : Promise.resolve(null),
   ]);
-  const contract = mergeContracts(proxyContract, implementationContract);
-  const holders = [...(holderData?.items ?? [])].sort((a, b) => Number(b.value || 0) - Number(a.value || 0));
+  const contract = mergeContracts(proxyContract?.data ?? null, implementationContract?.data ?? null);
+  const pools = knownTokenPools(market, markets);
+  const ownership = holderMetrics(holderData, market.token.total_supply, pools);
+  const holders = ownership.holders;
   const pairLower = market.pairAddress.toLowerCase();
-  const creatorAddress = transaction?.from?.hash ?? null;
+  const creatorAddress = transaction?.data.from?.hash ?? null;
   const creator = creatorAddress?.toLowerCase() ?? null;
-  const poolHolding = holders.find((holder) => holder.address?.hash?.toLowerCase() === pairLower);
-  const burnedTokenRaw = holders
-    .filter((holder) => BURN_ADDRESSES.has(holder.address?.hash?.toLowerCase() ?? ""))
-    .reduce((sum, holder) => sum + Number(holder.value || 0), 0);
-  const nonPoolHolders = holders.filter((holder) => {
-    const hash = holder.address?.hash?.toLowerCase();
-    return Boolean(hash && hash !== pairLower && !BURN_ADDRESSES.has(hash));
-  });
-  const holderTotal = (count: number) => nonPoolHolders
-    .slice(0, count)
-    .reduce((sum, holder) => sum + Number(holder.value || 0), 0);
-  const top1Raw = holderTotal(1);
-  const top5Raw = holderTotal(5);
-  const top10Raw = nonPoolHolders.slice(0, 10).reduce((sum, holder) => sum + Number(holder.value || 0), 0);
-  const creatorHolding = creator ? holders.find((holder) => holder.address?.hash?.toLowerCase() === creator) : undefined;
-  const holderPositions = nonPoolHolders.slice(0, 8).flatMap<HolderPosition>((holder) => {
+  const holderPositions = ownership.positions.slice(0, 8).flatMap<HolderPosition>((holder) => {
     const hash = holder.address?.hash;
     if (!hash) return [];
     return [{
@@ -1321,33 +1318,44 @@ async function fetchMarketDetail(market: MarketPair, force: boolean): Promise<Ma
       share: holderShare(holder.value, market.token.total_supply),
     }];
   });
-  const lpHolders = lpHolderData?.items ?? [];
-  const burnedRaw = lpHolders
-    .filter((holder) => BURN_ADDRESSES.has(holder.address?.hash?.toLowerCase() ?? ""))
-    .reduce((sum, holder) => sum + Number(holder.value || 0), 0);
-  const nonBurnedLp = lpHolders.filter((holder) => !BURN_ADDRESSES.has(holder.address?.hash?.toLowerCase() ?? ""));
-  const topLp = nonBurnedLp[0];
+  const lp = holderMetrics(lpHolderData, pairToken?.data.total_supply ?? null, new Set());
+  const topLp = lp.positions[0];
   const transactionSenders = Object.fromEntries(resolvedTransactions
-    .filter((entry) => entry.transaction?.from?.hash)
-    .map((entry) => [entry.hash.toLowerCase(), entry.transaction!.from!.hash!]));
-  const walletSignals = classifyWalletSignals(market, transferHistory.items, holders, creatorAddress);
-  const holderNetwork = analyzeHolderConnections(market, transferHistory.items, holderPositions);
+    .filter((entry) => entry.transaction?.data.from?.hash)
+    .map((entry) => [entry.hash.toLowerCase(), entry.transaction!.data.from!.hash!]));
+  const walletSignals = classifyWalletSignals(market, transferHistory?.items ?? [], holders, creatorAddress, pools);
+  const holderNetwork = analyzeHolderConnections(market, transferHistory?.items ?? [], holderPositions, pools);
+  const combinedState = (...states: SourceState[]): SourceState => states.includes("unavailable") ? "unavailable" : states.includes("cached") ? "cached" : "fresh";
+  const contractState = combinedState(sourceState(addressResult), sourceState(proxyContract),
+    ...(implementationAddress ? [sourceState(implementationContract)] : []));
   return {
-    burnedTokenShare: holderShare(burnedTokenRaw, market.token.total_supply),
+    checkedAt: Date.now(),
+    sources: {
+      holders: ownership.state,
+      lp: combinedState(lp.state, sourceState(pairToken)),
+      contract: contractFunctions(contract).length > 0 ? contractState : "unavailable",
+      creator: creatorAddress ? sourceState(transaction) : "unavailable",
+      transfers: transferHistory ? transferHistory.stale ? "cached" : "fresh" : "unavailable",
+      senders: combinedState(...resolvedTransactions.map(entry => entry.transaction?.data.from?.hash ? sourceState(entry.transaction) : "unavailable")),
+    },
+    holderHistoryPartial: ownership.partial,
+    lpHistoryPartial: lp.partial,
+    poolScope: [...pools].sort().join(","),
+    burnedTokenShare: ownership.burned,
     capabilities: detectCapabilities(address, contract),
     contractVisible: contractFunctions(contract).length > 0,
-    creatorShare: holderShare(creatorHolding?.value, market.token.total_supply),
+    creatorShare: ownership.shareAt(creatorAddress),
     holderClusters: holderNetwork.clusters,
     holderConnections: holderNetwork.connections,
     holderPositions,
-    lpBurnedShare: holderShare(burnedRaw, pairToken?.total_supply ?? null),
+    lpBurnedShare: lp.burned,
     lpTopHolderIsContract: Boolean(topLp?.address?.is_contract),
-    lpTopHolderShare: holderShare(topLp?.value, pairToken?.total_supply ?? null),
-    poolShare: holderShare(poolHolding?.value, market.token.total_supply),
-    top1Share: holderShare(top1Raw, market.token.total_supply),
-    top5Share: holderShare(top5Raw, market.token.total_supply),
-    top10Share: holderShare(top10Raw, market.token.total_supply),
-    transferHistoryTruncated: transferHistory.truncated,
+    lpTopHolderShare: lp.top(1),
+    poolShare: ownership.shareAt(pairLower),
+    top1Share: ownership.top(1),
+    top5Share: ownership.top(5),
+    top10Share: ownership.top(10),
+    transferHistoryTruncated: transferHistory?.truncated ?? true,
     transactionSenders,
     walletSignals,
   };
@@ -1355,29 +1363,23 @@ async function fetchMarketDetail(market: MarketPair, force: boolean): Promise<Ma
 
 function buildWarnings(market: MarketPair, detail: MarketDetail): RiskWarning[] {
   const warnings: RiskWarning[] = [];
-  if (market.historyTruncated) warnings.push({ title: "24-hour activity is partial", detail: "The ArcScan page limit was reached, so older events in this window are not included in totals.", tone: "info" });
-  if (market.reserveSource === "balance") warnings.push({ title: "Pool reserve event unavailable", detail: "Price and liquidity are using the pair's token balances because no indexed Sync event was available.", tone: "info" });
-  if (market.sellCount > 0) warnings.push({ title: "A sell completed", detail: `A token-to-USDC sell was indexed ${relativeTime(market.lastSellAt)} ago. Future sells can still fail.`, tone: "good" });
-  else warnings.push({ title: "No sell has been seen", detail: market.buyCount > 0 ? "Buys exist, but the indexed history does not show a token-to-USDC sell." : "The indexed history does not contain a successful sell.", tone: "warning" });
-  if (market.totalLiquidity < 20) warnings.push({ title: "Extremely low liquidity", detail: `The pool contains about ${formatValue(market.totalLiquidity)} USDC total liquidity. Even small sells can move the price sharply.`, tone: "warning" });
-  else if (market.totalLiquidity < 200) warnings.push({ title: "Low liquidity", detail: `The pool contains about ${formatValue(market.totalLiquidity)} USDC total liquidity.`, tone: "warning" });
-  if (detail.top10Share !== null && detail.top10Share >= 50) warnings.push({ title: "A few wallets own most tokens", detail: `The top 10 non-pool holders own ${detail.top10Share.toFixed(1)}% of total supply.`, tone: "warning" });
-  else if (detail.top10Share !== null && detail.top10Share >= 25) warnings.push({ title: "Holdings are concentrated", detail: `The top 10 non-pool holders own ${detail.top10Share.toFixed(1)}% of total supply.`, tone: "info" });
-  if (detail.creatorShare !== null && detail.creatorShare >= 10) warnings.push({ title: "Pool creator still holds a large bag", detail: `The PairCreated transaction sender holds ${detail.creatorShare.toFixed(1)}% of total supply.`, tone: "warning" });
-  if (detail.lpBurnedShare !== null && detail.lpBurnedShare >= 90) warnings.push({ title: "Liquidity tokens are mostly burned", detail: `${detail.lpBurnedShare.toFixed(1)}% of LP supply is held by burn addresses.`, tone: "good" });
-  else if (detail.lpTopHolderShare !== null) warnings.push({ title: "Liquidity lock is not confirmed", detail: `One ${detail.lpTopHolderIsContract ? "contract" : "wallet"} holds ${detail.lpTopHolderShare.toFixed(1)}% of LP tokens. Removal may still be possible.`, tone: "warning" });
-  else warnings.push({ title: "Liquidity lock is unknown", detail: "The current index cannot prove that liquidity is locked or burned.", tone: "info" });
-
-  const capabilityWarnings: Record<Capability, RiskWarning> = {
-    mint: { title: "More tokens can be created", detail: "The token rules allow new supply to be created after launch.", tone: "warning" },
-    restrict: { title: "Wallets can be blocked or frozen", detail: "Selected holders may be stopped from moving or selling tokens.", tone: "warning" },
-    pause: { title: "Transfers can be paused", detail: "A privileged wallet may be able to stop token transfers.", tone: "warning" },
-    upgrade: { title: "Token rules can change", detail: "The token's behavior can be changed after launch.", tone: "warning" },
-    fee: { title: "Trading fees can change", detail: "A privileged wallet may be able to modify fee or tax settings.", tone: "warning" },
-  };
-  detail.capabilities.forEach((capability) => warnings.push(capabilityWarnings[capability]));
-  if (!detail.contractVisible) warnings.push({ title: "Some token rules are unknown", detail: "Public data was not enough to check every hidden trading rule.", tone: "info" });
-  else if (detail.capabilities.length === 0) warnings.push({ title: "No obvious supply or trading controls found", detail: "Public token rules did not reveal mint, pause, blocklist, upgrade, or adjustable fee controls.", tone: "good" });
+  const incomplete = Object.entries(detail.sources).filter(([, state]) => state !== "fresh");
+  if (incomplete.length) warnings.push({ basis: "unverified", title: "Detail checks are incomplete", detail: incomplete.map(([name, state]) => `${name}: ${state}`).join("; ") + ". Missing data is not a clean risk check.", tone: "warning" });
+  if (detail.holderHistoryPartial || detail.lpHistoryPartial) warnings.push({ basis: "unverified", title: "Holder index is partial", detail: "Only the first holder page is available. Unseen balances and incomplete burn totals remain unknown.", tone: "info" });
+  if (market.periods.h24.priceChange === null) warnings.push({ basis: "unverified", title: "24H starting price unavailable", detail: "The 24H return is not estimated from a shorter window.", tone: "info" });
+  if (market.historyTruncated) warnings.push({ basis: "unverified", title: "24-hour activity is partial", detail: "Older events beyond the ArcScan page limit are not included in totals.", tone: "info" });
+  if (market.reserveSource === "balance") warnings.push({ basis: "estimate", title: "Token-balance fallback", detail: "No indexed Sync event was available. Price and liquidity are derived from the pair's token balances.", tone: "info" });
+  if (market.sellCount > 0) warnings.push({ basis: "observed", title: "Sell event indexed", detail: `A token-to-USDC Swap was indexed ${relativeTime(market.lastSellAt)} ago. This does not prove that any wallet can sell now.`, tone: "info" });
+  else warnings.push({ basis: "unverified", title: "No sell in available history", detail: "Absence of indexed sells does not prove a token is unsellable.", tone: "info" });
+  if (market.totalLiquidity < 200) warnings.push({ basis: "estimate", title: "Pool liquidity below 200 USDC", detail: `Reserve-based estimate: ${formatValue(market.totalLiquidity)} USDC total, ${formatValue(market.usdcReserve)} USDC on the quote side. This threshold is a screening rule, not a safety rating.`, tone: "warning" });
+  if (detail.top10Share !== null && detail.top10Share >= 25) warnings.push({ basis: "estimate", title: "Top-10 ownership exceeds 25%", detail: `${detail.top10Share.toFixed(1)}% of indexed supply, excluding burn addresses and known pools. Addresses are not necessarily independent owners.`, tone: "warning" });
+  if (detail.creatorShare !== null && detail.creatorShare >= 10) warnings.push({ basis: "estimate", title: "Pool-creation sender holds at least 10%", detail: `Indexed share: ${detail.creatorShare.toFixed(1)}%. This transaction sender may be a relayer; it is not proof of the token team's identity.`, tone: "info" });
+  if (detail.lpBurnedShare !== null) warnings.push({ basis: "estimate", title: "LP at burn addresses", detail: `${detail.lpBurnedShare.toFixed(1)}% of indexed LP supply. This does not establish token safety or sale availability.`, tone: "info" });
+  warnings.push({ basis: "unverified", title: "Liquidity lock not independently checked", detail: detail.lpTopHolderShare !== null ? `Top indexed LP holder: ${detail.lpTopHolderShare.toFixed(1)}%. Lock contract rules and unlock times have not been checked.` : "LP ownership or lock terms could not be established.", tone: "info" });
+  detail.capabilities.forEach(finding => warnings.push({ ...capabilityText(finding), tone: "info" }));
+  warnings.push({ basis: "unverified", title: "Execution paths not verified", detail: "No sell simulation or full permission audit is performed. Optional contract-state reads below report selected getter values only; they do not prove a control is usable, disabled, or absent elsewhere.", tone: "info" });
+  if (!detail.contractVisible) warnings.push({ basis: "unverified", title: "Contract ABI unavailable", detail: "Supply and trading controls cannot be assessed from the available ABI.", tone: "info" });
+  else if (detail.capabilities.length === 0) warnings.push({ basis: "unverified", title: "No matching ABI names", detail: "No configured function-name pattern matched. Custom logic, external contracts, or different function names may still impose restrictions.", tone: "info" });
   return warnings;
 }
 
@@ -1458,15 +1460,15 @@ function renderTradeTape(market: MarketPair, detail: MarketDetail): void {
     const value = element("span", "trade-value");
     value.append(element("strong", "", `${formatValue(trade.usdcValue, 4)} USDC`), element("small", "", `${relativeTime(trade.timestamp)} ago`));
     const links = element("span", "trade-links");
-    const sender = detail.transactionSenders[trade.transactionHash.toLowerCase()] ?? trade.fallbackAddress;
-    if (sender) {
-      const senderLink = element("a", "", shortHash(sender, 5, 4));
-      senderLink.href = `${EXPLORER_BASE}/address/${sender}`;
+    const actor = tradeActor(detail.transactionSenders[trade.transactionHash.toLowerCase()], trade.fallbackAddress);
+    if (actor) {
+      const senderLink = element("a", "", shortHash(actor.address, 5, 4));
+      senderLink.href = `${EXPLORER_BASE}/address/${actor.address}`;
       senderLink.target = "_blank";
       senderLink.rel = "noreferrer";
-      senderLink.title = `Transaction sender: ${sender}`;
-      senderLink.setAttribute("aria-label", `Transaction sender ${sender}`);
-      links.append(element("span", "trade-sender-label", "Sender"), senderLink);
+      senderLink.title = `${actor.role}: ${actor.address}`;
+      senderLink.setAttribute("aria-label", `${actor.role} ${actor.address}`);
+      links.append(element("span", "trade-sender-label", actor.role), senderLink);
     } else {
       links.append(element("span", "", "Sender unknown"));
     }
@@ -1485,14 +1487,18 @@ function renderTradeTape(market: MarketPair, detail: MarketDetail): void {
 function renderWalletSignals(market: MarketPair, detail: MarketDetail): void {
   const signals = detail.walletSignals;
   const count = (category: WalletSignalCategory) => signals.filter((signal) => signal.categories.includes(category)).length;
-  byId("walletSignalCount").textContent = `${signals.length} signal${signals.length === 1 ? "" : "s"}`;
+  byId("walletSignalCount").textContent = detail.sources.transfers === "unavailable" ? "Unavailable" : `${signals.length} signal${signals.length === 1 ? "" : "s"}`;
   byId("walletCreatorMoves").textContent = String(count("creator"));
   byId("walletWhaleMoves").textContent = String(count("whale"));
   byId("walletEntries").textContent = String(count("entry"));
   byId("walletExits").textContent = String(count("exit"));
-  byId("walletSignalNote").textContent = detail.transferHistoryTruncated
-    ? "Latest indexed transfer pages only; older wallet movements are not included. Launch distribution and mint events are excluded."
-    : "Based on the latest indexed transfers. Launch distribution and mint events are excluded.";
+  if (detail.sources.transfers === "unavailable") {
+    for (const id of ["walletCreatorMoves", "walletWhaleMoves", "walletEntries", "walletExits"]) byId(id).textContent = "--";
+  } else {
+    if (detail.sources.creator === "unavailable") byId("walletCreatorMoves").textContent = "--";
+    if (detail.sources.holders === "unavailable") byId("walletEntries").textContent = "--";
+  }
+  byId("walletSignalNote").textContent = `Transfers: ${detail.sources.transfers}${detail.transferHistoryTruncated ? "; partial history" : ""}. Holders: ${detail.sources.holders}. Pool transfers are not proof of a swap or full exit.`;
   document.querySelectorAll<HTMLButtonElement>("[data-wallet-filter]").forEach((button) => {
     const active = button.dataset.walletFilter === activeWalletSignalFilter;
     button.classList.toggle("active", active);
@@ -1507,7 +1513,7 @@ function renderWalletSignals(market: MarketPair, detail: MarketDetail): void {
   list.replaceChildren();
   if (visible.length === 0) {
     const label = filter === "all" ? "priority wallet movement" : `${filter} movement`;
-    list.append(element("div", "wallet-signal-empty", `No ${label} appears in the latest indexed transfers.`));
+    list.append(element("div", "wallet-signal-empty", detail.sources.transfers === "unavailable" ? "Transfer history could not be loaded. Wallet activity is unknown." : `No ${label} appears in the available indexed transfers.`));
     return;
   }
 
@@ -1564,6 +1570,7 @@ function renderLiquidityMonitor(market: MarketPair, detail: MarketDetail): void 
   } else {
     byId("liquidityLpStatus").textContent = "LP ownership is unavailable from the current index.";
   }
+  byId("liquidityLpStatus").append(` LP data: ${detail.sources.lp}${detail.lpHistoryPartial ? "; partial holder page" : ""}.`);
 
   const list = byId("liquidityEventList");
   list.replaceChildren();
@@ -1615,7 +1622,7 @@ function renderHolders(market: MarketPair, detail: MarketDetail): void {
   byId("holderTop5").textContent = shareText(detail.top5Share);
   byId("holderTop10").textContent = shareText(detail.top10Share);
   byId("holderCreator").textContent = shareText(detail.creatorShare);
-  byId("holderSupplyNote").textContent = `Pool ${shareText(detail.poolShare)} · Burned ${shareText(detail.burnedTokenShare)} · rankings exclude both.`;
+  byId("holderSupplyNote").textContent = `Holders: ${detail.sources.holders}${detail.holderHistoryPartial ? "; first page only" : ""}. Selected pool ${shareText(detail.poolShare)} · Burned ${shareText(detail.burnedTokenShare)}. Rankings exclude burn addresses and ${detail.poolScope.split(",").filter(Boolean).length} known same-token pool(s), not all possible pools.`;
 
   const list = byId("holderList");
   list.replaceChildren();
@@ -1635,7 +1642,7 @@ function renderHolders(market: MarketPair, detail: MarketDetail): void {
     address.rel = "noreferrer";
     address.title = position.address;
     addressLine.append(address);
-    if (position.isCreator) addressLine.append(element("span", "holder-tag creator", "Pool creator"));
+    if (position.isCreator) addressLine.append(element("span", "holder-tag creator", "Creation sender"));
     if (position.isContract) addressLine.append(element("span", "holder-tag contract", "Contract"));
     identity.append(addressLine, element("small", "", `${formatValue(position.balance, 3)} ${market.token.symbol || "tokens"}`));
 
@@ -1655,17 +1662,21 @@ function renderHolderConnections(detail: MarketDetail): void {
   const connections = detail.holderConnections;
   const clusters = detail.holderClusters;
   const connectedWallets = new Set(connections.flatMap((connection) => [connection.addressA.toLowerCase(), connection.addressB.toLowerCase()]));
-  byId("holderClusterSummary").textContent = connections.length === 0 ? "No links" : `${connections.length} link${connections.length === 1 ? "" : "s"}`;
+  const unavailable = detail.sources.holders === "unavailable" || detail.sources.transfers === "unavailable";
+  byId("holderClusterSummary").textContent = unavailable ? "Unavailable" : connections.length === 0 ? "No visible links" : `${connections.length} link${connections.length === 1 ? "" : "s"}`;
   byId("clusterConnections").textContent = String(connections.length);
   byId("clusterWallets").textContent = String(connectedWallets.size);
   byId("clusterCount").textContent = String(clusters.length);
   byId("clusterLargest").textContent = clusters[0] ? shareText(clusters[0].share) : "--";
+  if (unavailable) {
+    for (const id of ["clusterConnections", "clusterWallets", "clusterCount"]) byId(id).textContent = "--";
+  }
 
   const positionByAddress = new Map(detail.holderPositions.map((position) => [position.address.toLowerCase(), position]));
   const map = byId("holderClusterMap");
   map.replaceChildren();
   if (clusters.length === 0) {
-    map.append(element("div", "cluster-empty", "No connection between current top holders appears in the visible post-launch history."));
+    map.append(element("div", "cluster-empty", unavailable ? "Holder connections cannot be checked without holder and transfer data." : `No connection appears in the available post-launch history. Holders: ${detail.sources.holders}; transfers: ${detail.sources.transfers}.`));
   } else {
     clusters.forEach((cluster, index) => {
       const group = element("div", "cluster-group");
@@ -1737,12 +1748,80 @@ function updateWatchToggle(market: MarketPair): void {
   byId("watchIcon").textContent = watched ? "★" : "☆";
 }
 
+function renderWatchDigest(): void {
+  const section = byId("watchDigest");
+  section.classList.toggle("hidden", Boolean(linkedPool));
+  if (linkedPool) return;
+  const watched = markets.filter(market => watchlist.has(market.tokenAddress.toLowerCase()));
+  const events = watched.flatMap(market => (readTracking(market.pairAddress)?.alerts ?? []).map(alert => ({ ...alert, market })));
+  const onlyNew = byId<HTMLSelectElement>("watchChangeView").value === "new";
+  const recent = recentWatchChanges(events, onlyNew ? watchReviewedAt : null, Date.now());
+  byId("watchDigestTitle").textContent = "Watchlist changes";
+  const covered = new Set(watched.map(market => market.tokenAddress.toLowerCase())).size;
+  const checked = watched.filter(market => {
+    const detail = detailCache.get(poolCacheKey(market));
+    return !market.stale && detail && Date.now() - detail.data.checkedAt < DETAIL_CACHE_TTL_MS
+      && detail.data.sources.holders === "fresh" && detail.data.sources.lp === "fresh" && detail.data.sources.creator === "fresh";
+  }).length;
+  byId("watchDigestCoverage").textContent = `${covered} / ${watchlist.size} watched tokens loaded · ${checked} / ${watched.length} pools with recent ownership reads · ${watchScanRunning ? "Checking" : document.hidden ? "Paused" : "Tab-only monitoring"}`;
+  byId("watchMonitorNote").textContent = `Up to 3 loaded watched pools checked per minute while this tab is visible. No monitoring while hidden or closed. ${watchReviewedAt ? `Reviewed ${new Date(watchReviewedAt).toLocaleString()}.` : "Not reviewed yet."}`;
+  byId<HTMLButtonElement>("markWatchReviewed").disabled = recent.length === 0 || marketLoadFailed;
+  const list = byId("watchDigestList");
+  list.replaceChildren();
+  if (!recent.length) {
+    list.append(element("p", "watch-digest-empty", watchlist.size === 0 ? "No watched tokens." : covered === 0 ? "Watched tokens are outside the loaded pool coverage." : "No recorded changes in this view. Gaps in observation are not proof of no activity."));
+    return;
+  }
+  for (const event of recent) {
+    const row = element("article", `watch-digest-item ${event.tone}`);
+    const title = element("a", "", `${event.market.token.symbol ?? "Token"}: ${event.title}`);
+    title.href = marketUrl(location.href, NETWORK!.id, event.market.pairAddress);
+    const head = element("div", "observed-alert-head");
+    head.append(title, element("time", "", `Observed ${relativeTime(event.observedAt)} ago`));
+    const evidence = element("a", "watch-evidence-link", event.type === "sell" ? "Indexed pool events" : "Snapshot comparison · source");
+    evidence.href = `${EXPLORER_BASE}/${["ownership", "holders"].includes(event.type) ? `token/${event.market.tokenAddress}` : `address/${event.market.pairAddress}`}`;
+    evidence.target = "_blank";
+    evidence.rel = "noreferrer";
+    row.append(head, element("p", "", event.detail), evidence, element("small", "", `Pool ${shortHash(event.market.pairAddress)}${event.market.stale ? " · cached now" : ""}`));
+    list.append(row);
+  }
+}
+
+async function checkWatchedPools(): Promise<void> {
+  if (watchScanRunning || document.hidden || linkedPool || marketLoadFailed || Date.now() - lastWatchScanAt < AUTO_REFRESH_MS) return;
+  const watched = markets.filter(market => !market.stale && watchlist.has(market.tokenAddress.toLowerCase()));
+  const batch = nextWatchBatch(watched, market => Math.max(watchCheckAttempts.get(poolCacheKey(market)) ?? 0,
+    detailCache.get(poolCacheKey(market))?.data.checkedAt ?? 0), Date.now(), DETAIL_CACHE_TTL_MS);
+  if (!batch.length) { renderWatchDigest(); return; }
+  lastWatchScanAt = Date.now();
+  watchScanRunning = true;
+  renderWatchDigest();
+  try {
+    for (const market of batch) {
+      if (document.hidden) break;
+      if (!watchlist.has(market.tokenAddress.toLowerCase())) continue;
+      watchCheckAttempts.set(poolCacheKey(market), Date.now());
+      try {
+        const detail = await getMarketDetail(market, false);
+        if (!marketLoadFailed && markets.includes(market)) observeDetailChanges(market, detail);
+      } catch {
+        // A failed read must not replace saved ownership baselines.
+      }
+      renderWatchDigest();
+    }
+  } finally {
+    watchScanRunning = false;
+    renderWatchDigest();
+  }
+}
+
 function renderObservedAlerts(market: MarketPair): void {
+  renderWatchDigest();
   const watched = watchlist.has(market.tokenAddress.toLowerCase());
   const section = byId("observedAlertSection");
   section.classList.toggle("hidden", !watched);
   if (!watched) return;
-  const tracking = readTracking(market.tokenAddress) ?? startTracking(market);
+  const tracking = readTracking(market.pairAddress) ?? startTracking(market);
   const alerts = tracking.alerts ?? [];
   byId("observedAlertCount").textContent = `${alerts.length} event${alerts.length === 1 ? "" : "s"}`;
   const list = byId("observedAlertList");
@@ -1817,7 +1896,113 @@ function renderExitCurve(market: MarketPair): void {
   byId("exitEstimate").textContent = `1% -> ${formatValue(onePercent.output, 3)} USDC · ${onePercent.impact.toFixed(1)}% impact`;
 }
 
+function renderPoolComparison(market: MarketPair): void {
+  const peers = groupTokenPools(markets.filter(entry => entry.chainId === market.chainId && entry.tokenAddress.toLowerCase() === market.tokenAddress.toLowerCase()))[0]?.pools ?? [market];
+  const select = byId<HTMLSelectElement>("poolSelector");
+  select.replaceChildren();
+  for (const peer of peers) {
+    const option = element("option", "", `${adapterFor(peer).source.label} · ${shortHash(peer.pairAddress)} · ${formatValue(peer.totalLiquidity)} USDC`);
+    option.value = peer.pairAddress.toLowerCase();
+    select.append(option);
+  }
+  select.value = market.pairAddress.toLowerCase();
+  select.disabled = peers.length < 2;
+  byId("poolComparisonNote").textContent = `${peers.length} loaded pool${peers.length === 1 ? "" : "s"}. Quotes are pool-specific, not executable prices. Default: fresh data first, then highest liquidity.`;
+  const list = byId("poolComparisonList");
+  list.replaceChildren();
+  for (const peer of peers) {
+    const row = element("div", "pool-comparison-row");
+    const link = element("a", "", shortHash(peer.pairAddress));
+    link.href = marketUrl(location.href, NETWORK!.id, peer.pairAddress);
+    link.setAttribute("aria-label", `Open pool ${peer.pairAddress}`);
+    const quote = element("span");
+    quote.append(priceElement(peer.currentPrice));
+    row.append(link, quote, element("span", "", `${formatValue(peer.totalLiquidity)} USDC`),
+      element("small", "", `${peer.stale ? "Cached" : "Fetched"}${peer.historyTruncated ? " · Partial" : ""} · ${peer.lastTradeAt ? `trade ${relativeTime(peer.lastTradeAt)}` : "no trade"}`));
+    list.append(row);
+  }
+}
+
+function renderAuthority(market: MarketPair): void {
+  const key = `${market.chainId}:${market.tokenAddress.toLowerCase()}`;
+  const entry = authorityReads.get(key);
+  const button = byId<HTMLButtonElement>("readAuthority");
+  const cooling = Boolean(entry && Date.now() - entry.attemptedAt < 60_000);
+  button.disabled = !NETWORK || Boolean(authorityRunning) || cooling;
+  button.textContent = authorityRunning === key ? "Reading..." : entry ? "Read again" : "Read state";
+  button.title = cooling ? "Public RPC cooldown: one request per token per minute." : "Read selected contract getters without connecting a wallet";
+  const status = byId("authorityStatus");
+  status.textContent = authorityRunning === key ? "Reading verified ABI and public RPC state..."
+    : entry?.error ? entry.error : entry?.snapshot?.block ? "Fixed-block snapshot. Values may have changed since this read."
+      : entry?.snapshot ? "State not read: no supported verified getters available." : "No state snapshot requested.";
+  const provenance = byId("authoritySource");
+  const rows = byId("authorityRows");
+  provenance.replaceChildren();
+  rows.replaceChildren();
+  const snapshot = entry?.snapshot;
+  if (!snapshot) return;
+  const sourceLink = (label: string, path: string) => {
+    const link = element("a", "", label);
+    link.href = `${EXPLORER_BASE}${path}`;
+    link.target = "_blank";
+    link.rel = "noreferrer";
+    return link;
+  };
+  provenance.append(element("span", "", `${NETWORK!.label} / Checked ${new Date(snapshot.checkedAt).toLocaleString()}`));
+  if (snapshot.block) {
+    provenance.append(sourceLink(`Block ${snapshot.block.number}`, `/block/${snapshot.block.number}`),
+      element("span", "", `Block time ${new Date(snapshot.block.timestamp).toLocaleString()}`));
+  }
+  for (const address of snapshot.abiAddresses) provenance.append(sourceLink(`ABI ${shortHash(address)}`, `/address/${address}?tab=contract`));
+  const unchecked = element("details", "authority-unchecked");
+  const uncheckedCount = snapshot.rows.filter(item => item.state === "unsupported").length;
+  unchecked.append(element("summary", "", `${uncheckedCount} checks unavailable from ABI`));
+  for (const item of snapshot.rows) {
+    const row = element("div", "authority-row");
+    const value = element("div", "authority-value");
+    value.append(element("strong", "", item.value));
+    if (item.addresses?.length) {
+      const addresses = element("div", "authority-addresses");
+      for (const address of item.addresses) addresses.append(sourceLink(address, `/address/${address}`));
+      // Addresses remain inspectable in full without repeating a single getter value.
+      if (item.addresses.length === 1 && item.value === item.addresses[0]) value.replaceChildren();
+      value.append(addresses);
+    }
+    value.append(element("small", "", item.note));
+    row.append(element("span", "", item.label), value);
+    (item.state === "unsupported" ? unchecked : rows).append(row);
+  }
+  if (uncheckedCount) rows.append(unchecked);
+  for (const note of snapshot.notes) rows.append(element("p", "authority-note", note));
+}
+
+async function readSelectedAuthority(): Promise<void> {
+  const market = markets.find(entry => entry.pairAddress.toLowerCase() === selectedPair);
+  if (!market || !NETWORK || authorityRunning) return;
+  const key = `${market.chainId}:${market.tokenAddress.toLowerCase()}`;
+  const previous = authorityReads.get(key);
+  if (previous && Date.now() - previous.attemptedAt < 60_000) return;
+  const entry: { attemptedAt: number; snapshot?: AuthoritySnapshot; error?: string } = { attemptedAt: Date.now() };
+  authorityReads.set(key, entry);
+  authorityRunning = key;
+  renderAuthority(market);
+  const renderSelected = () => {
+    const current = markets.find(item => item.pairAddress.toLowerCase() === selectedPair);
+    if (current) renderAuthority(current);
+  };
+  try { entry.snapshot = await readAuthoritySnapshot(NETWORK, market.tokenAddress); }
+  catch (error) { entry.error = error instanceof Error && error.name !== "AbortError" && error.name !== "TimeoutError"
+    ? error.message : "State read timed out. No current values are assumed."; }
+  finally {
+    authorityRunning = "";
+    renderSelected();
+    window.setTimeout(renderSelected, Math.max(0, 60_000 - (Date.now() - entry.attemptedAt)) + 50);
+  }
+}
+
 function renderDetail(market: MarketPair, detail: MarketDetail): void {
+  renderAuthority(market);
+  renderPoolComparison(market);
   byId("marketTokenMark").textContent = (market.token.symbol || market.token.name || "?").slice(0, 2).toUpperCase();
   byId("marketTokenName").textContent = market.token.name || "Unnamed token";
   byId("marketTokenSymbol").textContent = market.token.symbol || "--";
@@ -1861,26 +2046,28 @@ function renderDetail(market: MarketPair, detail: MarketDetail): void {
   renderHolderConnections(detail);
 
   const warnings = buildWarnings(market, detail);
-  const warningTotal = warnings.filter((warning) => warning.tone === "warning").length;
-  byId("warningCount").textContent = `${warningTotal} flag${warningTotal === 1 ? "" : "s"}`;
+  const summary = evidenceSummary(warnings);
+  byId("warningCount").textContent = `${summary.observed} indexed · ${summary.estimates} calculated · ${summary.unverified} unverified`;
   const badge = byId("riskBadge");
   badge.className = "risk-badge";
-  if (warningTotal >= 4) {
-    badge.classList.add("danger");
-    badge.textContent = `${warningTotal} red flags`;
-  } else if (warningTotal > 0) {
-    badge.classList.add("caution");
-    badge.textContent = `${warningTotal} flag${warningTotal === 1 ? "" : "s"}`;
-  } else {
-    badge.classList.add("clear");
-    badge.textContent = "No major flag";
+  badge.textContent = summary.label;
+  badge.title = "Evidence completeness, not a risk score or safety verdict.";
+  byId("evidenceFreshness").textContent = `Market: ${market.stale ? "cached" : "fetched"} · Contract: ${detail.sources.contract} · Holders: ${detail.sources.holders} · No safety score`;
+  const sources = byId("evidenceSources");
+  sources.replaceChildren();
+  for (const [label, path] of [["Token contract", `/address/${market.tokenAddress}?tab=contract`], ["Pool events", `/address/${market.pairAddress}?tab=logs`], ["Holder index", `/token/${market.tokenAddress}?tab=holders`]]) {
+    const link = element("a", "", label);
+    link.href = `${EXPLORER_BASE}${path}`;
+    link.target = "_blank";
+    link.rel = "noreferrer";
+    sources.append(link);
   }
   const list = byId("marketWarnings");
   list.replaceChildren();
   for (const warning of warnings) {
     const row = element("div", `warning-item ${warning.tone}`);
     const copy = element("div", "warning-copy");
-    copy.append(element("strong", "", warning.title), element("span", "", warning.detail));
+    copy.append(element("small", `evidence-label ${warning.basis}`, warning.basis === "observed" ? "Indexed event" : warning.basis === "estimate" ? "Calculated" : "Unverified"), element("strong", "", warning.title), element("span", "", warning.detail));
     row.append(element("span", "warning-dot"), copy);
     list.append(row);
   }
@@ -1888,25 +2075,46 @@ function renderDetail(market: MarketPair, detail: MarketDetail): void {
   setDetailState("content");
 }
 
-async function loadDetail(market: MarketPair, force = false): Promise<void> {
-  const requestId = ++detailRequest;
-  const key = market.tokenAddress.toLowerCase();
-  if (force) detailCache.delete(key);
+async function getMarketDetail(market: MarketPair, force: boolean): Promise<MarketDetail> {
+  const key = poolCacheKey(market);
+  const scope = [...knownTokenPools(market, markets)].sort().join(",");
   const cached = detailCache.get(key);
-  if (!force && cached && Date.now() - cached.savedAt < DETAIL_CACHE_TTL_MS) {
+  if (!force && cached && cached.data.poolScope === scope && Date.now() - cached.data.checkedAt < DETAIL_CACHE_TTL_MS) return cached.data;
+  const flightKey = `${key}:${scope}`;
+  const running = detailFlights.get(flightKey);
+  if (running) return running;
+  const request = fetchMarketDetail(market, force).then(detail => {
+    detailCache.set(key, { data: detail, savedAt: Date.now() });
+    return detail;
+  });
+  detailFlights.set(flightKey, request);
+  try { return await request; }
+  finally { detailFlights.delete(flightKey); }
+}
+
+async function loadDetail(market: MarketPair, force = false): Promise<void> {
+  const url = marketUrl(location.href, NETWORK!.id, market.pairAddress);
+  byId<HTMLAnchorElement>("fullMarketLink").href = url;
+  byId<HTMLButtonElement>("copyMarketLink").disabled = false;
+  byId("shareMarketStatus").textContent = "";
+  if (linkedPool) document.title = `${market.token.symbol ?? "Token"} | ARCROW`;
+  const requestId = ++detailRequest;
+  const key = poolCacheKey(market);
+  const cached = detailCache.get(key);
+  const poolScope = [...knownTokenPools(market, markets)].sort().join(",");
+  if (!force && cached && cached.data.poolScope === poolScope && Date.now() - cached.savedAt < DETAIL_CACHE_TTL_MS) {
     if (requestId === detailRequest && selectedPair === market.pairAddress.toLowerCase()) renderDetail(market, cached.data);
     return;
   }
   setDetailState("loading");
   try {
-    const detail = await fetchMarketDetail(market, force);
-    detailCache.set(key, { data: detail, savedAt: Date.now() });
+    const detail = await getMarketDetail(market, force);
     if (requestId !== detailRequest || selectedPair !== market.pairAddress.toLowerCase()) return;
     if (!market.stale) observeDetailChanges(market, detail);
     renderDetail(market, detail);
   } catch {
     if (requestId !== detailRequest) return;
-    renderDetail(market, { burnedTokenShare: null, capabilities: [], contractVisible: false, creatorShare: null, holderClusters: [], holderConnections: [], holderPositions: [], lpBurnedShare: null, lpTopHolderIsContract: false, lpTopHolderShare: null, poolShare: null, top1Share: null, top5Share: null, top10Share: null, transferHistoryTruncated: false, transactionSenders: {}, walletSignals: [] });
+    renderDetail(market, { checkedAt: Date.now(), sources: { holders: "unavailable", lp: "unavailable", contract: "unavailable", creator: "unavailable", transfers: "unavailable", senders: "unavailable" }, poolScope, holderHistoryPartial: true, lpHistoryPartial: true, burnedTokenShare: null, capabilities: [], contractVisible: false, creatorShare: null, holderClusters: [], holderConnections: [], holderPositions: [], lpBurnedShare: null, lpTopHolderIsContract: false, lpTopHolderShare: null, poolShare: null, top1Share: null, top5Share: null, top10Share: null, transferHistoryTruncated: true, transactionSenders: {}, walletSignals: [] });
   }
 }
 
@@ -1927,40 +2135,73 @@ function setNotice(message?: string): void {
 }
 
 async function loadMarkets(force: boolean): Promise<boolean> {
-  const factoryLogs = await fetchData<LogResponse>(`/addresses/${MARKET_FACTORY}/logs`, 60_000, force);
-  const seeds = pairSeeds(factoryLogs.data).slice(0, MARKET_LIMIT);
-  const loaded = await mapLimited(seeds, 3, (seed) => loadMarketPair(seed, force));
-  markets = loaded.filter((market): market is MarketPair => market !== null);
+  if (linkedPool) {
+    const seed = await resolveLinkedPool(linkedPool, dexAdapters,
+      async address => (await fetchData<{ creation_transaction_hash?: string | null }>(`/addresses/${address}`, 300_000, force)).data,
+      async path => (await fetchData<CreationPage>(path, 300_000, force)).data);
+    const market = await loadMarketPair(seed, force);
+    if (!market) throw new Error("This pool's market data could not be loaded. Retry with Refresh.");
+    markets = [market];
+    selectedPair = market.pairAddress.toLowerCase();
+    adPreview.setContentAvailable(true);
+    await loadDetail(market, force);
+    return market.stale;
+  }
+  const discovery = await discoverDexPools(dexAdapters, marketLimit, path => fetchData<LogResponse>(path, 60_000, force));
+  const loaded = await mapLimited(discovery.seeds, 3, (seed) => loadMarketPair(seed, force));
+  failedMarketCount = loaded.filter((market) => market === null).length;
+  const previous = new Map(markets.map((market) => [market.pairAddress.toLowerCase(), market]));
+  markets = loaded.flatMap((market, index) => {
+    if (market) return [market];
+    const old = previous.get(discovery.seeds[index]!.pairAddress.toLowerCase());
+    return old ? [{ ...old, stale: true }] : [];
+  });
+  hasMoreMarkets = discovery.hasMore;
+  discoveryLimited = discovery.limited;
   const shown = visibleMarkets();
-  if (!markets.some((market) => market.pairAddress.toLowerCase() === selectedPair)) selectedPair = markets[0]?.pairAddress.toLowerCase() ?? "";
-  if (!shown.some((market) => market.pairAddress.toLowerCase() === selectedPair) && shown[0]) selectedPair = shown[0].pairAddress.toLowerCase();
+  const current = markets.find(market => market.pairAddress.toLowerCase() === selectedPair);
+  if (!current || !shown.some(market => market.tokenAddress.toLowerCase() === current.tokenAddress.toLowerCase())) selectedPair = shown[0]?.pairAddress.toLowerCase() ?? "";
   renderMarketRows();
   const selected = markets.find((market) => market.pairAddress.toLowerCase() === selectedPair);
   if (selected) void loadDetail(selected, force);
-  else setDetailState("empty");
-  return factoryLogs.stale || markets.some((market) => market.stale);
+  else { detailRequest += 1; setDetailState("empty"); }
+  return discovery.stale || markets.some((market) => market.stale);
 }
 
 async function loadDashboard(force = false): Promise<void> {
-  if (loading) return;
+  if (loading || !NETWORK || routeError) return;
   loading = true;
+  renderDiscoveryControls();
   const refresh = byId<HTMLButtonElement>("refreshButton");
   refresh.disabled = true;
   refresh.textContent = "Refreshing";
   setNotice();
   try {
     const stale = await loadMarkets(force);
+    marketLoadFailed = false;
+    renderMarketBrief();
+    void checkWatchedPools();
     if (stale) setNotice("Live indexing is temporarily unavailable. Showing the latest cached market snapshot.");
     byId("lastUpdated").textContent = `${stale ? "Cached" : "Updated"} ${new Intl.DateTimeFormat("en", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date())}`;
   } catch (error) {
+    marketLoadFailed = true;
+    markets = markets.map(market => ({ ...market, stale: true }));
+    renderMarketRows();
+    adPreview.setContentAvailable(false);
     setNotice(error instanceof Error ? `Market data unavailable: ${error.message}` : "Market data unavailable.");
     byId("lastUpdated").textContent = "Connection unavailable";
+    detailRequest += 1;
     setDetailState("empty");
+    if (linkedPool) {
+      byId("marketDetailEmpty").textContent = "Pool unavailable. Use Refresh to retry or return to markets.";
+      byId<HTMLButtonElement>("copyMarketLink").disabled = true;
+    }
   } finally {
     lastRefreshAt = Date.now();
     loading = false;
     refresh.disabled = false;
     refresh.textContent = "Refresh";
+    renderDiscoveryControls();
   }
 }
 
@@ -1978,6 +2219,7 @@ function applyFilter(filter: MarketFilter): void {
       void loadDetail(shown[0]);
     } else {
       selectedPair = "";
+      detailRequest += 1;
       setDetailState("empty");
     }
   }
@@ -1994,7 +2236,7 @@ function toggleSelectedWatch(): void {
     watchlist.add(key);
     if (!market.stale) {
       startTracking(market);
-      const detail = detailCache.get(key);
+      const detail = detailCache.get(poolCacheKey(market));
       if (detail) observeDetailChanges(market, detail.data);
     }
   }
@@ -2011,22 +2253,19 @@ function toggleSelectedWatch(): void {
 function applyWalletSignalFilter(filter: WalletSignalFilter): void {
   activeWalletSignalFilter = filter;
   const market = markets.find((entry) => entry.pairAddress.toLowerCase() === selectedPair);
-  const detail = market ? detailCache.get(market.tokenAddress.toLowerCase()) : undefined;
+  const detail = market ? detailCache.get(poolCacheKey(market)) : undefined;
   if (market && detail) renderWalletSignals(market, detail.data);
 }
 
 function runSearch(query: string): void {
   activeQuery = query.trim().toLowerCase();
+  applyFilter(activeFilter);
   const shown = visibleMarkets();
-  renderMarketRows();
   if (shown.length === 0) {
-    setNotice("No indexed Arc USDC market matches that token or address.");
+    setNotice("No match in the loaded pools with these filters.");
     return;
   }
   setNotice();
-  selectedPair = shown[0].pairAddress.toLowerCase();
-  renderMarketRows();
-  void loadDetail(shown[0]);
 }
 
 document.querySelectorAll<HTMLButtonElement>("[data-market-filter]").forEach((button) => {
@@ -2040,12 +2279,85 @@ byId<HTMLFormElement>("searchForm").addEventListener("submit", (event) => {
   runSearch(byId<HTMLInputElement>("searchInput").value);
 });
 byId<HTMLButtonElement>("refreshButton").addEventListener("click", () => void loadDashboard(true));
+byId<HTMLButtonElement>("copyMarketLink").addEventListener("click", async () => {
+  const market = markets.find(entry => entry.pairAddress.toLowerCase() === selectedPair);
+  if (!market || !NETWORK) return;
+  const url = marketUrl(location.href, NETWORK.id, market.pairAddress);
+  try {
+    await navigator.clipboard.writeText(url);
+    byId("shareMarketStatus").textContent = "Link copied";
+  } catch {
+    byId("shareMarketStatus").textContent = "Copy unavailable. Use the Full details link.";
+  }
+});
 byId<HTMLButtonElement>("watchToggle").addEventListener("click", toggleSelectedWatch);
+byId<HTMLButtonElement>("readAuthority").addEventListener("click", () => void readSelectedAuthority());
+byId<HTMLSelectElement>("watchChangeView").addEventListener("change", renderWatchDigest);
+byId<HTMLButtonElement>("markWatchReviewed").addEventListener("click", () => {
+  watchReviewedAt = Date.now();
+  try { localStorage.setItem(`${CACHE_PREFIX}watch-reviewed-at`, String(watchReviewedAt)); } catch { /* In-memory review remains available. */ }
+  renderWatchDigest();
+});
+byId<HTMLSelectElement>("poolSelector").addEventListener("change", () => {
+  const market = markets.find(entry => entry.pairAddress.toLowerCase() === byId<HTMLSelectElement>("poolSelector").value);
+  if (market && !linkedPool) void selectMarket(market, false);
+});
+byId<HTMLSelectElement>("marketSort").addEventListener("change", (event) => {
+  discoveryOptions.sort = (event.target as HTMLSelectElement).value as MarketSort;
+  applyFilter(activeFilter);
+});
+byId<HTMLSelectElement>("minimumLiquidity").addEventListener("change", (event) => {
+  discoveryOptions.minimumLiquidity = Number((event.target as HTMLSelectElement).value);
+  applyFilter(activeFilter);
+});
+for (const [id, key] of [["traded24h", "traded24h"], ["sellSeenOnly", "sellSeen"]] as const) {
+  byId<HTMLInputElement>(id).addEventListener("change", (event) => {
+    discoveryOptions[key] = (event.target as HTMLInputElement).checked;
+    applyFilter(activeFilter);
+  });
+}
+byId<HTMLButtonElement>("loadMoreMarkets").addEventListener("click", () => {
+  if (loading) return;
+  if (!marketLoadFailed) marketLimit = Math.min(MAX_MARKETS, marketLimit + MARKET_LIMIT);
+  void loadDashboard();
+});
 
-void loadDashboard();
+if (NETWORK) {
+  byId<HTMLAnchorElement>("backToMarkets").href = marketUrl(location.href, NETWORK.id);
+  if (linkedPool || routeError) {
+    document.body.classList.add("pool-page");
+    byId("poolPageNav").classList.remove("hidden");
+    byId("poolPageAddress").textContent = linkedPool ? `Pool ${shortHash(linkedPool)}` : "Invalid pool link";
+    byId<HTMLAnchorElement>("fullMarketLink").classList.add("hidden");
+  }
+  document.querySelector(".status-row strong")!.textContent = `${NETWORK.label.toUpperCase()} MARKET FEED`;
+  document.querySelector(".chain-id")!.textContent = `CHAIN ${NETWORK.chainId}`;
+  document.querySelector(".network-lockup small")!.textContent = NETWORK.testnet ? "TESTNET" : "MAINNET";
+  document.querySelector(".pulse-heading .eyebrow")!.textContent = `ARCROW / ${NETWORK.label.toUpperCase()}`;
+  document.querySelector(".footer-brand small")!.textContent = `ON ${NETWORK.label.toUpperCase()}`;
+  document.querySelectorAll<HTMLAnchorElement>("a[data-explorer]").forEach(link => { link.href = NETWORK.explorerBase; });
+  if (routeError) {
+    setNotice(routeError);
+    byId("marketDetailEmpty").textContent = "This pool link is invalid. Return to markets.";
+    byId("lastUpdated").textContent = "Invalid link";
+    byId<HTMLButtonElement>("refreshButton").disabled = true;
+  } else void loadDashboard();
+} else {
+  setNotice(networkError);
+  byId("lastUpdated").textContent = "Network unavailable";
+  document.querySelector(".status-row strong")!.textContent = "ARCROW";
+  document.querySelector(".live-dot")!.classList.add("hidden");
+  document.querySelector(".chain-id")!.textContent = "";
+  document.querySelector(".network-lockup small")!.textContent = "UNAVAILABLE";
+  document.querySelector(".footer-brand small")!.textContent = "";
+  byId("markets").classList.add("hidden");
+  document.querySelectorAll<HTMLAnchorElement>("a[data-explorer]").forEach(link => link.removeAttribute("href"));
+  document.querySelectorAll<HTMLButtonElement | HTMLInputElement | HTMLSelectElement>("button, input, select").forEach(control => { control.disabled = true; });
+}
 window.setInterval(() => {
   if (!document.hidden) void loadDashboard();
 }, AUTO_REFRESH_MS);
 document.addEventListener("visibilitychange", () => {
+  if (NETWORK) renderWatchDigest();
   if (!document.hidden && Date.now() - lastRefreshAt >= AUTO_REFRESH_MS) void loadDashboard();
 });

@@ -19,7 +19,7 @@ npm run test-arc-radar
 npm run security:contracts
 ```
 
-Start the Arc Radar locally with:
+Start ARCROW, the Arc meme-intelligence interface, locally with:
 
 ```bash
 npm run start-arc-radar

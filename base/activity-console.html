@@ -682,6 +682,7 @@
       const storedRoutine = loadStoredRoutine();
 
       const state = {
+        walletProvider: null,
         provider: null,
         signer: null,
         account: "",
@@ -1045,31 +1046,50 @@
       }
 
       async function ensureBase() {
-        const chainId = await window.ethereum.request({ method: "eth_chainId" });
+        const provider = state.walletProvider;
+        const chainId = await provider.request({ method: "eth_chainId" });
         if (chainId === BASE.chainId) return;
 
         try {
-          await window.ethereum.request({
+          await provider.request({
             method: "wallet_switchEthereumChain",
             params: [{ chainId: BASE.chainId }],
           });
         } catch (error) {
           if (error.code !== 4902) throw error;
-          await window.ethereum.request({
+          await provider.request({
             method: "wallet_addEthereumChain",
             params: [BASE],
           });
         }
       }
 
+      async function getWalletProvider() {
+        const announced = [];
+        const onAnnounce = (event) => announced.push(event.detail);
+        window.addEventListener("eip6963:announceProvider", onAnnounce);
+        window.dispatchEvent(new Event("eip6963:requestProvider"));
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        window.removeEventListener("eip6963:announceProvider", onAnnounce);
+
+        const metamask = announced.find(({ info, provider }) =>
+          info?.rdns?.toLowerCase() === "io.metamask" ||
+          info?.rdns?.toLowerCase().includes("metamask") ||
+          provider?.isMetaMask,
+        );
+        if (metamask?.provider) return metamask.provider;
+        return window.ethereum?.isMetaMask ? window.ethereum : null;
+      }
+
       async function connect() {
-        if (!window.ethereum) {
-          throw new Error("No injected wallet found.");
+        state.walletProvider = await getWalletProvider();
+        if (!state.walletProvider) {
+          throw new Error("MetaMask was not found. Enable MetaMask and try again.");
         }
 
         await ensureBase();
-        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-        state.provider = new BrowserProvider(window.ethereum);
+        const accounts = await state.walletProvider.request({ method: "eth_requestAccounts" });
+        state.provider = new BrowserProvider(state.walletProvider);
         state.signer = await state.provider.getSigner();
         state.account = accounts[0];
         els.walletShort.textContent = shortAddress(state.account);
