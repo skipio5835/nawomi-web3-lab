@@ -7,5 +7,6 @@
     "types": ["node"],
     "skipLibCheck": true
   },
-  "include": ["base/**/*.ts", "circle/**/*.ts", "shared/**/*.ts"]
+  "include": ["base/**/*.ts", "circle/**/*.ts", "shared/**/*.ts"],
+  "exclude": ["circle/arc/vendor/**"]
 }

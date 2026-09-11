@@ -17,8 +17,10 @@ API credentials, Kit Keys, or live-wallet secrets in an issue or pull request.
 - Review the selected network, contract, function, recipient, value, and allowance
   in the wallet before every signature.
 - Treat generated browser bundles as build output; review their TypeScript source.
-- Run `npm audit --audit-level=moderate`, `npm run typecheck`,
-  `npm run test-arc-radar`, and `npm run security:contracts` before release.
+- Run `npm audit --audit-level=low`, `npm run test-dependency-security`,
+  `npm run typecheck`, `npm run test-arc-radar`, and `npm run security:contracts`
+  before release. See `circle/arc/SECURITY.md` for the scoped dependency subsets
+  and their maintenance requirements.
 - Compare deployed runtime bytecode with the compiled release artifact before
   recording a deployment as verified.
 
