@@ -44,6 +44,16 @@ export function decimalValue(raw: string | null | undefined, decimals: string | 
   return value / 10 ** places;
 }
 
+export function fullyDilutedValue(price: number, supply: string | null | undefined, decimals: string | null | undefined): number | null {
+  if (!Number.isFinite(price) || price <= 0 || typeof supply !== "string" || !/^\d+$/.test(supply)
+    || typeof decimals !== "string" || !/^\d+$/.test(decimals)) return null;
+  const places = Number(decimals);
+  const raw = Number(supply);
+  if (!Number.isInteger(places) || places < 0 || places > 255 || !Number.isFinite(raw)) return null;
+  const value = price * (raw / 10 ** places);
+  return Number.isFinite(value) ? value : null;
+}
+
 export function syncReserves(log: RadarAddressLog, pair: RadarPair, tokenDecimals: string | null): Omit<ReserveSnapshot, "timestamp"> | null {
   const quote = quoteForPair(pair);
   if (!quote) return null;

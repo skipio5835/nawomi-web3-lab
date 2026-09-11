@@ -1,6 +1,20 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { discoverSeeds, refineMarkets } from "../src/arc-radar-discovery.js";
+import { fullyDilutedValue } from "../src/arc-radar-core.js";
+
+test("FDV distinguishes unavailable metadata from a genuine zero supply", () => {
+  for (const supply of [null, undefined, "", "invalid", "-1", "1.5", "9".repeat(400)]) {
+    assert.equal(fullyDilutedValue(9, supply, "18"), null);
+  }
+  for (const decimals of [null, undefined, "", "bad", "-1", "1.5", "256"]) {
+    assert.equal(fullyDilutedValue(9, "1000", decimals), null);
+  }
+  for (const price of [NaN, Infinity, 0, -1]) assert.equal(fullyDilutedValue(price, "1000", "0"), null);
+  assert.equal(fullyDilutedValue(9, "1000000000000000000", "18"), 9);
+  assert.equal(fullyDilutedValue(9, "0", "18"), 0);
+  assert.equal(fullyDilutedValue(1e308, "1000", "0"), null);
+});
 
 const discoveryMarkets = [
   { pairAddress: "a", createdAt: "2026-09-07", lastTradeAt: null, totalLiquidity: 100, sellCount: 0, periods: { h24: { swapCount: 0, volumeUsdc: 0 } } },

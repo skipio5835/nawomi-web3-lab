@@ -386,8 +386,8 @@ var require_buffer = __commonJS({
     }
     function fromArrayView(arrayView) {
       if (isInstance(arrayView, Uint8Array)) {
-        const copy = new Uint8Array(arrayView);
-        return fromArrayBuffer(copy.buffer, copy.byteOffset, copy.byteLength);
+        const copy2 = new Uint8Array(arrayView);
+        return fromArrayBuffer(copy2.buffer, copy2.byteOffset, copy2.byteLength);
       }
       return fromArrayLike(arrayView);
     }
@@ -1490,7 +1490,7 @@ var require_buffer = __commonJS({
     Buffer3.prototype.writeDoubleBE = function writeDoubleBE(value, offset, noAssert) {
       return writeDouble(this, value, offset, false, noAssert);
     };
-    Buffer3.prototype.copy = function copy(target, targetStart, start, end) {
+    Buffer3.prototype.copy = function copy2(target, targetStart, start, end) {
       if (!Buffer3.isBuffer(target)) throw new TypeError("argument should be a Buffer");
       if (!start) start = 0;
       if (!end && end !== 0) end = this.length;
@@ -6270,6 +6270,14 @@ function decimalValue(raw, decimals) {
   if (!Number.isFinite(value) || !Number.isFinite(places)) return 0;
   return value / 10 ** places;
 }
+function fullyDilutedValue(price, supply, decimals) {
+  if (!Number.isFinite(price) || price <= 0 || typeof supply !== "string" || !/^\d+$/.test(supply) || typeof decimals !== "string" || !/^\d+$/.test(decimals)) return null;
+  const places = Number(decimals);
+  const raw = Number(supply);
+  if (!Number.isInteger(places) || places < 0 || places > 255 || !Number.isFinite(raw)) return null;
+  const value = price * (raw / 10 ** places);
+  return Number.isFinite(value) ? value : null;
+}
 function syncReserves(log, pair, tokenDecimals) {
   const quote = quoteForPair(pair);
   if (!quote) return null;
@@ -6446,7 +6454,7 @@ function createDexAdapter(source, network) {
         usdcAmount
       });
     }
-    return events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()).slice(0, 12);
+    return events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }
   function tradeFromLog(log, seed) {
     const direction = swapDirection(log, seed);
@@ -11028,6 +11036,733 @@ async function readAuthoritySnapshot(network, address, fetcher = fetch) {
   }
 }
 
+// circle/arc/src/arc-radar-i18n.ts
+init_browser_buffer_global();
+var copy = (key, values = {}) => ({ key, values });
+var KOREAN = {
+  "Partial update": "\uC77C\uBD80 \uAC31\uC2E0",
+  "All discovered pools failed to load. Market activity is unknown. Retry with Refresh.": "\uBC1C\uACAC\uB41C \uD480\uC744 \uBAA8\uB450 \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4. \uC2DC\uC7A5 \uD65C\uB3D9\uC740 \uD655\uC778\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. \uC0C8\uB85C\uACE0\uCE68\uC73C\uB85C \uB2E4\uC2DC \uC2DC\uB3C4\uD558\uC138\uC694.",
+  "Market activity is unknown because pool data could not be loaded.": "\uD480 \uB370\uC774\uD130\uB97C \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD574 \uC2DC\uC7A5 \uD65C\uB3D9\uC744 \uD655\uC778\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "Pool loads failed: {count}. Totals cover available pools only.": "\uD480 {count}\uAC1C\uB97C \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4. \uD569\uACC4\uC5D0\uB294 \uC870\uD68C\uB41C \uD480\uB9CC \uD3EC\uD568\uB429\uB2C8\uB2E4.",
+  "Showing {shown} of {count} indexed liquidity events. 24H totals use fetched events only{partial}.": "\uC218\uC9D1\uB41C \uC720\uB3D9\uC131 \uC774\uBCA4\uD2B8 {count}\uAC74 \uC911 {shown}\uAC74 \uD45C\uC2DC. 24\uC2DC\uAC04 \uD569\uACC4\uB294 \uC870\uD68C\uB41C \uC774\uBCA4\uD2B8\uB9CC \uD3EC\uD568\uD569\uB2C8\uB2E4{partial}.",
+  "; history may be incomplete": "; \uC774\uB825\uC774 \uC77C\uBD80 \uB204\uB77D\uB418\uC5C8\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4",
+  "; partial history": "; \uC77C\uBD80 \uC774\uB825",
+  "; partial holder page": "; \uBCF4\uC720 \uC8FC\uC18C \uC77C\uBD80 \uC870\uD68C",
+  "; first page only": "; \uCCAB \uD398\uC774\uC9C0\uB9CC \uC870\uD68C",
+  "Transfers: {transfers}{partial}. Holders: {holders}. Pool transfers are not proof of a swap or full exit.": "\uC804\uC1A1: {transfers}{partial}. \uBCF4\uC720 \uC8FC\uC18C: {holders}. \uD480\uB85C \uC804\uC1A1\uD588\uB2E4\uACE0 \uC2A4\uC651\uC774\uB098 \uC804\uB7C9 \uB9E4\uB3C4\uB77C\uB294 \uB73B\uC740 \uC544\uB2D9\uB2C8\uB2E4.",
+  "Transfer history could not be loaded. Wallet activity is unknown.": "\uC804\uC1A1 \uC774\uB825\uC744 \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD574 \uC9C0\uAC11 \uD65C\uB3D9\uC744 \uD655\uC778\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "No wallet movement matches this filter in the available indexed transfers.": "\uC870\uD68C\uB41C \uC804\uC1A1 \uC774\uB825\uC5D0\uC11C \uD604\uC7AC \uC870\uAC74\uC5D0 \uB9DE\uB294 \uC9C0\uAC11 \uC6C0\uC9C1\uC784\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "{share} of LP supply is held by burn addresses.": "LP \uACF5\uAE09\uB7C9\uC758 {share}\uAC00 \uC18C\uAC01 \uC8FC\uC18C\uC5D0 \uC788\uC2B5\uB2C8\uB2E4.",
+  "Top {holder} controls {share} of LP supply; a lock is not confirmed.": "\uCD5C\uB300 \uBCF4\uC720 {holder}\uC758 LP \uBE44\uC911\uC740 {share}\uC774\uBA70, \uC7A0\uAE08\uC740 \uD655\uC778\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4.",
+  "contract": "\uACC4\uC57D",
+  "wallet": "\uC9C0\uAC11",
+  "LP ownership is unavailable from the current index.": "\uD604\uC7AC \uC778\uB371\uC2A4\uC5D0\uC11C LP \uBCF4\uC720 \uD604\uD669\uC744 \uD655\uC778\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "{ownership} LP data: {state}{partial}.": "{ownership} LP \uB370\uC774\uD130: {state}{partial}.",
+  "No Mint or Burn event appears in the visible pair history.": "\uC870\uD68C\uB41C \uD480 \uC774\uB825\uC5D0 Mint \uB610\uB294 Burn \uC774\uBCA4\uD2B8\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "{percent}% of prior USDC reserve": "\uC9C1\uC804 USDC \uC900\uBE44\uAE08\uC758 {percent}%",
+  "Holders: {state}{partial}. Selected pool {poolShare} \xB7 Burned {burnedShare}. Rankings exclude burn addresses and {count} known same-token pool(s), not all possible pools.": "\uBCF4\uC720 \uC8FC\uC18C: {state}{partial}. \uC120\uD0DD \uD480 {poolShare} \xB7 \uC18C\uAC01 {burnedShare}. \uC21C\uC704\uB294 \uC18C\uAC01 \uC8FC\uC18C\uC640 \uD655\uC778\uB41C \uB3D9\uC77C \uD1A0\uD070 \uD480 {count}\uAC1C\uB97C \uC81C\uC678\uD569\uB2C8\uB2E4. \uBAA8\uB4E0 \uD480\uC744 \uC81C\uC678\uD55C \uAC83\uC740 \uC544\uB2D9\uB2C8\uB2E4.",
+  "Holder positions are unavailable from the current index.": "\uD604\uC7AC \uC778\uB371\uC2A4\uC5D0\uC11C \uBCF4\uC720 \uC8FC\uC18C\uBCC4 \uC794\uC561\uC744 \uD655\uC778\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "Holder connections cannot be checked without holder and transfer data.": "\uBCF4\uC720 \uC8FC\uC18C\uC640 \uC804\uC1A1 \uB370\uC774\uD130\uAC00 \uC5C6\uC5B4 \uC5F0\uACB0 \uAD00\uACC4\uB97C \uD655\uC778\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "No connection appears in the available post-launch history. Holders: {holders}; transfers: {transfers}.": "\uC870\uD68C\uB41C \uCD9C\uC2DC \uC774\uD6C4 \uC774\uB825\uC5D0\uC11C \uC5F0\uACB0\uC774 \uD655\uC778\uB418\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uBCF4\uC720 \uC8FC\uC18C: {holders}; \uC804\uC1A1: {transfers}.",
+  "Loaded pools: {count}. Quotes are pool-specific, not executable prices. Default: fresh data first, then highest liquidity.": "\uD480 {count}\uAC1C \uC870\uD68C. \uAC00\uACA9\uC740 \uAC1C\uBCC4 \uD480 \uAE30\uC900\uC774\uBA70 \uC2E4\uC81C \uCCB4\uACB0 \uACAC\uC801\uC774 \uC544\uB2D9\uB2C8\uB2E4. \uC815\uC0C1 \uC870\uD68C\uB41C \uD480\uC744 \uC6B0\uC120\uD558\uACE0, \uADF8\uB2E4\uC74C \uC720\uB3D9\uC131\uC21C\uC73C\uB85C \uC815\uB82C\uD569\uB2C8\uB2E4.",
+  "{state}{partial} \xB7 {trade}": "{state}{partial} \xB7 {trade}",
+  "{amount} USDC exit side \xB7 {source}": "\uB9E4\uB3C4 \uCE21 {amount} USDC \xB7 {source}",
+  "Sync reserves": "Sync \uC900\uBE44\uAE08",
+  "balance fallback": "\uC794\uC561 \uAE30\uC900 \uB300\uCCB4 \uACC4\uC0B0",
+  "{count} signals": "\uC6C0\uC9C1\uC784 {count}\uAC74",
+  "{count} events": "\uC774\uBCA4\uD2B8 {count}\uAC74",
+  "{count} indexed": "\uC218\uC9D1 \uC8FC\uC18C {count}\uAC1C",
+  "No visible links": "\uC870\uD68C\uB41C \uC5F0\uACB0 \uC5C6\uC74C",
+  "{count} links": "\uC5F0\uACB0 {count}\uAC1C",
+  "Liquidity added": "\uC720\uB3D9\uC131 \uCD94\uAC00",
+  "Initial / unknown base": "\uCD08\uAE30 \uC0C1\uD0DC / \uAE30\uC900\uAC12 \uBBF8\uD655\uC778",
+  "Reading indexed changes...": "\uC218\uC9D1\uB41C \uBCC0\uD654 \uC870\uD68C \uC911",
+  "Reading the last 24 hours...": "\uCD5C\uADFC 24\uC2DC\uAC04 \uC774\uB825 \uC870\uD68C \uC911",
+  "Loading indexed pools...": "\uC218\uC9D1\uB41C \uD480 \uBD88\uB7EC\uC624\uB294 \uC911",
+  "Reading source coverage...": "\uB370\uC774\uD130 \uC870\uD68C \uBC94\uC704 \uD655\uC778 \uC911",
+  "Filter token markets": "\uD1A0\uD070 \uC2DC\uC7A5 \uD544\uD130",
+  "Filter wallet signals": "\uC9C0\uAC11 \uC6C0\uC9C1\uC784 \uD544\uD130",
+  "Baseline {time} \xB7 stored in this browser.": "\uAE30\uC900 \uC2DC\uAC01 {time} \xB7 \uC774 \uBE0C\uB77C\uC6B0\uC800\uC5D0 \uC800\uC7A5\uB429\uB2C8\uB2E4.",
+  "1% -> {amount} USDC \xB7 {impact}% impact": "1% \uB9E4\uB3C4 \u2192 {amount} USDC \xB7 \uAC00\uACA9 \uC601\uD5A5 {impact}%",
+  "Reading verified ABI and public RPC state...": "\uAC80\uC99D\uB41C ABI\uC640 \uACF5\uAC1C RPC \uC0C1\uD0DC \uC870\uD68C \uC911",
+  "Fixed-block snapshot. Values may have changed since this read.": "\uD2B9\uC815 \uBE14\uB85D\uC758 \uC870\uD68C \uACB0\uACFC\uC785\uB2C8\uB2E4. \uC774\uD6C4 \uAC12\uC774 \uB2EC\uB77C\uC84C\uC744 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+  "State not read: no supported verified getters available.": "\uC9C0\uC6D0\uB418\uB294 \uAC80\uC99D\uB41C \uC870\uD68C \uD568\uC218\uAC00 \uC5C6\uC5B4 \uC0C1\uD0DC\uB97C \uC77D\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4.",
+  "No state snapshot requested.": "\uC544\uC9C1 \uC0C1\uD0DC\uB97C \uC870\uD68C\uD558\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4.",
+  "{count} checks unavailable from ABI": "ABI\uB85C \uC870\uD68C\uD558\uC9C0 \uBABB\uD55C \uD56D\uBAA9 {count}\uAC1C",
+  "Owner": "\uC624\uB108",
+  "Pending owner": "\uC624\uB108 \uBCC0\uACBD \uB300\uAE30 \uC8FC\uC18C",
+  "Paused flag": "\uC77C\uC2DC\uC815\uC9C0 \uD50C\uB798\uADF8",
+  "Supply cap": "\uACF5\uAE09\uB7C9 \uC0C1\uD55C",
+  "Total supply": "\uCD1D\uACF5\uAE09\uB7C9",
+  "Not checked": "\uBBF8\uD655\uC778",
+  "No matching read function in the available verified ABI. Other controls may exist.": "\uAC80\uC99D\uB41C ABI\uC5D0 \uC77C\uCE58\uD558\uB294 \uC870\uD68C \uD568\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uB2E4\uB978 \uC81C\uC5B4 \uAD8C\uD55C\uC774 \uC874\uC7AC\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+  "No supported verified read signatures were available. No RPC state was inferred.": "\uC9C0\uC6D0\uB418\uB294 \uAC80\uC99D\uB41C \uC870\uD68C \uD568\uC218\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. RPC \uC0C1\uD0DC\uB97C \uCD94\uCE21\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
+  "Reported by this getter; not a complete inventory of control.": "\uC870\uD68C \uD568\uC218\uC758 \uBC18\uD658\uAC12\uC774\uBA70 \uBAA8\uB4E0 \uC81C\uC5B4 \uAD8C\uD55C\uC758 \uBAA9\uB85D\uC740 \uC544\uB2D9\uB2C8\uB2E4.",
+  "Zero address returned. This does not prove all permissions were renounced.": "0 \uC8FC\uC18C\uAC00 \uBC18\uD658\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uBAA8\uB4E0 \uAD8C\uD55C\uC744 \uD3EC\uAE30\uD588\uB2E4\uB294 \uC99D\uAC70\uB294 \uC544\uB2D9\uB2C8\uB2E4.",
+  "Reported pause flag only; not proof that transfers or sales will succeed.": "\uC870\uD68C\uB41C \uC77C\uC2DC\uC815\uC9C0 \uD50C\uB798\uADF8\uC77C \uBFD0\uC774\uBA70 \uC804\uC1A1\xB7\uB9E4\uB3C4 \uC131\uACF5\uC744 \uBCF4\uC7A5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
+  "The read failed or returned invalid data. No zero/false value is assumed.": "\uC870\uD68C \uC2E4\uD328 \uB610\uB294 \uC798\uBABB\uB41C \uBC18\uD658\uAC12\uC785\uB2C8\uB2E4. 0\uC774\uB098 false\uB85C \uAC04\uC8FC\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
+  "Exact base units, not decimal-adjusted tokens. Does not prove a limit is enforced on every mint path.": "\uC18C\uC218\uC810 \uC870\uC815 \uC804\uC758 \uC815\uD655\uD55C \uAE30\uBCF8 \uB2E8\uC704\uC785\uB2C8\uB2E4. \uBAA8\uB4E0 \uBC1C\uD589 \uACBD\uB85C\uC5D0 \uC0C1\uD55C\uC774 \uC801\uC6A9\uB41C\uB2E4\uB294 \uC99D\uAC70\uB294 \uC544\uB2D9\uB2C8\uB2E4.",
+  "BUY": "\uB9E4\uC218",
+  "SELL": "\uB9E4\uB3C4",
+  "Sender": "\uBC1C\uC2E0\uC790",
+  "Recipient": "\uC218\uC2E0\uC790",
+  "Sender unknown": "\uBC1C\uC2E0\uC790 \uBBF8\uD655\uC778",
+  "No trades": "\uAC70\uB798 \uC5C6\uC74C",
+  "{count} visible": "\uC870\uD68C {count}\uAC74",
+  "No swaps are available in the indexed history.": "\uC218\uC9D1\uB41C \uC774\uB825\uC5D0 \uC2A4\uC651\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "Checking": "\uD655\uC778 \uC911",
+  "Paused": "\uC77C\uC2DC \uC911\uC9C0",
+  "Tab-only monitoring": "\uD604\uC7AC \uD0ED\uC5D0\uC11C\uB9CC \uAD00\uCE21",
+  "{covered} / {total} watched tokens loaded \xB7 {checked} / {pools} pools with recent ownership reads \xB7 {state}": "\uAD00\uC2EC \uD1A0\uD070 {covered}/{total}\uAC1C \uC870\uD68C \xB7 \uCD5C\uADFC \uBCF4\uC720 \uBD84\uD3EC \uD655\uC778 \uD480 {checked}/{pools}\uAC1C \xB7 {state}",
+  "Up to 3 loaded watched pools checked per minute while this tab is visible. No monitoring while hidden or closed. {review}": "\uD0ED\uC774 \uBCF4\uC774\uB294 \uB3D9\uC548 \uC870\uD68C\uB41C \uAD00\uC2EC \uD480\uC744 \uBD84\uB2F9 \uCD5C\uB300 3\uAC1C \uD655\uC778\uD569\uB2C8\uB2E4. \uC228\uAE40\xB7\uC885\uB8CC \uC0C1\uD0DC\uC5D0\uC11C\uB294 \uAD00\uCE21\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. {review}",
+  "Reviewed {time}.": "\uD655\uC778 \uC2DC\uAC01: {time}.",
+  "Not reviewed yet.": "\uC544\uC9C1 \uD655\uC778\uD558\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4.",
+  "No watched tokens.": "\uAD00\uC2EC \uD1A0\uD070\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "Watched tokens are outside the loaded pool coverage.": "\uAD00\uC2EC \uD1A0\uD070\uC774 \uD604\uC7AC \uC870\uD68C\uD55C \uD480 \uBC94\uC704\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "No recorded changes in this view. Gaps in observation are not proof of no activity.": "\uD604\uC7AC \uBC94\uC704\uC5D0\uC11C \uAE30\uB85D\uB41C \uBCC0\uD654\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uAD00\uCE21 \uACF5\uBC31\uC774 \uD65C\uB3D9 \uBD80\uC7AC\uB97C \uC758\uBBF8\uD558\uC9C0\uB294 \uC54A\uC2B5\uB2C8\uB2E4.",
+  "Reading pools and recent trades...": "\uD480\uACFC \uCD5C\uADFC \uAC70\uB798 \uC870\uD68C \uC911",
+  "Price, flow, ownership, and exit risk will appear here.": "\uC120\uD0DD\uD55C \uD1A0\uD070\uC758 \uAC00\uACA9, \uAC70\uB798 \uD750\uB984, \uBCF4\uC720 \uBD84\uD3EC\uC640 \uB9E4\uB3C4 \uC601\uD5A5\uC744 \uD655\uC778\uD569\uB2C8\uB2E4.",
+  "Reading holders, liquidity, and trading controls.": "\uBCF4\uC720 \uC8FC\uC18C, \uC720\uB3D9\uC131, \uAC70\uB798 \uC81C\uC5B4 \uC815\uBCF4 \uC870\uD68C \uC911",
+  "Public RPC cooldown: one request per token per minute.": "\uACF5\uAC1C RPC \uC870\uD68C \uAC04\uACA9: \uD1A0\uD070\uB2F9 \uBD84\uB2F9 1\uD68C",
+  "Read selected contract getters without connecting a wallet": "\uC9C0\uAC11 \uC5F0\uACB0 \uC5C6\uC774 \uC77C\uBD80 \uACC4\uC57D \uD568\uC218\uB97C \uC870\uD68C\uD569\uB2C8\uB2E4.",
+  "No indexed sell, or quote-side reserve below 10 USDC. Sorted by quote reserve, not a safety rating.": "\uC218\uC9D1\uB41C \uB9E4\uB3C4\uAC00 \uC5C6\uAC70\uB098 \uB9E4\uB3C4 \uCE21 \uC900\uBE44\uAE08\uC774 10 USDC \uBBF8\uB9CC\uC778 \uD480\uC785\uB2C8\uB2E4. \uC900\uBE44\uAE08\uC21C\uC774\uBA70 \uC548\uC804 \uB4F1\uAE09\uC774 \uC544\uB2D9\uB2C8\uB2E4.",
+  "Search token or contract": "\uD1A0\uD070 \uB610\uB294 \uACC4\uC57D \uC8FC\uC18C \uAC80\uC0C9",
+  "Search token, symbol, or contract": "\uD1A0\uD070\uBA85, \uC2EC\uBCFC, \uACC4\uC57D \uC8FC\uC18C \uAC80\uC0C9",
+  "Search": "\uAC80\uC0C9",
+  "Refresh": "\uC0C8\uB85C\uACE0\uCE68",
+  "Refreshing": "\uAC31\uC2E0 \uC911",
+  "Color theme": "\uD654\uBA74 \uD14C\uB9C8",
+  "Light": "\uBC1D\uAC8C",
+  "Dark": "\uC5B4\uB461\uAC8C",
+  "System": "\uC2DC\uC2A4\uD15C",
+  "Language": "\uC5B8\uC5B4",
+  "Back to markets": "\uC2DC\uC7A5 \uBAA9\uB85D",
+  "Changes to review": "\uD655\uC778\uD560 \uBCC0\uD654",
+  "Selection criteria": "\uC120\uC815 \uAE30\uC900",
+  "Loaded pool activity": "\uBD88\uB7EC\uC628 \uD480\uC758 \uD65C\uB3D9",
+  "24H volume": "24\uC2DC\uAC04 \uAC70\uB798\uB7C9",
+  "USDC pool flow": "\uD480\uC758 USDC \uAC70\uB798\uB7C9",
+  "24H buys / sells": "24\uC2DC\uAC04 \uB9E4\uC218 / \uB9E4\uB3C4",
+  "indexed swaps": "\uC218\uC9D1\uB41C \uC2A4\uC651",
+  "Net flow": "\uC21C\uC720\uC785",
+  "buy minus sell": "\uB9E4\uC218\uC561 \u2212 \uB9E4\uB3C4\uC561",
+  "Newest pool": "\uCD5C\uC2E0 \uD480",
+  "Sell observed": "\uB9E4\uB3C4 \uAD00\uCE21",
+  "markets with an indexed sell": "\uB9E4\uB3C4\uAC00 \uC218\uC9D1\uB41C \uC2DC\uC7A5",
+  "Watchlist changes": "\uAD00\uC2EC \uBAA9\uB85D \uBCC0\uD654",
+  "Watchlist change view": "\uAD00\uC2EC \uBAA9\uB85D \uC870\uD68C \uBC94\uC704",
+  "Since review": "\uC9C0\uB09C \uD655\uC778 \uC774\uD6C4",
+  "Recent history": "\uCD5C\uADFC \uAE30\uB85D",
+  "Mark all reviewed": "\uBAA8\uB450 \uD655\uC778\uD568",
+  "Arc meme markets": "Arc \uBC08\uCF54\uC778 \uC2DC\uC7A5",
+  "All": "\uC804\uCCB4",
+  "Watchlist": "\uAD00\uC2EC \uBAA9\uB85D",
+  "Moving 24H": "24\uC2DC\uAC04 \uD65C\uB3D9",
+  "New": "\uC2E0\uADDC",
+  "Sell seen": "\uB9E4\uB3C4 \uAD00\uCE21",
+  "Needs review": "\uD655\uC778 \uD544\uC694",
+  "Sort by": "\uC815\uB82C",
+  "View default": "\uAE30\uBCF8 \uC815\uB82C",
+  "Liquidity": "\uC720\uB3D9\uC131",
+  "Latest trade": "\uCD5C\uADFC \uAC70\uB798\uC21C",
+  "Min. liquidity (USDC)": "\uCD5C\uC18C \uC720\uB3D9\uC131 (USDC)",
+  "Any": "\uC81C\uD55C \uC5C6\uC74C",
+  "Traded in 24H": "24\uC2DC\uAC04 \uB0B4 \uAC70\uB798",
+  "Token": "\uD1A0\uD070",
+  "Price": "\uAC00\uACA9",
+  "Market pulse": "\uAC00\uACA9 \uD750\uB984",
+  "Buys / Sells": "\uB9E4\uC218 / \uB9E4\uB3C4",
+  "Age": "\uC0DD\uC131 \uD6C4",
+  "Select a token": "\uD1A0\uD070 \uC120\uD0DD",
+  "Checking the token": "\uD1A0\uD070 \uD655\uC778 \uC911",
+  "Full details": "\uC0C1\uC138 \uD398\uC774\uC9C0",
+  "Copy link": "\uB9C1\uD06C \uBCF5\uC0AC",
+  "fully diluted": "\uC644\uC804 \uD76C\uC11D \uAC00\uCE58",
+  "Holders": "\uBCF4\uC720 \uC8FC\uC18C",
+  "indexed addresses": "\uC218\uC9D1\uB41C \uC8FC\uC18C \uC218",
+  "Observed changes": "\uAD00\uCE21\uB41C \uBCC0\uD654",
+  "Stored in this browser.": "\uC774 \uBE0C\uB77C\uC6B0\uC800\uC5D0 \uC800\uC7A5\uB429\uB2C8\uB2E4.",
+  "Pool comparison": "\uD480 \uBE44\uAD50",
+  "Selected pool": "\uC120\uD0DD\uD55C \uD480",
+  "Pool": "\uD480",
+  "Price (USDC)": "\uAC00\uACA9 (USDC)",
+  "Data": "\uB370\uC774\uD130",
+  "Pool price": "\uD480 \uAE30\uC900 \uAC00\uACA9",
+  "Indexed price path": "\uC218\uC9D1\uB41C \uAC00\uACA9 \uD750\uB984",
+  "Last 24 hours": "\uCD5C\uADFC 24\uC2DC\uAC04",
+  "Recent market flow": "\uCD5C\uADFC \uAC70\uB798 \uD750\uB984",
+  "Buys": "\uB9E4\uC218",
+  "Sells": "\uB9E4\uB3C4",
+  "Volume": "\uAC70\uB798\uB7C9",
+  "Last trade": "\uB9C8\uC9C0\uB9C9 \uAC70\uB798",
+  "Visible transactions": "\uC870\uD68C\uB41C \uAC70\uB798",
+  "Recent trade tape": "\uCD5C\uADFC \uCCB4\uACB0 \uB0B4\uC5ED",
+  "Wallet intelligence": "\uC9C0\uAC11 \uD65C\uB3D9",
+  "Wallet signals": "\uC9C0\uAC11 \uC6C0\uC9C1\uC784",
+  "Creation sender": "\uD480 \uC0DD\uC131 \uAC70\uB798 \uBC1C\uC2E0\uC790",
+  "moves": "\uC6C0\uC9C1\uC784",
+  "Whales": "\uB300\uADDC\uBAA8 \uBCF4\uC720 \uC8FC\uC18C",
+  "top / large": "\uC0C1\uC704 \xB7 \uB300\uADDC\uBAA8",
+  "Receipts": "\uC218\uC2E0",
+  "first visible": "\uC870\uD68C \uBC94\uC704 \uB0B4 \uCD5C\uCD08",
+  "To pool": "\uD480\uB85C \uC804\uC1A1",
+  "transfers": "\uC804\uC1A1",
+  "Pool safety": "\uD480 \uC810\uAC80",
+  "Liquidity monitor": "\uC720\uB3D9\uC131 \uBCC0\uD654",
+  "Exit side": "\uB9E4\uB3C4 \uCE21 \uC900\uBE44\uAE08",
+  "USDC now": "\uD604\uC7AC USDC",
+  "24H added": "24\uC2DC\uAC04 \uCD94\uAC00",
+  "24H removed": "24\uC2DC\uAC04 \uC81C\uAC70",
+  "LP burned": "\uC18C\uAC01 \uC8FC\uC18C\uC758 LP",
+  "of LP supply": "LP \uACF5\uAE09\uB7C9 \uB300\uBE44",
+  "Ownership": "\uBCF4\uC720 \uBD84\uD3EC",
+  "Holder distribution": "\uBCF4\uC720 \uC8FC\uC18C \uBD84\uD3EC",
+  "Top 1": "\uC0C1\uC704 1\uAC1C",
+  "Top 5": "\uC0C1\uC704 5\uAC1C",
+  "Top 10": "\uC0C1\uC704 10\uAC1C",
+  "of supply": "\uACF5\uAE09\uB7C9 \uB300\uBE44",
+  "indexed share": "\uC218\uC9D1\uB41C \uBE44\uC911",
+  "On-chain relationships": "\uC628\uCCB4\uC778 \uC5F0\uACB0 \uAD00\uACC4",
+  "Holder connections": "\uBCF4\uC720 \uC8FC\uC18C \uC5F0\uACB0",
+  "Connections": "\uC5F0\uACB0",
+  "indexed links": "\uC218\uC9D1\uB41C \uC5F0\uACB0",
+  "Connected": "\uC5F0\uACB0 \uC8FC\uC18C",
+  "top holders": "\uC0C1\uC704 \uBCF4\uC720 \uC8FC\uC18C",
+  "Clusters": "\uC5F0\uACB0 \uADF8\uB8F9",
+  "linked groups": "\uC5F0\uACB0\uB41C \uADF8\uB8F9",
+  "Largest": "\uCD5C\uB300 \uADF8\uB8F9",
+  "Evidence, not a safety score": "\uC548\uC804 \uC810\uC218\uAC00 \uC544\uB2CC \uD655\uC778 \uADFC\uAC70",
+  "Token checks": "\uD1A0\uD070 \uC810\uAC80",
+  "Read-only RPC": "\uC77D\uAE30 \uC804\uC6A9 RPC",
+  "Contract state": "\uACC4\uC57D \uC0C1\uD0DC",
+  "Read state": "\uC0C1\uD0DC \uC870\uD68C",
+  "Read again": "\uB2E4\uC2DC \uC870\uD68C",
+  "Reading...": "\uC870\uD68C \uC911",
+  "Exit pressure": "\uB9E4\uB3C4 \uC555\uB825",
+  "Sell-size impact": "\uB9E4\uB3C4 \uADDC\uBAA8\uBCC4 \uAC00\uACA9 \uC601\uD5A5",
+  "0.1% supply": "\uACF5\uAE09\uB7C9\uC758 0.1%",
+  "5% supply": "\uACF5\uAE09\uB7C9\uC758 5%",
+  "Loading pools...": "\uD480 \uBD88\uB7EC\uC624\uB294 \uC911",
+  "Retry loading": "\uB2E4\uC2DC \uBD88\uB7EC\uC624\uAE30",
+  "Load 15 more": "15\uAC1C \uB354 \uBCF4\uAE30",
+  "Scan limit reached": "\uC870\uD68C \uD55C\uB3C4 \uB3C4\uB2EC",
+  "No more pools": "\uB9C8\uC9C0\uB9C9 \uD480\uC785\uB2C8\uB2E4",
+  "No token has indexed trading activity in the last 24 hours.": "\uCD5C\uADFC 24\uC2DC\uAC04 \uB0B4 \uC218\uC9D1\uB41C \uAC70\uB798\uAC00 \uC788\uB294 \uD1A0\uD070\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "No token is currently on this browser's watchlist.": "\uC774 \uBE0C\uB77C\uC6B0\uC800\uC758 \uAD00\uC2EC \uBAA9\uB85D\uC5D0 \uB4F1\uB85D\uB41C \uD1A0\uD070\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "No token matches this view.": "\uD604\uC7AC \uC870\uAC74\uC5D0 \uB9DE\uB294 \uD1A0\uD070\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "Price unavailable": "\uAC00\uACA9 \uD655\uC778 \uBD88\uAC00",
+  "Indexed event": "\uC218\uC9D1\uB41C \uC774\uBCA4\uD2B8",
+  "Calculated": "\uACC4\uC0B0\uAC12",
+  "Unverified": "\uBBF8\uD655\uC778",
+  "Checks incomplete": "\uD655\uC778 \uBBF8\uC644\uB8CC",
+  "Evidence only": "\uADFC\uAC70\uB9CC \uD45C\uC2DC",
+  "Source TX": "\uADFC\uAC70 \uAC70\uB798",
+  "Liquidity removed": "\uC720\uB3D9\uC131 \uC81C\uAC70",
+  "Large 1H price move": "1\uC2DC\uAC04 \uAC00\uACA9 \uAE09\uBCC0",
+  "New pool with indexed trades": "\uAC70\uB798\uAC00 \uC218\uC9D1\uB41C \uC2E0\uADDC \uD480",
+  "{count} tokens": "\uD1A0\uD070 {count}\uAC1C",
+  "{count} more changes": "\uBCC0\uD654 {count}\uAC1C \uB354 \uBCF4\uAE30",
+  "{symbol} \xB7 {title}": "{symbol} \xB7 {title}",
+  "{amount} USDC removed; {percent}% of prior USDC reserve.": "USDC {amount} \uC81C\uAC70 \xB7 \uAE30\uC874 USDC \uC900\uBE44\uAE08\uC758 {percent}%",
+  "1H reserve-price change: {change}. Not an executable quote.": "1\uC2DC\uAC04 \uC900\uBE44\uAE08 \uAE30\uC900 \uAC00\uACA9 \uBCC0\uD654: {change}. \uC2E4\uC81C \uCCB4\uACB0 \uAC00\uB2A5\uD55C \uACAC\uC801\uC740 \uC544\uB2D9\uB2C8\uB2E4.",
+  "Pool creation and subsequent trades appear in the available index. Not a token endorsement.": "\uC870\uD68C\uD55C \uC778\uB371\uC2A4\uC5D0\uC11C \uD480 \uC0DD\uC131\uACFC \uC774\uD6C4 \uAC70\uB798\uAC00 \uD655\uC778\uB429\uB2C8\uB2E4. \uD1A0\uD070\uC744 \uCD94\uCC9C\uD558\uB294 \uC758\uBBF8\uB294 \uC544\uB2D9\uB2C8\uB2E4.",
+  "Market refresh failed. Recent changes cannot be assessed.": "\uC2DC\uC7A5 \uAC31\uC2E0 \uC2E4\uD328\uB85C \uCD5C\uADFC \uBCC0\uD654\uB97C \uD655\uC778\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "No qualifying recent change in the loaded pools. This is not an all-clear.": "\uC870\uD68C\uD55C \uD480\uC5D0\uC11C \uC870\uAC74\uC5D0 \uB9DE\uB294 \uCD5C\uADFC \uBCC0\uD654\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uC548\uC804\uD558\uB2E4\uB294 \uB73B\uC740 \uC544\uB2D9\uB2C8\uB2E4.",
+  "{tokens} tokens \xB7 {pools} loaded pools \xB7 representative pools: {trades} indexed swaps \xB7 {liquidity} USDC liquidity \xB7 {partial} partial histories": "\uD1A0\uD070 {tokens}\uAC1C \xB7 \uD480 {pools}\uAC1C \xB7 \uB300\uD45C \uD480: \uC218\uC9D1 \uC2A4\uC651 {trades}\uAC74 \xB7 \uC720\uB3D9\uC131 {liquidity} USDC \xB7 \uC77C\uBD80 \uC774\uB825 {partial}\uAC1C",
+  "{pools} pools loaded \xB7 {sources} {network} USDC market sources{limit}": "\uD480 {pools}\uAC1C \xB7 {network} USDC \uC18C\uC2A4 {sources}\uAC1C{limit}",
+  " \xB7 Scan limit reached": " \xB7 \uC870\uD68C \uD55C\uB3C4 \uB3C4\uB2EC",
+  " \xB7 150-pool limit": " \xB7 \uD480 150\uAC1C \uD55C\uB3C4",
+  " \xB7 {count} unavailable": " \xB7 {count}\uAC1C \uC870\uD68C \uBD88\uAC00",
+  "{network} \xB7 {sources} configured v2 source(s) \xB7 {pools} loaded pools \xB7 Not the whole chain": "{network} \xB7 \uB4F1\uB85D\uB41C v2 \uC18C\uC2A4 {sources}\uAC1C \xB7 \uD480 {pools}\uAC1C \xB7 \uCCB4\uC778 \uC804\uCCB4\uAC00 \uC544\uB2D8",
+  "{cached} cached \xB7 {partial} partial histories{failed}": "\uCE90\uC2DC {cached}\uAC1C \xB7 \uC77C\uBD80 \uC774\uB825 {partial}\uAC1C{failed}",
+  " \xB7 Refresh failed": " \xB7 \uAC31\uC2E0 \uC2E4\uD328",
+  "{count} swaps indexed in the last 24 hours \xB7 {partial} partial pools \xB7 {cached} cached pools": "\uCD5C\uADFC 24\uC2DC\uAC04 \uC218\uC9D1 \uC2A4\uC651 {count}\uAC74 \xB7 \uC77C\uBD80 \uC774\uB825 \uD480 {partial}\uAC1C \xB7 \uCE90\uC2DC \uD480 {cached}\uAC1C",
+  "{holders} holders \xB7 {pools} pools": "\uBCF4\uC720 \uC8FC\uC18C {holders}\uAC1C \xB7 \uD480 {pools}\uAC1C",
+  "Cached": "\uCE90\uC2DC",
+  "Fetched": "\uC870\uD68C\uB428",
+  "Updated": "\uAC31\uC2E0",
+  "fresh": "\uC870\uD68C\uB428",
+  "cached": "\uCE90\uC2DC",
+  "unavailable": "\uC870\uD68C \uBD88\uAC00",
+  "Unavailable": "\uC870\uD68C \uBD88\uAC00",
+  "None": "\uC5C6\uC74C",
+  " \xB7 Partial history": " \xB7 \uC77C\uBD80 \uC774\uB825",
+  " \xB7 partial history": " \xB7 \uC77C\uBD80 \uC774\uB825",
+  "{state}{partial}": "{state}{partial}",
+  "{amount} exit side": "\uB9E4\uB3C4 \uCE21 {amount}",
+  "B {count}": "\uB9E4\uC218 {count}",
+  "S {count}": "\uB9E4\uB3C4 {count}",
+  "no trades": "\uAC70\uB798 \uC5C6\uC74C",
+  "{time} ago": "{time} \uC804",
+  "{time} old": "{time} \uACBD\uACFC",
+  "trade {time}": "\uAC70\uB798 {time} \uC804",
+  "No pool indexed": "\uC218\uC9D1\uB41C \uD480 \uC5C6\uC74C",
+  "Pool {address} \xB7 {time} ago{partial}": "\uD480 {address} \xB7 {time} \uC804{partial}",
+  "Open {symbol} market": "{symbol} \uC2DC\uC7A5 \uC5F4\uAE30",
+  "Add token to watchlist": "\uD1A0\uD070\uC744 \uAD00\uC2EC \uBAA9\uB85D\uC5D0 \uCD94\uAC00",
+  "Remove token from watchlist": "\uD1A0\uD070\uC744 \uAD00\uC2EC \uBAA9\uB85D\uC5D0\uC11C \uC81C\uAC70",
+  "Add to watchlist": "\uAD00\uC2EC \uBAA9\uB85D\uC5D0 \uCD94\uAC00",
+  "Remove from watchlist": "\uAD00\uC2EC \uBAA9\uB85D\uC5D0\uC11C \uC81C\uAC70",
+  "Link copied": "\uB9C1\uD06C \uBCF5\uC0AC\uB428",
+  "Copy unavailable. Use the Full details link.": "\uB9C1\uD06C\uB97C \uBCF5\uC0AC\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. \uC0C1\uC138 \uD398\uC774\uC9C0 \uB9C1\uD06C\uB97C \uC774\uC6A9\uD558\uC138\uC694.",
+  "Connecting...": "\uC5F0\uACB0 \uC911",
+  "Connection unavailable": "\uC5F0\uACB0 \uBD88\uAC00",
+  "Network unavailable": "\uB124\uD2B8\uC6CC\uD06C \uC0AC\uC6A9 \uBD88\uAC00",
+  "Invalid link": "\uC798\uBABB\uB41C \uB9C1\uD06C",
+  "{state} {time}": "{state} {time}",
+  "{network} MARKET FEED": "{network} \uC2DC\uC7A5 \uB370\uC774\uD130",
+  "No match in the loaded pools with these filters.": "\uC870\uD68C\uD55C \uD480 \uC911 \uD604\uC7AC \uD544\uD130\uC5D0 \uB9DE\uB294 \uACB0\uACFC\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "Live indexing is temporarily unavailable. Showing the latest cached market snapshot.": "\uC2E4\uC2DC\uAC04 \uC778\uB371\uC2A4 \uC870\uD68C\uAC00 \uC77C\uC2DC\uC801\uC73C\uB85C \uBD88\uAC00\uD558\uC5EC \uB9C8\uC9C0\uB9C9 \uCE90\uC2DC \uB370\uC774\uD130\uB97C \uD45C\uC2DC\uD569\uB2C8\uB2E4.",
+  "Market data unavailable: {error}": "\uC2DC\uC7A5 \uB370\uC774\uD130 \uC870\uD68C \uBD88\uAC00: {error}",
+  "Market data unavailable.": "\uC2DC\uC7A5 \uB370\uC774\uD130\uB97C \uC870\uD68C\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "Detail checks are incomplete": "\uC0C1\uC138 \uD655\uC778 \uBBF8\uC644\uB8CC",
+  "Holder index is partial": "\uBCF4\uC720 \uC8FC\uC18C \uC774\uB825\uC774 \uC77C\uBD80\uB9CC \uC870\uD68C\uB428",
+  "Only the first holder page is available. Unseen balances and incomplete burn totals remain unknown.": "\uBCF4\uC720 \uC8FC\uC18C\uC758 \uCCAB \uD398\uC774\uC9C0\uB9CC \uC870\uD68C\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uC870\uD68C\uB418\uC9C0 \uC54A\uC740 \uC794\uC561\uACFC \uC18C\uAC01 \uD569\uACC4\uB294 \uC54C \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "24H starting price unavailable": "24\uC2DC\uAC04 \uAE30\uC900 \uC2DC\uC791 \uAC00\uACA9 \uC5C6\uC74C",
+  "The 24H return is not estimated from a shorter window.": "\uB354 \uC9E7\uC740 \uAE30\uAC04\uC758 \uB370\uC774\uD130\uB85C 24\uC2DC\uAC04 \uC218\uC775\uB960\uC744 \uCD94\uC815\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
+  "24-hour activity is partial": "24\uC2DC\uAC04 \uD65C\uB3D9 \uC774\uB825 \uC77C\uBD80 \uB204\uB77D",
+  "Older events beyond the ArcScan page limit are not included in totals.": "ArcScan \uD398\uC774\uC9C0 \uD55C\uB3C4\uB97C \uB118\uB294 \uACFC\uAC70 \uC774\uBCA4\uD2B8\uB294 \uD569\uACC4\uC5D0 \uD3EC\uD568\uB418\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
+  "Token-balance fallback": "\uD1A0\uD070 \uC794\uC561 \uAE30\uC900 \uB300\uCCB4 \uACC4\uC0B0",
+  "No indexed Sync event was available. Price and liquidity are derived from the pair's token balances.": "\uC218\uC9D1\uB41C Sync \uC774\uBCA4\uD2B8\uAC00 \uC5C6\uC5B4 \uD480\uC758 \uD1A0\uD070 \uC794\uC561\uC73C\uB85C \uAC00\uACA9\uACFC \uC720\uB3D9\uC131\uC744 \uACC4\uC0B0\uD588\uC2B5\uB2C8\uB2E4.",
+  "Sell event indexed": "\uB9E4\uB3C4 \uC774\uBCA4\uD2B8 \uC218\uC9D1\uB428",
+  "No sell in available history": "\uC870\uD68C \uC774\uB825\uC5D0 \uB9E4\uB3C4 \uC5C6\uC74C",
+  "Absence of indexed sells does not prove a token is unsellable.": "\uC218\uC9D1\uB41C \uB9E4\uB3C4\uAC00 \uC5C6\uB2E4\uACE0 \uD574\uC11C \uB9E4\uB3C4 \uBD88\uAC00\uB2A5\uD55C \uD1A0\uD070\uC774\uB77C\uB294 \uB73B\uC740 \uC544\uB2D9\uB2C8\uB2E4.",
+  "Pool liquidity below 200 USDC": "\uD480 \uC720\uB3D9\uC131 200 USDC \uBBF8\uB9CC",
+  "Top-10 ownership exceeds 25%": "\uC0C1\uC704 10\uAC1C \uC8FC\uC18C \uBE44\uC911 25% \uC774\uC0C1",
+  "Pool-creation sender holds at least 10%": "\uD480 \uC0DD\uC131 \uAC70\uB798 \uBC1C\uC2E0\uC790\uC758 \uBCF4\uC720 \uBE44\uC911 10% \uC774\uC0C1",
+  "LP at burn addresses": "\uC18C\uAC01 \uC8FC\uC18C\uC5D0 \uC788\uB294 LP",
+  "Liquidity lock not independently checked": "\uC720\uB3D9\uC131 \uC7A0\uAE08 \uBCC4\uB3C4 \uBBF8\uAC80\uC99D",
+  "LP ownership or lock terms could not be established.": "LP \uBCF4\uC720 \uAD00\uACC4 \uB610\uB294 \uC7A0\uAE08 \uC870\uAC74\uC744 \uD655\uC778\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "Execution paths not verified": "\uC2E4\uD589 \uACBD\uB85C \uBBF8\uAC80\uC99D",
+  "Contract ABI unavailable": "\uACC4\uC57D ABI \uC870\uD68C \uBD88\uAC00",
+  "No matching ABI names": "\uC77C\uCE58\uD558\uB294 ABI \uD568\uC218\uBA85 \uC5C6\uC74C",
+  "No sell simulation or full permission audit is performed. Optional contract-state reads below report selected getter values only; they do not prove a control is usable, disabled, or absent elsewhere.": "\uB9E4\uB3C4 \uC2DC\uBBAC\uB808\uC774\uC158\uC774\uB098 \uC804\uCCB4 \uAD8C\uD55C \uAC10\uC0AC\uB97C \uC218\uD589\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC544\uB798 \uACC4\uC57D \uC0C1\uD0DC \uC870\uD68C\uB294 \uC77C\uBD80 \uD568\uC218\uC758 \uBC18\uD658\uAC12\uB9CC \uD45C\uC2DC\uD558\uBA70, \uD574\uB2F9 \uAD8C\uD55C\uC758 \uC2E4\uD589 \uAC00\uB2A5 \uC5EC\uBD80\uB098 \uBE44\uD65C\uC131\uD654 \uC5EC\uBD80, \uB2E4\uB978 \uAD8C\uD55C\uC758 \uBD80\uC7AC\uB97C \uBCF4\uC7A5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
+  "Supply and trading controls cannot be assessed from the available ABI.": "\uC870\uD68C \uAC00\uB2A5\uD55C ABI\uB9CC\uC73C\uB85C \uBC1C\uD589\xB7\uAC70\uB798 \uC81C\uC5B4 \uAD8C\uD55C\uC744 \uD3C9\uAC00\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "No configured function-name pattern matched. Custom logic, external contracts, or different function names may still impose restrictions.": "\uC124\uC815\uB41C \uD568\uC218\uBA85 \uD328\uD134\uACFC \uC77C\uCE58\uD558\uB294 \uD56D\uBAA9\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. \uBCC4\uB3C4 \uB85C\uC9C1, \uC678\uBD80 \uACC4\uC57D, \uB2E4\uB978 \uC774\uB984\uC758 \uD568\uC218\uAC00 \uC81C\uD55C\uC744 \uC801\uC6A9\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+  "{sources}. Missing data is not a clean risk check.": "{sources}. \uB204\uB77D\uB41C \uB370\uC774\uD130\uAC00 \uC788\uB2E4\uACE0 \uD574\uC11C \uC704\uD5D8\uC774 \uC5C6\uB2E4\uB294 \uB73B\uC740 \uC544\uB2D9\uB2C8\uB2E4.",
+  "A token-to-USDC Swap was indexed {time} ago. This does not prove that any wallet can sell now.": "{time} \uC804 \uD1A0\uD070\u2192USDC \uC2A4\uC651\uC774 \uC218\uC9D1\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uD604\uC7AC \uBAA8\uB4E0 \uC9C0\uAC11\uC774 \uB9E4\uB3C4\uD560 \uC218 \uC788\uB2E4\uB294 \uC99D\uAC70\uB294 \uC544\uB2D9\uB2C8\uB2E4.",
+  "Reserve-based estimate: {total} USDC total, {quote} USDC on the quote side. This threshold is a screening rule, not a safety rating.": "\uC900\uBE44\uAE08 \uAE30\uC900 \uCD94\uC815\uCE58: \uCD1D {total} USDC, \uB9E4\uB3C4 \uCE21 {quote} USDC. \uC774 \uAE30\uC900\uC740 \uC870\uD68C \uC870\uAC74\uC774\uC9C0 \uC548\uC804 \uB4F1\uAE09\uC774 \uC544\uB2D9\uB2C8\uB2E4.",
+  "{share}% of indexed supply, excluding burn addresses and known pools. Addresses are not necessarily independent owners.": "\uC18C\uAC01 \uC8FC\uC18C\uC640 \uD655\uC778\uB41C \uD480\uC744 \uC81C\uC678\uD55C \uACF5\uAE09\uB7C9 \uBE44\uC911\uC740 {share}%\uC785\uB2C8\uB2E4. \uC11C\uB85C \uB2E4\uB978 \uC8FC\uC18C\uAC00 \uB3C5\uB9BD\uB41C \uC18C\uC720\uC790\uB77C\uB294 \uB73B\uC740 \uC544\uB2D9\uB2C8\uB2E4.",
+  "Indexed share: {share}%. This transaction sender may be a relayer; it is not proof of the token team's identity.": "\uC218\uC9D1\uB41C \uBE44\uC911: {share}%. \uAC70\uB798 \uBC1C\uC2E0\uC790\uB294 \uC911\uACC4\uC790\uC77C \uC218 \uC788\uC73C\uBA70 \uD1A0\uD070 \uD300\uC758 \uC2E0\uC6D0\uC744 \uC99D\uBA85\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
+  "{share}% of indexed LP supply. This does not establish token safety or sale availability.": "\uC218\uC9D1\uB41C LP \uACF5\uAE09\uB7C9\uC758 {share}%\uC785\uB2C8\uB2E4. \uD1A0\uD070\uC758 \uC548\uC804\uC131\uC774\uB098 \uB9E4\uB3C4 \uAC00\uB2A5\uC131\uC744 \uBCF4\uC7A5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
+  "Top indexed LP holder: {share}%. Lock contract rules and unlock times have not been checked.": "\uC870\uD68C\uB41C \uCD5C\uB300 LP \uBCF4\uC720 \uBE44\uC911: {share}%. \uC7A0\uAE08 \uACC4\uC57D\uC758 \uADDC\uCE59\uACFC \uD574\uC81C \uC2DC\uAC01\uC740 \uD655\uC778\uD558\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4.",
+  "Supply-related function names": "\uBC1C\uD589 \uAD00\uB828 \uD568\uC218\uBA85",
+  "Restriction-related function names": "\uC81C\uD55C \uAD00\uB828 \uD568\uC218\uBA85",
+  "Pause-related function names": "\uC77C\uC2DC\uC815\uC9C0 \uAD00\uB828 \uD568\uC218\uBA85",
+  "Upgrade or proxy indicators": "\uC5C5\uADF8\uB808\uC774\uB4DC\xB7\uD504\uB85D\uC2DC \uB2E8\uC11C",
+  "Fee-related function names": "\uC218\uC218\uB8CC \uAD00\uB828 \uD568\uC218\uBA85",
+  "{evidence} Names alone do not establish current permissions or execution paths. Selected getter values, when requested, appear separately under Contract state and do not confirm this capability is usable.": "{evidence} \uD568\uC218\uBA85\uB9CC\uC73C\uB85C \uD604\uC7AC \uAD8C\uD55C\uACFC \uC2E4\uD589 \uACBD\uB85C\uB97C \uD655\uC778\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. \uC870\uD68C\uD55C \uBC18\uD658\uAC12\uC740 \uACC4\uC57D \uC0C1\uD0DC\uC5D0 \uBCC4\uB3C4\uB85C \uD45C\uC2DC\uB418\uBA70, \uD574\uB2F9 \uAE30\uB2A5\uC774 \uC2E4\uD589 \uAC00\uB2A5\uD558\uB2E4\uB294 \uB73B\uC740 \uC544\uB2D9\uB2C8\uB2E4.",
+  "{indexed} indexed \xB7 {calculated} calculated \xB7 {unverified} unverified": "\uC218\uC9D1 \uADFC\uAC70 {indexed}\uAC1C \xB7 \uACC4\uC0B0\uAC12 {calculated}\uAC1C \xB7 \uBBF8\uD655\uC778 {unverified}\uAC1C",
+  "Market: {market} \xB7 Contract: {contract} \xB7 Holders: {holders} \xB7 No safety score": "\uC2DC\uC7A5: {market} \xB7 \uACC4\uC57D: {contract} \xB7 \uBCF4\uC720 \uC8FC\uC18C: {holders} \xB7 \uC548\uC804 \uC810\uC218 \uC5C6\uC74C",
+  "Evidence completeness, not a risk score or safety verdict.": "\uADFC\uAC70\uC758 \uD655\uC778 \uBC94\uC704\uC774\uBA70 \uC704\uD5D8 \uC810\uC218\uB098 \uC548\uC804 \uD310\uC815\uC774 \uC544\uB2D9\uB2C8\uB2E4.",
+  "Token contract": "\uD1A0\uD070 \uACC4\uC57D",
+  "Pool events": "\uD480 \uC774\uBCA4\uD2B8",
+  "Holder index": "\uBCF4\uC720 \uC8FC\uC18C \uC778\uB371\uC2A4",
+  "Source: ArcScan. Indexing may lag. V2 pools only; mainnet and other DEX protocols are not connected.": "\uCD9C\uCC98: ArcScan. \uC778\uB371\uC2F1\uC774 \uC9C0\uC5F0\uB420 \uC218 \uC788\uC2B5\uB2C8\uB2E4. V2 \uD480\uB9CC \uC9C0\uC6D0\uD558\uBA70 \uBA54\uC778\uB137\uACFC \uB2E4\uB978 DEX \uD504\uB85C\uD1A0\uCF5C\uC740 \uC5F0\uACB0\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4.",
+  "Loaded pools only. Latest liquidity removal of at least 10% of prior USDC reserve, then 1H price moves of at least 30%, then newly created pools with indexed trades. One item per token, up to six. Cached markets are excluded. These are screening rules, not recommendations.": "\uC870\uD68C\uD55C \uD480\uB9CC \uB300\uC0C1\uC785\uB2C8\uB2E4. \uAE30\uC874 USDC \uC900\uBE44\uAE08\uC758 10% \uC774\uC0C1 \uC720\uB3D9\uC131 \uC81C\uAC70, 1\uC2DC\uAC04 \uAC00\uACA9 \uBCC0\uB3D9 30% \uC774\uC0C1, \uAC70\uB798\uAC00 \uC218\uC9D1\uB41C \uC2E0\uADDC \uD480 \uC21C\uC73C\uB85C \uD45C\uC2DC\uD569\uB2C8\uB2E4. \uD1A0\uD070\uB2F9 1\uAC1C, \uCD5C\uB300 6\uAC1C\uC774\uBA70 \uCE90\uC2DC \uB370\uC774\uD130\uB294 \uC81C\uC678\uD569\uB2C8\uB2E4. \uCD94\uCC9C\uC774 \uC544\uB2CC \uC870\uD68C \uAE30\uC900\uC785\uB2C8\uB2E4.",
+  "Pool changes are calculated from indexed Mint, Burn, and Sync events.": "\uD480 \uBCC0\uD654\uB294 \uC218\uC9D1\uB41C Mint, Burn, Sync \uC774\uBCA4\uD2B8\uB85C \uACC4\uC0B0\uD569\uB2C8\uB2E4.",
+  "Connections mean an indexed direct transfer or a shared non-contract source. They do not prove common ownership.": "\uC5F0\uACB0\uC740 \uC218\uC9D1\uB41C \uC9C1\uC811 \uC804\uC1A1 \uB610\uB294 \uB3D9\uC77C\uD55C \uBE44\uACC4\uC57D \uC8FC\uC18C\uB85C\uBD80\uD130\uC758 \uC218\uC2E0\uC744 \uB73B\uD569\uB2C8\uB2E4. \uB3D9\uC77C \uC18C\uC720\uC790\uB77C\uB294 \uC99D\uAC70\uB294 \uC544\uB2D9\uB2C8\uB2E4.",
+  "Selected getters only. No sell simulation, proxy-storage verification, or complete permission audit. Missing reads do not imply safety.": "\uC77C\uBD80 \uC870\uD68C \uD568\uC218\uB9CC \uD655\uC778\uD569\uB2C8\uB2E4. \uB9E4\uB3C4 \uC2DC\uBBAC\uB808\uC774\uC158, \uD504\uB85D\uC2DC \uC800\uC7A5\uC18C \uAC80\uC99D, \uC804\uCCB4 \uAD8C\uD55C \uAC10\uC0AC\uB294 \uC218\uD589\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4. \uC870\uD68C\uB418\uC9C0 \uC54A\uC558\uB2E4\uACE0 \uC548\uC804\uD55C \uAC83\uC740 \uC544\uB2D9\uB2C8\uB2E4.",
+  "Single-pool v2 estimate with an assumed 0.3% fee. No sell simulation. Token taxes, limits, MEV, and routing are not included.": "\uB2E8\uC77C V2 \uD480\uACFC \uC218\uC218\uB8CC 0.3%\uB97C \uAC00\uC815\uD55C \uCD94\uC815\uCE58\uC785\uB2C8\uB2E4. \uB9E4\uB3C4 \uC2DC\uBBAC\uB808\uC774\uC158\uC774 \uC544\uB2C8\uBA70 \uD1A0\uD070 \uC138\uAE08, \uC81C\uD55C, MEV, \uB77C\uC6B0\uD305\uC740 \uBC18\uC601\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.",
+  "Independent read-only analytics. Not affiliated with Circle or Arc. No token is endorsed and no safety result is guaranteed.": "\uB3C5\uB9BD\uC801\uC778 \uC77D\uAE30 \uC804\uC6A9 \uBD84\uC11D \uC11C\uBE44\uC2A4\uC785\uB2C8\uB2E4. Circle\xB7Arc\uC640 \uC81C\uD734 \uAD00\uACC4\uAC00 \uC5C6\uC73C\uBA70, \uC5B4\uB5A4 \uD1A0\uD070\uB3C4 \uCD94\uCC9C\uD558\uAC70\uB098 \uC548\uC804\uC131\uC744 \uBCF4\uC7A5\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."
+};
+var JAPANESE = {
+  "Partial update": "\u4E00\u90E8\u66F4\u65B0",
+  "All discovered pools failed to load. Market activity is unknown. Retry with Refresh.": "\u898B\u3064\u304B\u3063\u305F\u30D7\u30FC\u30EB\u3092\u3059\u3079\u3066\u8AAD\u307F\u8FBC\u3081\u307E\u305B\u3093\u3067\u3057\u305F\u3002\u5E02\u5834\u306E\u6D3B\u52D5\u306F\u4E0D\u660E\u3067\u3059\u3002\u66F4\u65B0\u3057\u3066\u518D\u8A66\u884C\u3057\u3066\u304F\u3060\u3055\u3044\u3002",
+  "Market activity is unknown because pool data could not be loaded.": "\u30D7\u30FC\u30EB\u30C7\u30FC\u30BF\u3092\u8AAD\u307F\u8FBC\u3081\u306A\u3044\u305F\u3081\u3001\u5E02\u5834\u306E\u6D3B\u52D5\u306F\u4E0D\u660E\u3067\u3059\u3002",
+  "Pool loads failed: {count}. Totals cover available pools only.": "{count}\u30D7\u30FC\u30EB\u3092\u8AAD\u307F\u8FBC\u3081\u307E\u305B\u3093\u3067\u3057\u305F\u3002\u5408\u8A08\u306B\u306F\u53D6\u5F97\u3067\u304D\u305F\u30D7\u30FC\u30EB\u306E\u307F\u542B\u307E\u308C\u307E\u3059\u3002",
+  "Showing {shown} of {count} indexed liquidity events. 24H totals use fetched events only{partial}.": "\u53D6\u5F97\u6E08\u307F\u306E\u6D41\u52D5\u6027\u30A4\u30D9\u30F3\u30C8{count}\u4EF6\u4E2D{shown}\u4EF6\u3092\u8868\u793A\u300224\u6642\u9593\u306E\u5408\u8A08\u306F\u53D6\u5F97\u6E08\u307F\u30A4\u30D9\u30F3\u30C8\u306E\u307F\u3067\u3059{partial}\u3002",
+  "; history may be incomplete": "\u3002\u5C65\u6B74\u306B\u6B20\u843D\u306E\u53EF\u80FD\u6027\u304C\u3042\u308A\u307E\u3059",
+  "; partial history": "\u3001\u5C65\u6B74\u306F\u4E00\u90E8\u306E\u307F",
+  "; partial holder page": "\u3001\u4FDD\u6709\u30A2\u30C9\u30EC\u30B9\u306F\u4E00\u90E8\u306E\u307F",
+  "; first page only": "\u3001\u6700\u521D\u306E\u30DA\u30FC\u30B8\u306E\u307F",
+  "Transfers: {transfers}{partial}. Holders: {holders}. Pool transfers are not proof of a swap or full exit.": "\u9001\u91D1: {transfers}{partial}\u3002\u4FDD\u6709\u30A2\u30C9\u30EC\u30B9: {holders}\u3002\u30D7\u30FC\u30EB\u3078\u306E\u9001\u91D1\u306F\u30B9\u30EF\u30C3\u30D7\u3084\u5168\u984D\u58F2\u5374\u306E\u8A3C\u62E0\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "Transfer history could not be loaded. Wallet activity is unknown.": "\u9001\u91D1\u5C65\u6B74\u3092\u8AAD\u307F\u8FBC\u3081\u306A\u3044\u305F\u3081\u3001\u30A6\u30A9\u30EC\u30C3\u30C8\u306E\u6D3B\u52D5\u306F\u4E0D\u660E\u3067\u3059\u3002",
+  "No wallet movement matches this filter in the available indexed transfers.": "\u53D6\u5F97\u6E08\u307F\u306E\u9001\u91D1\u5C65\u6B74\u306B\u73FE\u5728\u306E\u6761\u4EF6\u306B\u4E00\u81F4\u3059\u308B\u52D5\u304D\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "{share} of LP supply is held by burn addresses.": "LP\u4F9B\u7D66\u91CF\u306E{share}\u304C\u30D0\u30FC\u30F3\u5148\u30A2\u30C9\u30EC\u30B9\u306B\u3042\u308A\u307E\u3059\u3002",
+  "Top {holder} controls {share} of LP supply; a lock is not confirmed.": "\u6700\u5927\u4FDD\u6709{holder}\u306ELP\u6BD4\u7387\u306F{share}\u3067\u3059\u3002\u30ED\u30C3\u30AF\u306F\u78BA\u8A8D\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002",
+  "contract": "\u30B3\u30F3\u30C8\u30E9\u30AF\u30C8",
+  "wallet": "\u30A6\u30A9\u30EC\u30C3\u30C8",
+  "LP ownership is unavailable from the current index.": "\u73FE\u5728\u306E\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u3067\u306FLP\u4FDD\u6709\u72B6\u6CC1\u3092\u78BA\u8A8D\u3067\u304D\u307E\u305B\u3093\u3002",
+  "{ownership} LP data: {state}{partial}.": "{ownership} LP\u30C7\u30FC\u30BF: {state}{partial}\u3002",
+  "No Mint or Burn event appears in the visible pair history.": "\u53D6\u5F97\u3057\u305F\u30D7\u30FC\u30EB\u5C65\u6B74\u306BMint\u307E\u305F\u306FBurn\u30A4\u30D9\u30F3\u30C8\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "{percent}% of prior USDC reserve": "\u76F4\u524D\u306EUSDC\u6E96\u5099\u91D1\u306E{percent}%",
+  "Holders: {state}{partial}. Selected pool {poolShare} \xB7 Burned {burnedShare}. Rankings exclude burn addresses and {count} known same-token pool(s), not all possible pools.": "\u4FDD\u6709\u30A2\u30C9\u30EC\u30B9: {state}{partial}\u3002\u9078\u629E\u30D7\u30FC\u30EB{poolShare} \xB7 \u30D0\u30FC\u30F3{burnedShare}\u3002\u9806\u4F4D\u306F\u30D0\u30FC\u30F3\u5148\u3068\u65E2\u77E5\u306E\u540C\u4E00\u30C8\u30FC\u30AF\u30F3\u30D7\u30FC\u30EB{count}\u4EF6\u3092\u9664\u5916\u3057\u307E\u3059\u3002\u3059\u3079\u3066\u306E\u30D7\u30FC\u30EB\u3092\u9664\u5916\u3057\u305F\u3082\u306E\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "Holder positions are unavailable from the current index.": "\u73FE\u5728\u306E\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u3067\u306F\u4FDD\u6709\u30A2\u30C9\u30EC\u30B9\u5225\u306E\u6B8B\u9AD8\u3092\u78BA\u8A8D\u3067\u304D\u307E\u305B\u3093\u3002",
+  "Holder connections cannot be checked without holder and transfer data.": "\u4FDD\u6709\u30A2\u30C9\u30EC\u30B9\u3068\u9001\u91D1\u30C7\u30FC\u30BF\u304C\u306A\u3044\u305F\u3081\u3001\u95A2\u9023\u3092\u78BA\u8A8D\u3067\u304D\u307E\u305B\u3093\u3002",
+  "No connection appears in the available post-launch history. Holders: {holders}; transfers: {transfers}.": "\u53D6\u5F97\u3057\u305F\u30ED\u30FC\u30F3\u30C1\u5F8C\u306E\u5C65\u6B74\u306B\u95A2\u9023\u306F\u898B\u3064\u304B\u308A\u307E\u305B\u3093\u3002\u4FDD\u6709\u30A2\u30C9\u30EC\u30B9: {holders}\u3001\u9001\u91D1: {transfers}\u3002",
+  "Loaded pools: {count}. Quotes are pool-specific, not executable prices. Default: fresh data first, then highest liquidity.": "{count}\u30D7\u30FC\u30EB\u53D6\u5F97\u3002\u4FA1\u683C\u306F\u30D7\u30FC\u30EB\u56FA\u6709\u3067\u3042\u308A\u3001\u5B9F\u969B\u306B\u7D04\u5B9A\u3067\u304D\u308B\u898B\u7A4D\u3082\u308A\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002\u6B63\u5E38\u306B\u53D6\u5F97\u3067\u304D\u305F\u30D7\u30FC\u30EB\u3092\u512A\u5148\u3057\u3001\u6B21\u306B\u6D41\u52D5\u6027\u9806\u3067\u8868\u793A\u3057\u307E\u3059\u3002",
+  "{state}{partial} \xB7 {trade}": "{state}{partial} \xB7 {trade}",
+  "{amount} USDC exit side \xB7 {source}": "\u58F2\u5374\u5148 {amount} USDC \xB7 {source}",
+  "Sync reserves": "Sync\u6E96\u5099\u91D1",
+  "balance fallback": "\u6B8B\u9AD8\u306B\u3088\u308B\u4EE3\u66FF\u8A08\u7B97",
+  "{count} signals": "\u52D5\u304D {count}\u4EF6",
+  "{count} events": "\u30A4\u30D9\u30F3\u30C8 {count}\u4EF6",
+  "{count} indexed": "\u53D6\u5F97\u6E08\u307F {count}\u30A2\u30C9\u30EC\u30B9",
+  "No visible links": "\u78BA\u8A8D\u3067\u304D\u308B\u95A2\u9023\u306A\u3057",
+  "{count} links": "\u95A2\u9023 {count}\u4EF6",
+  "Liquidity added": "\u6D41\u52D5\u6027\u306E\u8FFD\u52A0",
+  "Initial / unknown base": "\u521D\u671F\u72B6\u614B / \u57FA\u6E96\u5024\u4E0D\u660E",
+  "Reading indexed changes...": "\u53D6\u5F97\u6E08\u307F\u306E\u5909\u5316\u3092\u78BA\u8A8D\u4E2D",
+  "Reading the last 24 hours...": "\u904E\u53BB24\u6642\u9593\u306E\u5C65\u6B74\u3092\u53D6\u5F97\u4E2D",
+  "Loading indexed pools...": "\u30D7\u30FC\u30EB\u3092\u8AAD\u307F\u8FBC\u307F\u4E2D",
+  "Reading source coverage...": "\u30C7\u30FC\u30BF\u306E\u53D6\u5F97\u7BC4\u56F2\u3092\u78BA\u8A8D\u4E2D",
+  "Filter token markets": "\u30C8\u30FC\u30AF\u30F3\u5E02\u5834\u306E\u7D5E\u308A\u8FBC\u307F",
+  "Filter wallet signals": "\u30A6\u30A9\u30EC\u30C3\u30C8\u306E\u52D5\u304D\u306E\u7D5E\u308A\u8FBC\u307F",
+  "Baseline {time} \xB7 stored in this browser.": "\u57FA\u6E96\u6642\u523B {time} \xB7 \u3053\u306E\u30D6\u30E9\u30A6\u30B6\u306B\u4FDD\u5B58\u3055\u308C\u3066\u3044\u307E\u3059\u3002",
+  "1% -> {amount} USDC \xB7 {impact}% impact": "1%\u58F2\u5374 \u2192 {amount} USDC \xB7 \u4FA1\u683C\u5F71\u97FF {impact}%",
+  "Reading verified ABI and public RPC state...": "\u691C\u8A3C\u6E08\u307FABI\u3068\u516C\u958BRPC\u306E\u72B6\u614B\u3092\u53D6\u5F97\u4E2D",
+  "Fixed-block snapshot. Values may have changed since this read.": "\u7279\u5B9A\u30D6\u30ED\u30C3\u30AF\u6642\u70B9\u306E\u5024\u3067\u3059\u3002\u53D6\u5F97\u5F8C\u306B\u5909\u308F\u3063\u3066\u3044\u308B\u53EF\u80FD\u6027\u304C\u3042\u308A\u307E\u3059\u3002",
+  "State not read: no supported verified getters available.": "\u5BFE\u5FDC\u3059\u308B\u691C\u8A3C\u6E08\u307F\u306E\u53C2\u7167\u95A2\u6570\u304C\u306A\u3044\u305F\u3081\u3001\u72B6\u614B\u3092\u53D6\u5F97\u3057\u3066\u3044\u307E\u305B\u3093\u3002",
+  "No state snapshot requested.": "\u307E\u3060\u72B6\u614B\u3092\u53D6\u5F97\u3057\u3066\u3044\u307E\u305B\u3093\u3002",
+  "{count} checks unavailable from ABI": "ABI\u304B\u3089\u78BA\u8A8D\u3067\u304D\u306A\u3044\u9805\u76EE {count}\u4EF6",
+  "Owner": "\u30AA\u30FC\u30CA\u30FC",
+  "Pending owner": "\u5909\u66F4\u5F85\u3061\u306E\u30AA\u30FC\u30CA\u30FC",
+  "Paused flag": "\u4E00\u6642\u505C\u6B62\u30D5\u30E9\u30B0",
+  "Supply cap": "\u4F9B\u7D66\u4E0A\u9650",
+  "Total supply": "\u7DCF\u4F9B\u7D66\u91CF",
+  "Not checked": "\u672A\u78BA\u8A8D",
+  "No matching read function in the available verified ABI. Other controls may exist.": "\u691C\u8A3C\u6E08\u307FABI\u306B\u8A72\u5F53\u3059\u308B\u53C2\u7167\u95A2\u6570\u304C\u3042\u308A\u307E\u305B\u3093\u3002\u4ED6\u306E\u5236\u5FA1\u6A5F\u80FD\u304C\u5B58\u5728\u3059\u308B\u53EF\u80FD\u6027\u304C\u3042\u308A\u307E\u3059\u3002",
+  "No supported verified read signatures were available. No RPC state was inferred.": "\u5BFE\u5FDC\u3059\u308B\u691C\u8A3C\u6E08\u307F\u306E\u53C2\u7167\u95A2\u6570\u304C\u3042\u308A\u307E\u305B\u3093\u3002RPC\u306E\u72B6\u614B\u306F\u63A8\u6E2C\u3057\u3066\u3044\u307E\u305B\u3093\u3002",
+  "Reported by this getter; not a complete inventory of control.": "\u3053\u306E\u53C2\u7167\u95A2\u6570\u306E\u623B\u308A\u5024\u3067\u3042\u308A\u3001\u5236\u5FA1\u6A29\u9650\u306E\u5168\u5BB9\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "Zero address returned. This does not prove all permissions were renounced.": "\u30BC\u30ED\u30A2\u30C9\u30EC\u30B9\u304C\u8FD4\u3055\u308C\u307E\u3057\u305F\u3002\u3059\u3079\u3066\u306E\u6A29\u9650\u304C\u653E\u68C4\u3055\u308C\u305F\u8A3C\u62E0\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "Reported pause flag only; not proof that transfers or sales will succeed.": "\u53D6\u5F97\u3057\u305F\u4E00\u6642\u505C\u6B62\u30D5\u30E9\u30B0\u306E\u307F\u3092\u793A\u3057\u307E\u3059\u3002\u9001\u91D1\u3084\u58F2\u5374\u306E\u6210\u529F\u306F\u4FDD\u8A3C\u3057\u307E\u305B\u3093\u3002",
+  "The read failed or returned invalid data. No zero/false value is assumed.": "\u53D6\u5F97\u306B\u5931\u6557\u3057\u305F\u304B\u3001\u7121\u52B9\u306A\u5024\u304C\u8FD4\u3055\u308C\u307E\u3057\u305F\u30020\u3084false\u3068\u306F\u307F\u306A\u3057\u307E\u305B\u3093\u3002",
+  "Exact base units, not decimal-adjusted tokens. Does not prove a limit is enforced on every mint path.": "\u5C0F\u6570\u70B9\u8ABF\u6574\u524D\u306E\u6B63\u78BA\u306A\u6700\u5C0F\u5358\u4F4D\u3067\u3059\u3002\u3059\u3079\u3066\u306E\u767A\u884C\u7D4C\u8DEF\u3067\u4E0A\u9650\u304C\u9069\u7528\u3055\u308C\u308B\u8A3C\u62E0\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "BUY": "\u8CB7\u3044",
+  "SELL": "\u58F2\u308A",
+  "Sender": "\u9001\u4FE1\u8005",
+  "Recipient": "\u53D7\u53D6\u4EBA",
+  "Sender unknown": "\u9001\u4FE1\u8005\u4E0D\u660E",
+  "No trades": "\u53D6\u5F15\u306A\u3057",
+  "{count} visible": "\u53D6\u5F97\u6E08\u307F {count}\u4EF6",
+  "No swaps are available in the indexed history.": "\u53D6\u5F97\u3057\u305F\u5C65\u6B74\u306B\u30B9\u30EF\u30C3\u30D7\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "Checking": "\u78BA\u8A8D\u4E2D",
+  "Paused": "\u4E00\u6642\u505C\u6B62",
+  "Tab-only monitoring": "\u3053\u306E\u30BF\u30D6\u3067\u306E\u307F\u76E3\u8996",
+  "{covered} / {total} watched tokens loaded \xB7 {checked} / {pools} pools with recent ownership reads \xB7 {state}": "\u30A6\u30A9\u30C3\u30C1\u4E2D {covered}/{total}\u30C8\u30FC\u30AF\u30F3\u53D6\u5F97 \xB7 \u4FDD\u6709\u5206\u5E03\u306E\u76F4\u8FD1\u53D6\u5F97 {checked}/{pools}\u30D7\u30FC\u30EB \xB7 {state}",
+  "Up to 3 loaded watched pools checked per minute while this tab is visible. No monitoring while hidden or closed. {review}": "\u30BF\u30D6\u8868\u793A\u4E2D\u306E\u307F\u3001\u8AAD\u307F\u8FBC\u307F\u6E08\u307F\u306E\u30A6\u30A9\u30C3\u30C1\u5BFE\u8C61\u3092\u6BCE\u5206\u6700\u59273\u30D7\u30FC\u30EB\u78BA\u8A8D\u3057\u307E\u3059\u3002\u975E\u8868\u793A\u30FB\u7D42\u4E86\u6642\u306F\u76E3\u8996\u3057\u307E\u305B\u3093\u3002{review}",
+  "Reviewed {time}.": "\u78BA\u8A8D\u6642\u523B: {time}\u3002",
+  "Not reviewed yet.": "\u307E\u3060\u78BA\u8A8D\u3057\u3066\u3044\u307E\u305B\u3093\u3002",
+  "No watched tokens.": "\u30A6\u30A9\u30C3\u30C1\u4E2D\u306E\u30C8\u30FC\u30AF\u30F3\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "Watched tokens are outside the loaded pool coverage.": "\u30A6\u30A9\u30C3\u30C1\u4E2D\u306E\u30C8\u30FC\u30AF\u30F3\u306F\u8AAD\u307F\u8FBC\u307F\u6E08\u307F\u306E\u30D7\u30FC\u30EB\u7BC4\u56F2\u5916\u3067\u3059\u3002",
+  "No recorded changes in this view. Gaps in observation are not proof of no activity.": "\u3053\u306E\u8868\u793A\u7BC4\u56F2\u306B\u8A18\u9332\u3055\u308C\u305F\u5909\u5316\u306F\u3042\u308A\u307E\u305B\u3093\u3002\u89B3\u6E2C\u306E\u7A7A\u767D\u306F\u6D3B\u52D5\u304C\u306A\u3044\u8A3C\u62E0\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "Reading pools and recent trades...": "\u30D7\u30FC\u30EB\u3068\u6700\u8FD1\u306E\u53D6\u5F15\u3092\u53D6\u5F97\u4E2D",
+  "Price, flow, ownership, and exit risk will appear here.": "\u9078\u629E\u3057\u305F\u30C8\u30FC\u30AF\u30F3\u306E\u4FA1\u683C\u3001\u53D6\u5F15\u30D5\u30ED\u30FC\u3001\u4FDD\u6709\u5206\u5E03\u3001\u58F2\u5374\u30EA\u30B9\u30AF\u3092\u8868\u793A\u3057\u307E\u3059\u3002",
+  "Reading holders, liquidity, and trading controls.": "\u4FDD\u6709\u30A2\u30C9\u30EC\u30B9\u3001\u6D41\u52D5\u6027\u3001\u53D6\u5F15\u306E\u5236\u5FA1\u60C5\u5831\u3092\u53D6\u5F97\u4E2D",
+  "Public RPC cooldown: one request per token per minute.": "\u516C\u958BRPC\u306E\u53D6\u5F97\u9593\u9694: \u30C8\u30FC\u30AF\u30F3\u3054\u3068\u306B\u6BCE\u52061\u56DE",
+  "Read selected contract getters without connecting a wallet": "\u30A6\u30A9\u30EC\u30C3\u30C8\u3092\u63A5\u7D9A\u305B\u305A\u306B\u4E00\u90E8\u306E\u30B3\u30F3\u30C8\u30E9\u30AF\u30C8\u95A2\u6570\u3092\u53C2\u7167\u3057\u307E\u3059\u3002",
+  "No indexed sell, or quote-side reserve below 10 USDC. Sorted by quote reserve, not a safety rating.": "\u53D6\u5F97\u3057\u305F\u58F2\u308A\u53D6\u5F15\u304C\u306A\u3044\u3001\u307E\u305F\u306F\u58F2\u5374\u5148\u306E\u6E96\u5099\u91D1\u304C10 USDC\u672A\u6E80\u306E\u30D7\u30FC\u30EB\u3067\u3059\u3002\u6E96\u5099\u91D1\u9806\u3067\u3042\u308A\u3001\u5B89\u5168\u6027\u306E\u8A55\u4FA1\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "Search token or contract": "\u30C8\u30FC\u30AF\u30F3\u30FB\u30B3\u30F3\u30C8\u30E9\u30AF\u30C8\u691C\u7D22",
+  "Search token, symbol, or contract": "\u30C8\u30FC\u30AF\u30F3\u540D\u30FB\u30B7\u30F3\u30DC\u30EB\u30FB\u30A2\u30C9\u30EC\u30B9\u691C\u7D22",
+  "Search": "\u691C\u7D22",
+  "Refresh": "\u66F4\u65B0",
+  "Refreshing": "\u66F4\u65B0\u4E2D",
+  "Color theme": "\u8868\u793A\u30C6\u30FC\u30DE",
+  "Light": "\u30E9\u30A4\u30C8",
+  "Dark": "\u30C0\u30FC\u30AF",
+  "System": "\u81EA\u52D5",
+  "Language": "\u8A00\u8A9E",
+  "Back to markets": "\u5E02\u5834\u4E00\u89A7\u3078",
+  "Changes to review": "\u78BA\u8A8D\u3059\u3079\u304D\u5909\u5316",
+  "Selection criteria": "\u62BD\u51FA\u57FA\u6E96",
+  "Loaded pool activity": "\u53D6\u5F97\u6E08\u307F\u30D7\u30FC\u30EB\u306E\u52D5\u5411",
+  "24H volume": "24\u6642\u9593\u53D6\u5F15\u91CF",
+  "USDC pool flow": "\u30D7\u30FC\u30EB\u306EUSDC\u53D6\u5F15\u91CF",
+  "24H buys / sells": "24\u6642\u9593 \u8CB7\u3044 / \u58F2\u308A",
+  "indexed swaps": "\u53D6\u5F97\u6E08\u307F\u30B9\u30EF\u30C3\u30D7",
+  "Net flow": "\u7D14\u6D41\u5165",
+  "buy minus sell": "\u8CB7\u3044\u984D \u2212 \u58F2\u308A\u984D",
+  "Newest pool": "\u6700\u65B0\u30D7\u30FC\u30EB",
+  "Sell observed": "\u58F2\u308A\u3092\u78BA\u8A8D",
+  "markets with an indexed sell": "\u58F2\u308A\u53D6\u5F15\u3092\u53D6\u5F97\u3057\u305F\u5E02\u5834",
+  "Watchlist changes": "\u30A6\u30A9\u30C3\u30C1\u30EA\u30B9\u30C8\u306E\u5909\u5316",
+  "Watchlist change view": "\u30A6\u30A9\u30C3\u30C1\u30EA\u30B9\u30C8\u306E\u8868\u793A\u7BC4\u56F2",
+  "Since review": "\u524D\u56DE\u78BA\u8A8D\u4EE5\u964D",
+  "Recent history": "\u6700\u8FD1\u306E\u5C65\u6B74",
+  "Mark all reviewed": "\u3059\u3079\u3066\u78BA\u8A8D\u6E08\u307F\u306B\u3059\u308B",
+  "Arc meme markets": "Arc \u30DF\u30FC\u30E0\u5E02\u5834",
+  "All": "\u3059\u3079\u3066",
+  "Watchlist": "\u30A6\u30A9\u30C3\u30C1",
+  "Moving 24H": "24\u6642\u9593\u306E\u52D5\u304D",
+  "New": "\u65B0\u898F",
+  "Sell seen": "\u58F2\u308A\u78BA\u8A8D\u6E08\u307F",
+  "Needs review": "\u8981\u78BA\u8A8D",
+  "Sort by": "\u4E26\u3073\u9806",
+  "View default": "\u6A19\u6E96",
+  "Liquidity": "\u6D41\u52D5\u6027",
+  "Latest trade": "\u76F4\u8FD1\u306E\u53D6\u5F15",
+  "Min. liquidity (USDC)": "\u6700\u4F4E\u6D41\u52D5\u6027 (USDC)",
+  "Any": "\u6307\u5B9A\u306A\u3057",
+  "Traded in 24H": "24\u6642\u9593\u4EE5\u5185\u306E\u53D6\u5F15",
+  "Token": "\u30C8\u30FC\u30AF\u30F3",
+  "Price": "\u4FA1\u683C",
+  "Market pulse": "\u4FA1\u683C\u63A8\u79FB",
+  "Buys / Sells": "\u8CB7\u3044 / \u58F2\u308A",
+  "Age": "\u7D4C\u904E\u6642\u9593",
+  "Select a token": "\u30C8\u30FC\u30AF\u30F3\u3092\u9078\u629E",
+  "Checking the token": "\u30C8\u30FC\u30AF\u30F3\u3092\u78BA\u8A8D\u4E2D",
+  "Full details": "\u8A73\u7D30\u30DA\u30FC\u30B8",
+  "Copy link": "\u30EA\u30F3\u30AF\u3092\u30B3\u30D4\u30FC",
+  "fully diluted": "\u5B8C\u5168\u5E0C\u8584\u5316\u8A55\u4FA1\u984D",
+  "Holders": "\u4FDD\u6709\u30A2\u30C9\u30EC\u30B9",
+  "indexed addresses": "\u53D6\u5F97\u6E08\u307F\u30A2\u30C9\u30EC\u30B9\u6570",
+  "Observed changes": "\u89B3\u6E2C\u3055\u308C\u305F\u5909\u5316",
+  "Stored in this browser.": "\u3053\u306E\u30D6\u30E9\u30A6\u30B6\u306B\u4FDD\u5B58\u3055\u308C\u3066\u3044\u307E\u3059\u3002",
+  "Pool comparison": "\u30D7\u30FC\u30EB\u6BD4\u8F03",
+  "Selected pool": "\u9078\u629E\u4E2D\u306E\u30D7\u30FC\u30EB",
+  "Pool": "\u30D7\u30FC\u30EB",
+  "Price (USDC)": "\u4FA1\u683C (USDC)",
+  "Data": "\u30C7\u30FC\u30BF",
+  "Pool price": "\u30D7\u30FC\u30EB\u57FA\u6E96\u4FA1\u683C",
+  "Indexed price path": "\u53D6\u5F97\u6E08\u307F\u306E\u4FA1\u683C\u63A8\u79FB",
+  "Last 24 hours": "\u904E\u53BB24\u6642\u9593",
+  "Recent market flow": "\u6700\u8FD1\u306E\u53D6\u5F15\u30D5\u30ED\u30FC",
+  "Buys": "\u8CB7\u3044",
+  "Sells": "\u58F2\u308A",
+  "Volume": "\u53D6\u5F15\u91CF",
+  "Last trade": "\u6700\u7D42\u53D6\u5F15",
+  "Visible transactions": "\u53D6\u5F97\u6E08\u307F\u306E\u53D6\u5F15",
+  "Recent trade tape": "\u6700\u8FD1\u306E\u7D04\u5B9A\u5C65\u6B74",
+  "Wallet intelligence": "\u30A6\u30A9\u30EC\u30C3\u30C8\u5206\u6790",
+  "Wallet signals": "\u30A6\u30A9\u30EC\u30C3\u30C8\u306E\u52D5\u304D",
+  "Creation sender": "\u30D7\u30FC\u30EB\u4F5C\u6210TX\u306E\u9001\u4FE1\u8005",
+  "moves": "\u52D5\u304D",
+  "Whales": "\u5927\u53E3\u4FDD\u6709\u8005",
+  "top / large": "\u4E0A\u4F4D\u30FB\u5927\u53E3",
+  "Receipts": "\u53D7\u53D6",
+  "first visible": "\u53D6\u5F97\u7BC4\u56F2\u5185\u306E\u521D\u56DE",
+  "To pool": "\u30D7\u30FC\u30EB\u3078",
+  "transfers": "\u9001\u91D1",
+  "Pool safety": "\u30D7\u30FC\u30EB\u306E\u78BA\u8A8D",
+  "Liquidity monitor": "\u6D41\u52D5\u6027\u306E\u5909\u5316",
+  "Exit side": "\u58F2\u5374\u5148\u306E\u6E96\u5099\u91D1",
+  "USDC now": "\u73FE\u5728\u306EUSDC",
+  "24H added": "24\u6642\u9593\u306E\u8FFD\u52A0",
+  "24H removed": "24\u6642\u9593\u306E\u5F15\u304D\u51FA\u3057",
+  "LP burned": "\u30D0\u30FC\u30F3\u5148\u306ELP",
+  "of LP supply": "LP\u4F9B\u7D66\u91CF\u306B\u5BFE\u3059\u308B\u6BD4\u7387",
+  "Ownership": "\u4FDD\u6709\u5206\u5E03",
+  "Holder distribution": "\u4FDD\u6709\u30A2\u30C9\u30EC\u30B9\u306E\u5206\u5E03",
+  "Top 1": "\u4E0A\u4F4D1\u4EF6",
+  "Top 5": "\u4E0A\u4F4D5\u4EF6",
+  "Top 10": "\u4E0A\u4F4D10\u4EF6",
+  "of supply": "\u4F9B\u7D66\u91CF\u306B\u5BFE\u3059\u308B\u6BD4\u7387",
+  "indexed share": "\u53D6\u5F97\u6E08\u307F\u306E\u6BD4\u7387",
+  "On-chain relationships": "\u30AA\u30F3\u30C1\u30A7\u30FC\u30F3\u306E\u95A2\u9023",
+  "Holder connections": "\u4FDD\u6709\u30A2\u30C9\u30EC\u30B9\u306E\u95A2\u9023",
+  "Connections": "\u95A2\u9023",
+  "indexed links": "\u53D6\u5F97\u6E08\u307F\u306E\u95A2\u9023",
+  "Connected": "\u95A2\u9023\u30A2\u30C9\u30EC\u30B9",
+  "top holders": "\u4E0A\u4F4D\u4FDD\u6709\u8005",
+  "Clusters": "\u30B0\u30EB\u30FC\u30D7",
+  "linked groups": "\u95A2\u9023\u30B0\u30EB\u30FC\u30D7",
+  "Largest": "\u6700\u5927\u30B0\u30EB\u30FC\u30D7",
+  "Evidence, not a safety score": "\u5B89\u5168\u30B9\u30B3\u30A2\u3067\u306F\u306A\u304F\u78BA\u8A8D\u6839\u62E0",
+  "Token checks": "\u30C8\u30FC\u30AF\u30F3\u306E\u78BA\u8A8D",
+  "Read-only RPC": "\u53C2\u7167\u5C02\u7528RPC",
+  "Contract state": "\u30B3\u30F3\u30C8\u30E9\u30AF\u30C8\u306E\u72B6\u614B",
+  "Read state": "\u72B6\u614B\u3092\u53D6\u5F97",
+  "Read again": "\u518D\u53D6\u5F97",
+  "Reading...": "\u53D6\u5F97\u4E2D",
+  "Exit pressure": "\u58F2\u308A\u5727\u529B",
+  "Sell-size impact": "\u58F2\u5374\u898F\u6A21\u5225\u306E\u4FA1\u683C\u5F71\u97FF",
+  "0.1% supply": "\u4F9B\u7D66\u91CF\u306E0.1%",
+  "5% supply": "\u4F9B\u7D66\u91CF\u306E5%",
+  "Loading pools...": "\u30D7\u30FC\u30EB\u3092\u8AAD\u307F\u8FBC\u307F\u4E2D",
+  "Retry loading": "\u518D\u8AAD\u307F\u8FBC\u307F",
+  "Load 15 more": "\u3055\u3089\u306B15\u4EF6",
+  "Scan limit reached": "\u53D6\u5F97\u4E0A\u9650\u306B\u5230\u9054",
+  "No more pools": "\u3059\u3079\u3066\u8AAD\u307F\u8FBC\u307F\u6E08\u307F",
+  "No token has indexed trading activity in the last 24 hours.": "\u904E\u53BB24\u6642\u9593\u306B\u53D6\u5F15\u3092\u53D6\u5F97\u3057\u305F\u30C8\u30FC\u30AF\u30F3\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "No token is currently on this browser's watchlist.": "\u3053\u306E\u30D6\u30E9\u30A6\u30B6\u306E\u30A6\u30A9\u30C3\u30C1\u30EA\u30B9\u30C8\u306B\u30C8\u30FC\u30AF\u30F3\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "No token matches this view.": "\u6761\u4EF6\u306B\u4E00\u81F4\u3059\u308B\u30C8\u30FC\u30AF\u30F3\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "Price unavailable": "\u4FA1\u683C\u53D6\u5F97\u4E0D\u53EF",
+  "Indexed event": "\u53D6\u5F97\u6E08\u307F\u30A4\u30D9\u30F3\u30C8",
+  "Calculated": "\u8A08\u7B97\u5024",
+  "Unverified": "\u672A\u691C\u8A3C",
+  "Checks incomplete": "\u78BA\u8A8D\u672A\u5B8C\u4E86",
+  "Evidence only": "\u6839\u62E0\u306E\u307F",
+  "Source TX": "\u6839\u62E0TX",
+  "Liquidity removed": "\u6D41\u52D5\u6027\u306E\u5F15\u304D\u51FA\u3057",
+  "Large 1H price move": "1\u6642\u9593\u306E\u4FA1\u683C\u6025\u5909",
+  "New pool with indexed trades": "\u53D6\u5F15\u3092\u53D6\u5F97\u3057\u305F\u65B0\u898F\u30D7\u30FC\u30EB",
+  "{count} tokens": "{count}\u30C8\u30FC\u30AF\u30F3",
+  "{count} more changes": "\u3055\u3089\u306B{count}\u4EF6\u306E\u5909\u5316",
+  "{symbol} \xB7 {title}": "{symbol} \xB7 {title}",
+  "{amount} USDC removed; {percent}% of prior USDC reserve.": "{amount} USDC\u5F15\u304D\u51FA\u3057 \xB7 \u76F4\u524D\u306EUSDC\u6E96\u5099\u91D1\u306E{percent}%",
+  "1H reserve-price change: {change}. Not an executable quote.": "1\u6642\u9593\u306E\u6E96\u5099\u91D1\u57FA\u6E96\u4FA1\u683C\u306E\u5909\u5316: {change}\u3002\u5B9F\u969B\u306B\u7D04\u5B9A\u3067\u304D\u308B\u4FA1\u683C\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "Pool creation and subsequent trades appear in the available index. Not a token endorsement.": "\u53D6\u5F97\u3057\u305F\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u3067\u30D7\u30FC\u30EB\u4F5C\u6210\u3068\u305D\u306E\u5F8C\u306E\u53D6\u5F15\u3092\u78BA\u8A8D\u3057\u307E\u3057\u305F\u3002\u30C8\u30FC\u30AF\u30F3\u306E\u63A8\u5968\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "Market refresh failed. Recent changes cannot be assessed.": "\u5E02\u5834\u30C7\u30FC\u30BF\u306E\u66F4\u65B0\u306B\u5931\u6557\u3057\u307E\u3057\u305F\u3002\u6700\u8FD1\u306E\u5909\u5316\u306F\u78BA\u8A8D\u3067\u304D\u307E\u305B\u3093\u3002",
+  "No qualifying recent change in the loaded pools. This is not an all-clear.": "\u53D6\u5F97\u6E08\u307F\u30D7\u30FC\u30EB\u306B\u6761\u4EF6\u3092\u6E80\u305F\u3059\u6700\u8FD1\u306E\u5909\u5316\u306F\u3042\u308A\u307E\u305B\u3093\u3002\u5B89\u5168\u3068\u3044\u3046\u610F\u5473\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "{tokens} tokens \xB7 {pools} loaded pools \xB7 representative pools: {trades} indexed swaps \xB7 {liquidity} USDC liquidity \xB7 {partial} partial histories": "{tokens}\u30C8\u30FC\u30AF\u30F3 \xB7 {pools}\u30D7\u30FC\u30EB \xB7 \u4EE3\u8868\u30D7\u30FC\u30EB: \u53D6\u5F97\u6E08\u307F\u30B9\u30EF\u30C3\u30D7{trades}\u4EF6 \xB7 \u6D41\u52D5\u6027{liquidity} USDC \xB7 \u5C65\u6B74\u304C\u4E00\u90E8\u306E\u307F{partial}\u4EF6",
+  "{pools} pools loaded \xB7 {sources} {network} USDC market sources{limit}": "{pools}\u30D7\u30FC\u30EB\u53D6\u5F97 \xB7 {network} USDC\u30C7\u30FC\u30BF\u30BD\u30FC\u30B9{sources}\u4EF6{limit}",
+  " \xB7 Scan limit reached": " \xB7 \u53D6\u5F97\u4E0A\u9650\u306B\u5230\u9054",
+  " \xB7 150-pool limit": " \xB7 \u4E0A\u9650150\u30D7\u30FC\u30EB",
+  " \xB7 {count} unavailable": " \xB7 {count}\u4EF6\u53D6\u5F97\u4E0D\u53EF",
+  "{network} \xB7 {sources} configured v2 source(s) \xB7 {pools} loaded pools \xB7 Not the whole chain": "{network} \xB7 \u767B\u9332\u6E08\u307Fv2\u30BD\u30FC\u30B9{sources}\u4EF6 \xB7 {pools}\u30D7\u30FC\u30EB \xB7 \u30C1\u30A7\u30FC\u30F3\u5168\u4F53\u3067\u306F\u3042\u308A\u307E\u305B\u3093",
+  "{cached} cached \xB7 {partial} partial histories{failed}": "\u30AD\u30E3\u30C3\u30B7\u30E5{cached}\u4EF6 \xB7 \u5C65\u6B74\u304C\u4E00\u90E8\u306E\u307F{partial}\u4EF6{failed}",
+  " \xB7 Refresh failed": " \xB7 \u66F4\u65B0\u5931\u6557",
+  "{count} swaps indexed in the last 24 hours \xB7 {partial} partial pools \xB7 {cached} cached pools": "\u904E\u53BB24\u6642\u9593\u306E\u53D6\u5F97\u6E08\u307F\u30B9\u30EF\u30C3\u30D7{count}\u4EF6 \xB7 \u5C65\u6B74\u304C\u4E00\u90E8\u306E\u307F{partial}\u30D7\u30FC\u30EB \xB7 \u30AD\u30E3\u30C3\u30B7\u30E5{cached}\u30D7\u30FC\u30EB",
+  "{holders} holders \xB7 {pools} pools": "\u4FDD\u6709\u30A2\u30C9\u30EC\u30B9{holders}\u4EF6 \xB7 {pools}\u30D7\u30FC\u30EB",
+  "Cached": "\u30AD\u30E3\u30C3\u30B7\u30E5",
+  "Fetched": "\u53D6\u5F97\u6E08\u307F",
+  "Updated": "\u66F4\u65B0",
+  "fresh": "\u53D6\u5F97\u6E08\u307F",
+  "cached": "\u30AD\u30E3\u30C3\u30B7\u30E5",
+  "unavailable": "\u53D6\u5F97\u4E0D\u53EF",
+  "Unavailable": "\u53D6\u5F97\u4E0D\u53EF",
+  "None": "\u306A\u3057",
+  " \xB7 Partial history": " \xB7 \u5C65\u6B74\u306F\u4E00\u90E8\u306E\u307F",
+  " \xB7 partial history": " \xB7 \u5C65\u6B74\u306F\u4E00\u90E8\u306E\u307F",
+  "{state}{partial}": "{state}{partial}",
+  "{amount} exit side": "\u58F2\u5374\u5148 {amount}",
+  "B {count}": "\u8CB7\u3044 {count}",
+  "S {count}": "\u58F2\u308A {count}",
+  "no trades": "\u53D6\u5F15\u306A\u3057",
+  "{time} ago": "{time}\u524D",
+  "{time} old": "{time}\u7D4C\u904E",
+  "trade {time}": "\u53D6\u5F15 {time}\u524D",
+  "No pool indexed": "\u53D6\u5F97\u6E08\u307F\u30D7\u30FC\u30EB\u306A\u3057",
+  "Pool {address} \xB7 {time} ago{partial}": "\u30D7\u30FC\u30EB {address} \xB7 {time}\u524D{partial}",
+  "Open {symbol} market": "{symbol}\u306E\u5E02\u5834\u3092\u958B\u304F",
+  "Add token to watchlist": "\u30C8\u30FC\u30AF\u30F3\u3092\u30A6\u30A9\u30C3\u30C1\u30EA\u30B9\u30C8\u306B\u8FFD\u52A0",
+  "Remove token from watchlist": "\u30C8\u30FC\u30AF\u30F3\u3092\u30A6\u30A9\u30C3\u30C1\u30EA\u30B9\u30C8\u304B\u3089\u524A\u9664",
+  "Add to watchlist": "\u30A6\u30A9\u30C3\u30C1\u30EA\u30B9\u30C8\u306B\u8FFD\u52A0",
+  "Remove from watchlist": "\u30A6\u30A9\u30C3\u30C1\u30EA\u30B9\u30C8\u304B\u3089\u524A\u9664",
+  "Link copied": "\u30EA\u30F3\u30AF\u3092\u30B3\u30D4\u30FC\u3057\u307E\u3057\u305F",
+  "Copy unavailable. Use the Full details link.": "\u30B3\u30D4\u30FC\u3067\u304D\u307E\u305B\u3093\u3002\u8A73\u7D30\u30DA\u30FC\u30B8\u306E\u30EA\u30F3\u30AF\u3092\u3054\u5229\u7528\u304F\u3060\u3055\u3044\u3002",
+  "Connecting...": "\u63A5\u7D9A\u4E2D",
+  "Connection unavailable": "\u63A5\u7D9A\u4E0D\u53EF",
+  "Network unavailable": "\u30CD\u30C3\u30C8\u30EF\u30FC\u30AF\u5229\u7528\u4E0D\u53EF",
+  "Invalid link": "\u7121\u52B9\u306A\u30EA\u30F3\u30AF",
+  "{state} {time}": "{state} {time}",
+  "{network} MARKET FEED": "{network} \u5E02\u5834\u30C7\u30FC\u30BF",
+  "No match in the loaded pools with these filters.": "\u53D6\u5F97\u6E08\u307F\u30D7\u30FC\u30EB\u306B\u73FE\u5728\u306E\u6761\u4EF6\u3068\u4E00\u81F4\u3059\u308B\u3082\u306E\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "Live indexing is temporarily unavailable. Showing the latest cached market snapshot.": "\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u306E\u53D6\u5F97\u304C\u4E00\u6642\u7684\u306B\u3067\u304D\u306A\u3044\u305F\u3081\u3001\u6700\u65B0\u306E\u30AD\u30E3\u30C3\u30B7\u30E5\u30C7\u30FC\u30BF\u3092\u8868\u793A\u3057\u3066\u3044\u307E\u3059\u3002",
+  "Market data unavailable: {error}": "\u5E02\u5834\u30C7\u30FC\u30BF\u53D6\u5F97\u4E0D\u53EF: {error}",
+  "Market data unavailable.": "\u5E02\u5834\u30C7\u30FC\u30BF\u3092\u53D6\u5F97\u3067\u304D\u307E\u305B\u3093\u3002",
+  "Detail checks are incomplete": "\u8A73\u7D30\u78BA\u8A8D\u304C\u672A\u5B8C\u4E86",
+  "Holder index is partial": "\u4FDD\u6709\u30A2\u30C9\u30EC\u30B9\u306E\u53D6\u5F97\u306F\u4E00\u90E8\u306E\u307F",
+  "Only the first holder page is available. Unseen balances and incomplete burn totals remain unknown.": "\u4FDD\u6709\u30A2\u30C9\u30EC\u30B9\u306E\u6700\u521D\u306E\u30DA\u30FC\u30B8\u306E\u307F\u53D6\u5F97\u3067\u304D\u307E\u3057\u305F\u3002\u672A\u53D6\u5F97\u306E\u6B8B\u9AD8\u3084\u30D0\u30FC\u30F3\u306E\u7DCF\u91CF\u306F\u4E0D\u660E\u3067\u3059\u3002",
+  "24H starting price unavailable": "24\u6642\u9593\u524D\u306E\u57FA\u6E96\u4FA1\u683C\u306A\u3057",
+  "The 24H return is not estimated from a shorter window.": "\u77ED\u3044\u671F\u9593\u306E\u30C7\u30FC\u30BF\u304B\u308924\u6642\u9593\u306E\u9A30\u843D\u7387\u306F\u63A8\u5B9A\u3057\u307E\u305B\u3093\u3002",
+  "24-hour activity is partial": "24\u6642\u9593\u306E\u5C65\u6B74\u306F\u4E00\u90E8\u306E\u307F",
+  "Older events beyond the ArcScan page limit are not included in totals.": "ArcScan\u306E\u30DA\u30FC\u30B8\u4E0A\u9650\u3092\u8D85\u3048\u308B\u904E\u53BB\u306E\u30A4\u30D9\u30F3\u30C8\u306F\u5408\u8A08\u306B\u542B\u307E\u308C\u307E\u305B\u3093\u3002",
+  "Token-balance fallback": "\u30C8\u30FC\u30AF\u30F3\u6B8B\u9AD8\u306B\u3088\u308B\u4EE3\u66FF\u8A08\u7B97",
+  "No indexed Sync event was available. Price and liquidity are derived from the pair's token balances.": "Sync\u30A4\u30D9\u30F3\u30C8\u3092\u53D6\u5F97\u3067\u304D\u306A\u304B\u3063\u305F\u305F\u3081\u3001\u30DA\u30A2\u306E\u30C8\u30FC\u30AF\u30F3\u6B8B\u9AD8\u304B\u3089\u4FA1\u683C\u3068\u6D41\u52D5\u6027\u3092\u8A08\u7B97\u3057\u3066\u3044\u307E\u3059\u3002",
+  "Sell event indexed": "\u58F2\u308A\u30A4\u30D9\u30F3\u30C8\u3092\u53D6\u5F97\u6E08\u307F",
+  "No sell in available history": "\u53D6\u5F97\u5C65\u6B74\u306B\u58F2\u308A\u306A\u3057",
+  "Absence of indexed sells does not prove a token is unsellable.": "\u53D6\u5F97\u6E08\u307F\u306E\u58F2\u308A\u304C\u306A\u3044\u3053\u3068\u306F\u3001\u58F2\u5374\u3067\u304D\u306A\u3044\u8A3C\u62E0\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "Pool liquidity below 200 USDC": "\u30D7\u30FC\u30EB\u6D41\u52D5\u6027200 USDC\u672A\u6E80",
+  "Top-10 ownership exceeds 25%": "\u4E0A\u4F4D10\u30A2\u30C9\u30EC\u30B9\u306E\u4FDD\u6709\u738725%\u8D85",
+  "Pool-creation sender holds at least 10%": "\u30D7\u30FC\u30EB\u4F5C\u6210TX\u306E\u9001\u4FE1\u8005\u304C10%\u4EE5\u4E0A\u4FDD\u6709",
+  "LP at burn addresses": "\u30D0\u30FC\u30F3\u5148\u30A2\u30C9\u30EC\u30B9\u306ELP",
+  "Liquidity lock not independently checked": "\u6D41\u52D5\u6027\u30ED\u30C3\u30AF\u306F\u672A\u691C\u8A3C",
+  "LP ownership or lock terms could not be established.": "LP\u306E\u4FDD\u6709\u72B6\u6CC1\u3084\u30ED\u30C3\u30AF\u6761\u4EF6\u3092\u78BA\u8A8D\u3067\u304D\u307E\u305B\u3093\u3002",
+  "Execution paths not verified": "\u5B9F\u884C\u7D4C\u8DEF\u306F\u672A\u691C\u8A3C",
+  "Contract ABI unavailable": "\u30B3\u30F3\u30C8\u30E9\u30AF\u30C8ABI\u53D6\u5F97\u4E0D\u53EF",
+  "No matching ABI names": "\u4E00\u81F4\u3059\u308BABI\u95A2\u6570\u540D\u306A\u3057",
+  "No sell simulation or full permission audit is performed. Optional contract-state reads below report selected getter values only; they do not prove a control is usable, disabled, or absent elsewhere.": "\u58F2\u5374\u30B7\u30DF\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3\u3084\u6A29\u9650\u306E\u5168\u9762\u76E3\u67FB\u306F\u884C\u3044\u307E\u305B\u3093\u3002\u4EE5\u4E0B\u306E\u4EFB\u610F\u306E\u72B6\u614B\u53D6\u5F97\u306F\u4E00\u90E8\u306E\u53C2\u7167\u95A2\u6570\u306E\u623B\u308A\u5024\u306E\u307F\u3067\u3001\u6A29\u9650\u306E\u5B9F\u884C\u53EF\u5426\u3001\u7121\u52B9\u5316\u3001\u4ED6\u306E\u5236\u5FA1\u306E\u4E0D\u5728\u3092\u8A3C\u660E\u3057\u307E\u305B\u3093\u3002",
+  "Supply and trading controls cannot be assessed from the available ABI.": "\u53D6\u5F97\u53EF\u80FD\u306AABI\u3060\u3051\u3067\u306F\u4F9B\u7D66\u30FB\u53D6\u5F15\u306E\u5236\u5FA1\u3092\u8A55\u4FA1\u3067\u304D\u307E\u305B\u3093\u3002",
+  "No configured function-name pattern matched. Custom logic, external contracts, or different function names may still impose restrictions.": "\u8A2D\u5B9A\u6E08\u307F\u306E\u95A2\u6570\u540D\u30D1\u30BF\u30FC\u30F3\u306B\u4E00\u81F4\u3057\u307E\u305B\u3093\u3067\u3057\u305F\u3002\u72EC\u81EA\u30ED\u30B8\u30C3\u30AF\u3001\u5916\u90E8\u30B3\u30F3\u30C8\u30E9\u30AF\u30C8\u3001\u5225\u306E\u95A2\u6570\u540D\u3067\u5236\u9650\u3055\u308C\u3066\u3044\u308B\u53EF\u80FD\u6027\u304C\u3042\u308A\u307E\u3059\u3002",
+  "{sources}. Missing data is not a clean risk check.": "{sources}\u3002\u30C7\u30FC\u30BF\u306E\u6B20\u843D\u306F\u30EA\u30B9\u30AF\u304C\u306A\u3044\u3053\u3068\u3092\u610F\u5473\u3057\u307E\u305B\u3093\u3002",
+  "A token-to-USDC Swap was indexed {time} ago. This does not prove that any wallet can sell now.": "{time}\u524D\u306B\u30C8\u30FC\u30AF\u30F3\u304B\u3089USDC\u3078\u306E\u30B9\u30EF\u30C3\u30D7\u3092\u53D6\u5F97\u3057\u307E\u3057\u305F\u3002\u73FE\u5728\u3069\u306E\u30A6\u30A9\u30EC\u30C3\u30C8\u3067\u3082\u58F2\u5374\u3067\u304D\u308B\u8A3C\u62E0\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "Reserve-based estimate: {total} USDC total, {quote} USDC on the quote side. This threshold is a screening rule, not a safety rating.": "\u6E96\u5099\u91D1\u30D9\u30FC\u30B9\u306E\u63A8\u5B9A: \u5408\u8A08{total} USDC\u3001\u58F2\u5374\u5148{quote} USDC\u3002\u3053\u306E\u95BE\u5024\u306F\u62BD\u51FA\u57FA\u6E96\u3067\u3042\u308A\u3001\u5B89\u5168\u6027\u306E\u8A55\u4FA1\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "{share}% of indexed supply, excluding burn addresses and known pools. Addresses are not necessarily independent owners.": "\u30D0\u30FC\u30F3\u5148\u3068\u65E2\u77E5\u306E\u30D7\u30FC\u30EB\u3092\u9664\u304F\u4F9B\u7D66\u91CF\u306E{share}%\u3067\u3059\u3002\u7570\u306A\u308B\u30A2\u30C9\u30EC\u30B9\u304C\u72EC\u7ACB\u3057\u305F\u6240\u6709\u8005\u3068\u306F\u9650\u308A\u307E\u305B\u3093\u3002",
+  "Indexed share: {share}%. This transaction sender may be a relayer; it is not proof of the token team's identity.": "\u53D6\u5F97\u6E08\u307F\u306E\u6BD4\u7387: {share}%\u3002\u9001\u4FE1\u8005\u306F\u4E2D\u7D99\u8005\u306E\u53EF\u80FD\u6027\u304C\u3042\u308A\u3001\u30C8\u30FC\u30AF\u30F3\u30C1\u30FC\u30E0\u306E\u8EAB\u5143\u3092\u8A3C\u660E\u3057\u307E\u305B\u3093\u3002",
+  "{share}% of indexed LP supply. This does not establish token safety or sale availability.": "\u53D6\u5F97\u6E08\u307FLP\u4F9B\u7D66\u91CF\u306E{share}%\u3067\u3059\u3002\u30C8\u30FC\u30AF\u30F3\u306E\u5B89\u5168\u6027\u3084\u58F2\u5374\u53EF\u80FD\u6027\u3092\u8A3C\u660E\u3057\u307E\u305B\u3093\u3002",
+  "Top indexed LP holder: {share}%. Lock contract rules and unlock times have not been checked.": "\u53D6\u5F97\u6E08\u307F\u306E\u6700\u5927LP\u4FDD\u6709\u7387: {share}%\u3002\u30ED\u30C3\u30AF\u5951\u7D04\u306E\u6761\u4EF6\u3084\u89E3\u9664\u6642\u523B\u306F\u78BA\u8A8D\u3057\u3066\u3044\u307E\u305B\u3093\u3002",
+  "Supply-related function names": "\u4F9B\u7D66\u95A2\u9023\u306E\u95A2\u6570\u540D",
+  "Restriction-related function names": "\u5236\u9650\u95A2\u9023\u306E\u95A2\u6570\u540D",
+  "Pause-related function names": "\u4E00\u6642\u505C\u6B62\u95A2\u9023\u306E\u95A2\u6570\u540D",
+  "Upgrade or proxy indicators": "\u30A2\u30C3\u30D7\u30B0\u30EC\u30FC\u30C9\u30FB\u30D7\u30ED\u30AD\u30B7\u306E\u624B\u639B\u304B\u308A",
+  "Fee-related function names": "\u624B\u6570\u6599\u95A2\u9023\u306E\u95A2\u6570\u540D",
+  "{evidence} Names alone do not establish current permissions or execution paths. Selected getter values, when requested, appear separately under Contract state and do not confirm this capability is usable.": "{evidence} \u95A2\u6570\u540D\u3060\u3051\u3067\u306F\u73FE\u5728\u306E\u6A29\u9650\u3084\u5B9F\u884C\u7D4C\u8DEF\u306F\u78BA\u8A8D\u3067\u304D\u307E\u305B\u3093\u3002\u53C2\u7167\u3057\u305F\u623B\u308A\u5024\u306F\u30B3\u30F3\u30C8\u30E9\u30AF\u30C8\u306E\u72B6\u614B\u306B\u5225\u9014\u8868\u793A\u3055\u308C\u307E\u3059\u304C\u3001\u6A5F\u80FD\u304C\u5B9F\u884C\u53EF\u80FD\u3067\u3042\u308B\u3053\u3068\u306F\u8A3C\u660E\u3057\u307E\u305B\u3093\u3002",
+  "{indexed} indexed \xB7 {calculated} calculated \xB7 {unverified} unverified": "\u53D6\u5F97\u6E08\u307F{indexed}\u4EF6 \xB7 \u8A08\u7B97\u5024{calculated}\u4EF6 \xB7 \u672A\u691C\u8A3C{unverified}\u4EF6",
+  "Market: {market} \xB7 Contract: {contract} \xB7 Holders: {holders} \xB7 No safety score": "\u5E02\u5834: {market} \xB7 \u30B3\u30F3\u30C8\u30E9\u30AF\u30C8: {contract} \xB7 \u4FDD\u6709\u30A2\u30C9\u30EC\u30B9: {holders} \xB7 \u5B89\u5168\u30B9\u30B3\u30A2\u306A\u3057",
+  "Evidence completeness, not a risk score or safety verdict.": "\u6839\u62E0\u306E\u53D6\u5F97\u72B6\u6CC1\u3067\u3042\u308A\u3001\u30EA\u30B9\u30AF\u30B9\u30B3\u30A2\u3084\u5B89\u5168\u6027\u306E\u5224\u5B9A\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "Token contract": "\u30C8\u30FC\u30AF\u30F3\u5951\u7D04",
+  "Pool events": "\u30D7\u30FC\u30EB\u30A4\u30D9\u30F3\u30C8",
+  "Holder index": "\u4FDD\u6709\u30A2\u30C9\u30EC\u30B9\u4E00\u89A7",
+  "Source: ArcScan. Indexing may lag. V2 pools only; mainnet and other DEX protocols are not connected.": "\u51FA\u5178: ArcScan\u3002\u30A4\u30F3\u30C7\u30C3\u30AF\u30B9\u306B\u9045\u5EF6\u306E\u53EF\u80FD\u6027\u304C\u3042\u308A\u307E\u3059\u3002V2\u30D7\u30FC\u30EB\u306E\u307F\u5BFE\u5FDC\u3057\u3001\u30E1\u30A4\u30F3\u30CD\u30C3\u30C8\u3084\u4ED6\u306EDEX\u30D7\u30ED\u30C8\u30B3\u30EB\u306F\u672A\u63A5\u7D9A\u3067\u3059\u3002",
+  "Loaded pools only. Latest liquidity removal of at least 10% of prior USDC reserve, then 1H price moves of at least 30%, then newly created pools with indexed trades. One item per token, up to six. Cached markets are excluded. These are screening rules, not recommendations.": "\u53D6\u5F97\u6E08\u307F\u30D7\u30FC\u30EB\u306E\u307F\u304C\u5BFE\u8C61\u3067\u3059\u3002\u76F4\u524D\u306EUSDC\u6E96\u5099\u91D1\u306E10%\u4EE5\u4E0A\u306E\u5F15\u304D\u51FA\u3057\u30011\u6642\u9593\u306730%\u4EE5\u4E0A\u306E\u4FA1\u683C\u5909\u52D5\u3001\u53D6\u5F15\u3092\u53D6\u5F97\u3057\u305F\u65B0\u898F\u30D7\u30FC\u30EB\u306E\u9806\u306B\u8868\u793A\u3057\u307E\u3059\u3002\u30C8\u30FC\u30AF\u30F3\u3054\u3068\u306B1\u4EF6\u3001\u6700\u59276\u4EF6\u3002\u30AD\u30E3\u30C3\u30B7\u30E5\u306F\u9664\u5916\u3057\u307E\u3059\u3002\u63A8\u5968\u3067\u306F\u306A\u304F\u62BD\u51FA\u57FA\u6E96\u3067\u3059\u3002",
+  "Pool changes are calculated from indexed Mint, Burn, and Sync events.": "\u30D7\u30FC\u30EB\u306E\u5909\u5316\u306F\u53D6\u5F97\u6E08\u307F\u306EMint\u3001Burn\u3001Sync\u30A4\u30D9\u30F3\u30C8\u304B\u3089\u8A08\u7B97\u3057\u307E\u3059\u3002",
+  "Connections mean an indexed direct transfer or a shared non-contract source. They do not prove common ownership.": "\u95A2\u9023\u306F\u53D6\u5F97\u6E08\u307F\u306E\u76F4\u63A5\u9001\u91D1\u3001\u307E\u305F\u306F\u540C\u3058\u975E\u30B3\u30F3\u30C8\u30E9\u30AF\u30C8\u30A2\u30C9\u30EC\u30B9\u304B\u3089\u306E\u53D7\u53D6\u3092\u793A\u3057\u307E\u3059\u3002\u540C\u4E00\u6240\u6709\u8005\u306E\u8A3C\u62E0\u3067\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "Selected getters only. No sell simulation, proxy-storage verification, or complete permission audit. Missing reads do not imply safety.": "\u4E00\u90E8\u306E\u53C2\u7167\u95A2\u6570\u306E\u307F\u3092\u78BA\u8A8D\u3057\u307E\u3059\u3002\u58F2\u5374\u30B7\u30DF\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3\u3001\u30D7\u30ED\u30AD\u30B7\u306E\u30B9\u30C8\u30EC\u30FC\u30B8\u691C\u8A3C\u3001\u6A29\u9650\u306E\u5168\u9762\u76E3\u67FB\u306F\u884C\u3044\u307E\u305B\u3093\u3002\u53D6\u5F97\u3067\u304D\u306A\u3044\u9805\u76EE\u304C\u3042\u3063\u3066\u3082\u5B89\u5168\u3068\u306F\u9650\u308A\u307E\u305B\u3093\u3002",
+  "Single-pool v2 estimate with an assumed 0.3% fee. No sell simulation. Token taxes, limits, MEV, and routing are not included.": "\u5358\u4E00\u306EV2\u30D7\u30FC\u30EB\u3068\u624B\u6570\u65990.3%\u3092\u4EEE\u5B9A\u3057\u305F\u63A8\u5B9A\u5024\u3067\u3059\u3002\u58F2\u5374\u30B7\u30DF\u30E5\u30EC\u30FC\u30B7\u30E7\u30F3\u3067\u306F\u306A\u304F\u3001\u30C8\u30FC\u30AF\u30F3\u7A0E\u3001\u5236\u9650\u3001MEV\u3001\u30EB\u30FC\u30C6\u30A3\u30F3\u30B0\u306F\u542B\u307F\u307E\u305B\u3093\u3002",
+  "Independent read-only analytics. Not affiliated with Circle or Arc. No token is endorsed and no safety result is guaranteed.": "\u72EC\u7ACB\u3057\u305F\u53C2\u7167\u5C02\u7528\u306E\u5206\u6790\u30B5\u30FC\u30D3\u30B9\u3067\u3059\u3002Circle\u30FBArc\u3068\u306E\u63D0\u643A\u95A2\u4FC2\u306F\u3042\u308A\u307E\u305B\u3093\u3002\u30C8\u30FC\u30AF\u30F3\u306E\u63A8\u5968\u3084\u5B89\u5168\u6027\u306E\u4FDD\u8A3C\u306F\u884C\u3044\u307E\u305B\u3093\u3002"
+};
+function resolveLanguage(saved, browserLanguages) {
+  if (saved === "ko" || saved === "en" || saved === "ja") return saved;
+  const primary = browserLanguages[0]?.toLowerCase().split("-")[0];
+  return primary === "ko" || primary === "ja" ? primary : "en";
+}
+function translate(message, language2) {
+  const dictionary = language2 === "ko" ? KOREAN : language2 === "ja" ? JAPANESE : void 0;
+  const template = dictionary && Object.hasOwn(dictionary, message.key) ? dictionary[message.key] : message.key;
+  return template.replace(/\{([\w]+)\}/g, (placeholder, name) => {
+    const value = message.values[name];
+    return value === void 0 ? placeholder : typeof value === "object" ? translate(value, language2) : String(value);
+  });
+}
+var language = "en";
+var bindings = /* @__PURE__ */ new WeakMap();
+function localize(node, message, attribute = "text") {
+  const entries = bindings.get(node) ?? /* @__PURE__ */ new Map();
+  const value = typeof message === "string" ? copy(message) : message;
+  entries.set(attribute, value);
+  bindings.set(node, entries);
+  node.setAttribute("data-i18n-bound", "");
+  const rendered = translate(value, language);
+  if (attribute === "text") node.textContent = rendered;
+  else node.setAttribute(attribute, rendered);
+}
+function applyLanguage(root) {
+  root.documentElement.lang = language;
+  for (const node of root.querySelectorAll("[data-i18n], [data-i18n-placeholder], [data-i18n-aria-label], [data-i18n-title]")) {
+    for (const attribute of ["text", "placeholder", "aria-label", "title"]) {
+      const key = node.getAttribute(attribute === "text" ? "data-i18n" : `data-i18n-${attribute}`);
+      if (key && !bindings.get(node)?.has(attribute)) localize(node, key, attribute);
+    }
+  }
+  for (const node of root.querySelectorAll("[data-i18n-bound]")) {
+    for (const [attribute, message] of bindings.get(node) ?? []) localize(node, message, attribute);
+  }
+  const select = root.getElementById("languageSelect");
+  if (select) {
+    select.value = language;
+    select.disabled = false;
+  }
+}
+function initializeLanguage(root = document, host = window) {
+  const key = "arcrow:language";
+  const browserLanguages = host.navigator.languages?.length ? host.navigator.languages : [host.navigator.language];
+  let storage = null;
+  let saved = null;
+  try {
+    storage = host.localStorage;
+    saved = storage.getItem(key);
+  } catch {
+  }
+  language = resolveLanguage(saved, browserLanguages);
+  applyLanguage(root);
+  root.getElementById("languageSelect")?.addEventListener("change", (event) => {
+    language = resolveLanguage(event.target.value, browserLanguages);
+    try {
+      storage?.setItem(key, language);
+    } catch {
+    }
+    applyLanguage(root);
+  });
+  host.addEventListener("storage", (event) => {
+    if (storage && event.storageArea === storage && (event.key === key || event.key === null)) {
+      language = resolveLanguage(event.newValue, browserLanguages);
+      applyLanguage(root);
+    }
+  });
+}
+
 // circle/arc/src/arc-radar.ts
 var routeError = "";
 var linkedPool = (() => {
@@ -11112,8 +11847,14 @@ function poolCacheKey(pool) {
 function element(tag, className, text) {
   const node = document.createElement(tag);
   if (className) node.className = className;
-  if (text !== void 0) node.textContent = text;
+  if (text !== void 0) {
+    if (typeof text === "string") node.textContent = text;
+    else localize(node, text);
+  }
   return node;
+}
+function setCopy(id, message) {
+  localize(byId(id), message);
 }
 function svgNode(tag, attributes) {
   const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
@@ -11557,7 +12298,6 @@ async function loadMarketPair(seed, force) {
       balanceStale = balanceResult.stale;
     }
     const currentPrice = tokenReserve > 0 ? usdcReserve / tokenReserve : 0;
-    const supply = decimalValue(token.total_supply, token.decimals);
     const trades = logs.map((log) => adapter.trade(log, seed)).filter((trade) => trade !== null).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     const buys = trades.filter((trade) => trade.direction === "buy");
     const sells = trades.filter((trade) => trade.direction === "sell");
@@ -11569,7 +12309,7 @@ async function loadMarketPair(seed, force) {
       ...seed,
       buyCount: buys.length,
       currentPrice,
-      fdv: currentPrice * supply,
+      fdv: fullyDilutedValue(currentPrice, token.total_supply, token.decimals),
       historyTruncated: logResult.truncated,
       lastSellAt: sells[0]?.timestamp ?? null,
       lastTradeAt: trades[0]?.timestamp ?? null,
@@ -11619,24 +12359,33 @@ function visibleMarkets() {
   }), discoveryOptions);
 }
 function renderMarketSummary() {
+  if (marketLoadFailed && markets.length === 0) {
+    setCopy("marketSummary", "Market activity is unknown because pool data could not be loaded.");
+    return;
+  }
   const shown = visibleMarkets();
   const trades = shown.reduce((sum, market) => sum + market.swapCount, 0);
   const liquidity = shown.reduce((sum, market) => sum + market.totalLiquidity, 0);
   const partial = shown.filter((market) => market.historyTruncated).length;
-  byId("marketSummary").textContent = `${shown.length} tokens \xB7 ${markets.length} loaded pools \xB7 representative pools: ${trades} indexed swaps \xB7 ${formatValue(liquidity)} USDC liquidity${partial > 0 ? ` \xB7 ${partial} partial histories` : ""}`;
+  setCopy("marketSummary", copy("{tokens} tokens \xB7 {pools} loaded pools \xB7 representative pools: {trades} indexed swaps \xB7 {liquidity} USDC liquidity \xB7 {partial} partial histories", { tokens: shown.length, pools: markets.length, trades, liquidity: formatValue(liquidity), partial }));
 }
 function renderDiscoveryControls() {
   const button = byId("loadMoreMarkets");
   button.disabled = loading || !marketLoadFailed && (!hasMoreMarkets || marketLimit >= MAX_MARKETS);
-  button.textContent = loading ? "Loading pools..." : marketLoadFailed ? "Retry loading" : hasMoreMarkets && marketLimit < MAX_MARKETS ? "Load 15 more" : discoveryLimited || hasMoreMarkets && marketLimit >= MAX_MARKETS ? "Scan limit reached" : "No more pools";
-  byId("discoveryCoverage").textContent = `${markets.length} pools loaded \xB7 ${dexAdapters.length} ${NETWORK?.label ?? ""} USDC market source${dexAdapters.length === 1 ? "" : "s"}${discoveryLimited ? " \xB7 Scan limit reached" : ""}${marketLimit >= MAX_MARKETS && hasMoreMarkets ? " \xB7 150-pool limit" : ""}${failedMarketCount ? ` \xB7 ${failedMarketCount} unavailable` : ""}`;
+  localize(button, loading ? "Loading pools..." : marketLoadFailed ? "Retry loading" : hasMoreMarkets && marketLimit < MAX_MARKETS ? "Load 15 more" : discoveryLimited || hasMoreMarkets && marketLimit >= MAX_MARKETS ? "Scan limit reached" : "No more pools");
+  setCopy("discoveryCoverage", copy("{pools} pools loaded \xB7 {sources} {network} USDC market sources{limit}", {
+    pools: markets.length,
+    sources: dexAdapters.length,
+    network: NETWORK?.label ?? "",
+    limit: copy("{scan}{cap}{failed}", { scan: copy(discoveryLimited ? " \xB7 Scan limit reached" : ""), cap: copy(marketLimit >= MAX_MARKETS && hasMoreMarkets ? " \xB7 150-pool limit" : ""), failed: copy(failedMarketCount ? " \xB7 {count} unavailable" : "", { count: failedMarketCount }) })
+  }));
   renderCoverage();
 }
 function renderCoverage() {
   const cached = markets.filter((market) => market.stale).length;
   const partial = markets.filter((market) => market.historyTruncated).length;
-  byId("coverageSummary").textContent = `${NETWORK?.label ?? "Unavailable"} \xB7 ${dexAdapters.length} configured v2 source(s) \xB7 ${markets.length} loaded pools \xB7 Not the whole chain`;
-  byId("coverageStatus").textContent = `${cached} cached \xB7 ${partial} partial histories${marketLoadFailed ? " \xB7 Refresh failed" : ""}`;
+  setCopy("coverageSummary", copy("{network} \xB7 {sources} configured v2 source(s) \xB7 {pools} loaded pools \xB7 Not the whole chain", { network: NETWORK?.label ?? "--", sources: dexAdapters.length, pools: markets.length }));
+  setCopy("coverageStatus", copy("{cached} cached \xB7 {partial} partial histories{failed}", { cached, partial, failed: copy(marketLoadFailed ? " \xB7 Refresh failed" : "") }));
   const sources = byId("coverageSources");
   sources.replaceChildren();
   for (const adapter of dexAdapters) {
@@ -11652,37 +12401,43 @@ function renderMarketBrief() {
   const expanded = list.querySelector(".brief-more")?.open ?? false;
   list.replaceChildren();
   const briefs = marketLoadFailed ? [] : marketBriefs(markets, Date.now());
-  byId("marketBriefCount").textContent = `${briefs.length} token${briefs.length === 1 ? "" : "s"}`;
+  setCopy("marketBriefCount", copy("{count} tokens", { count: briefs.length }));
   if (!briefs.length) {
-    list.append(element("p", "brief-empty", marketLoadFailed ? "Market refresh failed. Recent changes cannot be assessed." : "No qualifying recent change in the loaded pools. This is not an all-clear."));
+    list.append(element("p", "brief-empty", copy(marketLoadFailed ? "Market refresh failed. Recent changes cannot be assessed." : "No qualifying recent change in the loaded pools. This is not an all-clear.")));
     return;
   }
   const more = element("details", "brief-more");
   more.open = expanded;
   const moreList = element("div", "brief-more-list");
-  more.append(element("summary", "", `${Math.max(0, briefs.length - 3)} more changes`), moreList);
+  more.append(element("summary", "", copy("{count} more changes", { count: Math.max(0, briefs.length - 3) })), moreList);
   for (const [index, brief] of briefs.entries()) {
     const row = element("article", "brief-row");
-    const copy = element("div", "brief-copy");
-    const title = element("a", "", `${brief.market.token.symbol || "Token"} \xB7 ${brief.title}`);
+    const copyBlock = element("div", "brief-copy");
+    const title = element("a", "", copy("{symbol} \xB7 {title}", { symbol: brief.market.token.symbol || "Token", title: copy(brief.title) }));
     title.href = marketUrl(location.href, NETWORK.id, brief.market.pairAddress);
-    const description = brief.kind === "liquidity" ? `${formatValue(brief.value, 4)} USDC removed; ${brief.secondaryValue.toFixed(1)}% of prior USDC reserve.` : brief.kind === "price" ? `1H reserve-price change: ${compactChange(brief.value)}. Not an executable quote.` : "Pool creation and subsequent trades appear in the available index. Not a token endorsement.";
-    copy.append(title, element("p", "", description), element("small", "", `Pool ${shortHash(brief.market.pairAddress)} \xB7 ${relativeTime(brief.timestamp)} ago${brief.market.historyTruncated ? " \xB7 partial history" : ""}`));
+    const description = brief.kind === "liquidity" ? copy("{amount} USDC removed; {percent}% of prior USDC reserve.", { amount: formatValue(brief.value, 4), percent: brief.secondaryValue.toFixed(1) }) : brief.kind === "price" ? copy("1H reserve-price change: {change}. Not an executable quote.", { change: compactChange(brief.value) }) : copy("Pool creation and subsequent trades appear in the available index. Not a token endorsement.");
+    copyBlock.append(title, element("p", "", description), element("small", "", copy("Pool {address} \xB7 {time} ago{partial}", { address: shortHash(brief.market.pairAddress), time: relativeTime(brief.timestamp), partial: copy(brief.market.historyTruncated ? " \xB7 partial history" : "") })));
     const evidence = element("div", "brief-evidence");
-    evidence.append(element("span", `evidence-label ${brief.basis}`, brief.basis === "observed" ? "Indexed event" : "Calculated"));
+    evidence.append(element("span", `evidence-label ${brief.basis}`, copy(brief.basis === "observed" ? "Indexed event" : "Calculated")));
     if (brief.transactionHash) {
-      const link = element("a", "", "Source TX");
+      const link = element("a", "", copy("Source TX"));
       link.href = `${EXPLORER_BASE}/tx/${brief.transactionHash}`;
       link.target = "_blank";
       link.rel = "noreferrer";
       evidence.append(link);
     }
-    row.append(copy, evidence);
+    row.append(copyBlock, evidence);
     (index < 3 ? list : moreList).append(row);
   }
   if (briefs.length > 3) list.append(more);
 }
 function renderMarketPulse() {
+  if (marketLoadFailed && markets.length === 0) {
+    for (const id of ["pulseVolume", "pulseTrades", "pulseNetFlow", "pulseNewest", "pulseNewestAge", "pulseSellVerified"]) byId(id).textContent = "--";
+    setCopy("pulseNewestAge", "Unavailable");
+    setCopy("pulseStatus", "Market activity is unknown because pool data could not be loaded.");
+    return;
+  }
   const period = markets.map((market) => market.periods.h24);
   const volume = period.reduce((sum, metrics) => sum + metrics.volumeUsdc, 0);
   const buys = period.reduce((sum, metrics) => sum + metrics.buyCount, 0);
@@ -11697,12 +12452,11 @@ function renderMarketPulse() {
   net.textContent = formatSignedUsdc(netFlow);
   net.className = changeClass(netFlow);
   byId("pulseNewest").textContent = newest ? newest.token.symbol || newest.token.name || "Unknown" : "--";
-  byId("pulseNewestAge").textContent = newest ? `${relativeTime(newest.createdAt)} old` : "No pool indexed";
+  setCopy("pulseNewestAge", newest ? copy("{time} old", { time: relativeTime(newest.createdAt) }) : "No pool indexed");
   byId("pulseSellVerified").textContent = `${sellVerified} / ${markets.length}`;
   const swapTotal = buys + sells;
   const cached = markets.filter((market) => market.stale).length;
-  const coverage = `${partial > 0 ? ` \xB7 ${partial} pool${partial === 1 ? "" : "s"} partial` : ""}${cached > 0 ? ` \xB7 ${cached} cached pools` : ""}`;
-  byId("pulseStatus").textContent = swapTotal > 0 ? `${swapTotal} swaps indexed in the last 24 hours${coverage}` : `No swaps indexed in the available 24-hour history${coverage}`;
+  setCopy("pulseStatus", copy("{count} swaps indexed in the last 24 hours \xB7 {partial} partial pools \xB7 {cached} cached pools", { count: swapTotal, partial, cached }));
 }
 function changeClass(value) {
   if (value === null || Math.abs(value) < 0.05) return "neutral";
@@ -11718,8 +12472,8 @@ function renderMarketRows() {
   renderMarketBrief();
   renderWatchDigest();
   if (shown.length === 0) {
-    const message = activeFilter === "active" ? "No token has indexed trading activity in the last 24 hours." : activeFilter === "watchlist" ? "No token is currently on this browser's watchlist." : "No token matches this view.";
-    container.append(element("div", "market-loading-row", message));
+    const message = marketLoadFailed && markets.length === 0 ? "Market activity is unknown because pool data could not be loaded." : activeFilter === "active" ? "No token has indexed trading activity in the last 24 hours." : activeFilter === "watchlist" ? "No token is currently on this browser's watchlist." : "No token matches this view.";
+    container.append(element("div", "market-loading-row", copy(message)));
     return;
   }
   for (const market of shown) {
@@ -11730,19 +12484,19 @@ function renderMarketRows() {
     const isSelected = selected?.tokenAddress.toLowerCase() === market.tokenAddress.toLowerCase();
     row.classList.toggle("selected", isSelected);
     row.setAttribute("aria-pressed", String(isSelected));
-    row.setAttribute("aria-label", `Open ${market.token.symbol || market.token.name || "token"} market`);
+    localize(row, copy("Open {symbol} market", { symbol: market.token.symbol || market.token.name || "token" }), "aria-label");
     const identity = element("span", "market-token");
     const icon = element("span", "market-token-icon", (market.token.symbol || market.token.name || "?").slice(0, 2).toUpperCase());
-    const copy = element("span", "market-token-copy");
+    const copyBlock = element("span", "market-token-copy");
     const watched = watchlist.has(market.tokenAddress.toLowerCase());
     const poolCount = markets.filter((entry) => entry.tokenAddress.toLowerCase() === market.tokenAddress.toLowerCase()).length;
-    copy.append(
+    copyBlock.append(
       element("strong", watched ? "watched-token" : "", `${watched ? "\u2605 " : ""}${market.token.symbol || "Unknown"}`),
       element("span", "", market.token.name || shortHash(market.tokenAddress)),
-      element("small", "", `${fullNumber(market.token.holders_count)} holders \xB7 ${poolCount} pool${poolCount === 1 ? "" : "s"}`),
-      element("small", "market-data-state", `${market.stale ? "Cached" : "Fetched"}${market.historyTruncated ? " \xB7 Partial history" : ""}`)
+      element("small", "", copy("{holders} holders \xB7 {pools} pools", { holders: fullNumber(market.token.holders_count), pools: poolCount })),
+      element("small", "market-data-state", copy("{state}{partial}", { state: copy(market.stale ? "Cached" : "Fetched"), partial: copy(market.historyTruncated ? " \xB7 Partial history" : "") }))
     );
-    identity.append(icon, copy);
+    identity.append(icon, copyBlock);
     const price = element("span", "market-cell price-cell");
     price.append(priceElement(market.currentPrice), element("small", changeClass(market.periods.m5.priceChange), `5M ${compactChange(market.periods.m5.priceChange)}`));
     const pulse = element("span", "market-cell pulse-cell");
@@ -11751,10 +12505,10 @@ function renderMarketRows() {
       element("small", changeClass(market.periods.h24.priceChange), `24H ${compactChange(market.periods.h24.priceChange)} \xB7 ${formatValue(market.periods.h24.volumeUsdc, 3)} USDC${market.historyTruncated ? " \xB7 partial" : ""}`)
     );
     const liquidity = element("span", "market-cell");
-    liquidity.append(element("strong", "", `${formatValue(market.totalLiquidity)} USDC`), element("small", "", `${formatValue(market.usdcReserve)} exit side`));
+    liquidity.append(element("strong", "", `${formatValue(market.totalLiquidity)} USDC`), element("small", "", copy("{amount} exit side", { amount: formatValue(market.usdcReserve) })));
     const flow = element("span", "row-flow");
     const counts = element("strong");
-    counts.append(element("span", "positive", `B ${market.buyCount}`), element("span", "negative", `S ${market.sellCount}`));
+    counts.append(element("span", "positive", copy("B {count}", { count: market.buyCount })), element("span", "negative", copy("S {count}", { count: market.sellCount })));
     const track = element("span", "mini-flow-track");
     const total = Math.max(1, market.buyCount + market.sellCount);
     const buyBar = element("span");
@@ -11764,7 +12518,7 @@ function renderMarketRows() {
     track.append(buyBar, sellBar);
     flow.append(counts, track, element("small", "", `${formatValue(market.volumeUsdc, 3)} USDC`));
     const age = element("span", "market-cell");
-    age.append(element("strong", "", relativeTime(market.createdAt)), element("small", "", market.lastTradeAt ? `trade ${relativeTime(market.lastTradeAt)}` : "no trades"));
+    age.append(element("strong", "", relativeTime(market.createdAt)), element("small", "", market.lastTradeAt ? copy("trade {time}", { time: relativeTime(market.lastTradeAt) }) : copy("no trades")));
     row.append(identity, price, pulse, liquidity, flow, age);
     row.addEventListener("click", () => void selectMarket(market, true));
     container.append(row);
@@ -12049,19 +12803,21 @@ async function fetchMarketDetail(market, force) {
 function buildWarnings(market, detail) {
   const warnings = [];
   const incomplete = Object.entries(detail.sources).filter(([, state]) => state !== "fresh");
-  if (incomplete.length) warnings.push({ basis: "unverified", title: "Detail checks are incomplete", detail: incomplete.map(([name, state]) => `${name}: ${state}`).join("; ") + ". Missing data is not a clean risk check.", tone: "warning" });
+  if (incomplete.length) warnings.push({ basis: "unverified", title: "Detail checks are incomplete", detail: copy("{sources}. Missing data is not a clean risk check.", { sources: incomplete.map(([name, state]) => `${name}: ${state}`).join("; ") }), tone: "warning" });
   if (detail.holderHistoryPartial || detail.lpHistoryPartial) warnings.push({ basis: "unverified", title: "Holder index is partial", detail: "Only the first holder page is available. Unseen balances and incomplete burn totals remain unknown.", tone: "info" });
   if (market.periods.h24.priceChange === null) warnings.push({ basis: "unverified", title: "24H starting price unavailable", detail: "The 24H return is not estimated from a shorter window.", tone: "info" });
   if (market.historyTruncated) warnings.push({ basis: "unverified", title: "24-hour activity is partial", detail: "Older events beyond the ArcScan page limit are not included in totals.", tone: "info" });
   if (market.reserveSource === "balance") warnings.push({ basis: "estimate", title: "Token-balance fallback", detail: "No indexed Sync event was available. Price and liquidity are derived from the pair's token balances.", tone: "info" });
-  if (market.sellCount > 0) warnings.push({ basis: "observed", title: "Sell event indexed", detail: `A token-to-USDC Swap was indexed ${relativeTime(market.lastSellAt)} ago. This does not prove that any wallet can sell now.`, tone: "info" });
+  if (market.sellCount > 0) warnings.push({ basis: "observed", title: "Sell event indexed", detail: copy("A token-to-USDC Swap was indexed {time} ago. This does not prove that any wallet can sell now.", { time: relativeTime(market.lastSellAt) }), tone: "info" });
   else warnings.push({ basis: "unverified", title: "No sell in available history", detail: "Absence of indexed sells does not prove a token is unsellable.", tone: "info" });
-  if (market.totalLiquidity < 200) warnings.push({ basis: "estimate", title: "Pool liquidity below 200 USDC", detail: `Reserve-based estimate: ${formatValue(market.totalLiquidity)} USDC total, ${formatValue(market.usdcReserve)} USDC on the quote side. This threshold is a screening rule, not a safety rating.`, tone: "warning" });
-  if (detail.top10Share !== null && detail.top10Share >= 25) warnings.push({ basis: "estimate", title: "Top-10 ownership exceeds 25%", detail: `${detail.top10Share.toFixed(1)}% of indexed supply, excluding burn addresses and known pools. Addresses are not necessarily independent owners.`, tone: "warning" });
-  if (detail.creatorShare !== null && detail.creatorShare >= 10) warnings.push({ basis: "estimate", title: "Pool-creation sender holds at least 10%", detail: `Indexed share: ${detail.creatorShare.toFixed(1)}%. This transaction sender may be a relayer; it is not proof of the token team's identity.`, tone: "info" });
-  if (detail.lpBurnedShare !== null) warnings.push({ basis: "estimate", title: "LP at burn addresses", detail: `${detail.lpBurnedShare.toFixed(1)}% of indexed LP supply. This does not establish token safety or sale availability.`, tone: "info" });
-  warnings.push({ basis: "unverified", title: "Liquidity lock not independently checked", detail: detail.lpTopHolderShare !== null ? `Top indexed LP holder: ${detail.lpTopHolderShare.toFixed(1)}%. Lock contract rules and unlock times have not been checked.` : "LP ownership or lock terms could not be established.", tone: "info" });
-  detail.capabilities.forEach((finding) => warnings.push({ ...capabilityText(finding), tone: "info" }));
+  if (market.totalLiquidity < 200) warnings.push({ basis: "estimate", title: "Pool liquidity below 200 USDC", detail: copy("Reserve-based estimate: {total} USDC total, {quote} USDC on the quote side. This threshold is a screening rule, not a safety rating.", { total: formatValue(market.totalLiquidity), quote: formatValue(market.usdcReserve) }), tone: "warning" });
+  if (detail.top10Share !== null && detail.top10Share >= 25) warnings.push({ basis: "estimate", title: "Top-10 ownership exceeds 25%", detail: copy("{share}% of indexed supply, excluding burn addresses and known pools. Addresses are not necessarily independent owners.", { share: detail.top10Share.toFixed(1) }), tone: "warning" });
+  if (detail.creatorShare !== null && detail.creatorShare >= 10) warnings.push({ basis: "estimate", title: "Pool-creation sender holds at least 10%", detail: copy("Indexed share: {share}%. This transaction sender may be a relayer; it is not proof of the token team's identity.", { share: detail.creatorShare.toFixed(1) }), tone: "info" });
+  if (detail.lpBurnedShare !== null) warnings.push({ basis: "estimate", title: "LP at burn addresses", detail: copy("{share}% of indexed LP supply. This does not establish token safety or sale availability.", { share: detail.lpBurnedShare.toFixed(1) }), tone: "info" });
+  warnings.push({ basis: "unverified", title: "Liquidity lock not independently checked", detail: detail.lpTopHolderShare !== null ? copy("Top indexed LP holder: {share}%. Lock contract rules and unlock times have not been checked.", { share: detail.lpTopHolderShare.toFixed(1) }) : "LP ownership or lock terms could not be established.", tone: "info" });
+  detail.capabilities.forEach((finding) => warnings.push({ ...capabilityText(finding), detail: copy("{evidence} Names alone do not establish current permissions or execution paths. Selected getter values, when requested, appear separately under Contract state and do not confirm this capability is usable.", {
+    evidence: [finding.functions.length ? `ABI: ${finding.functions.join(", ")}.` : "", finding.proxyType ? `Explorer proxy type: ${finding.proxyType}.` : ""].filter(Boolean).join(" ")
+  }), tone: "info" }));
   warnings.push({ basis: "unverified", title: "Execution paths not verified", detail: "No sell simulation or full permission audit is performed. Optional contract-state reads below report selected getter values only; they do not prove a control is usable, disabled, or absent elsewhere.", tone: "info" });
   if (!detail.contractVisible) warnings.push({ basis: "unverified", title: "Contract ABI unavailable", detail: "Supply and trading controls cannot be assessed from the available ABI.", tone: "info" });
   else if (detail.capabilities.length === 0) warnings.push({ basis: "unverified", title: "No matching ABI names", detail: "No configured function-name pattern matched. Custom logic, external contracts, or different function names may still impose restrictions.", tone: "info" });
@@ -12130,14 +12886,14 @@ function renderTradeTape(market, detail) {
   const list = byId("tradeList");
   list.replaceChildren();
   const trades = market.trades.slice(0, 10);
-  byId("detailTradeCount").textContent = trades.length > 0 ? `${trades.length} visible` : "No trades";
+  setCopy("detailTradeCount", trades.length > 0 ? copy("{count} visible", { count: trades.length }) : "No trades");
   if (trades.length === 0) {
-    list.append(element("div", "trade-empty", "No swaps are available in the indexed history."));
+    list.append(element("div", "trade-empty", copy("No swaps are available in the indexed history.")));
     return;
   }
   for (const trade of trades) {
     const row = element("div", `trade-row ${trade.direction}`);
-    const side = element("span", "trade-side", trade.direction === "buy" ? "BUY" : "SELL");
+    const side = element("span", "trade-side", copy(trade.direction === "buy" ? "BUY" : "SELL"));
     const value = element("span", "trade-value");
     value.append(element("strong", "", `${formatValue(trade.usdcValue, 4)} USDC`), element("small", "", `${relativeTime(trade.timestamp)} ago`));
     const links = element("span", "trade-links");
@@ -12149,9 +12905,9 @@ function renderTradeTape(market, detail) {
       senderLink.rel = "noreferrer";
       senderLink.title = `${actor.role}: ${actor.address}`;
       senderLink.setAttribute("aria-label", `${actor.role} ${actor.address}`);
-      links.append(element("span", "trade-sender-label", actor.role), senderLink);
+      links.append(element("span", "trade-sender-label", copy(actor.role)), senderLink);
     } else {
-      links.append(element("span", "", "Sender unknown"));
+      links.append(element("span", "", copy("Sender unknown")));
     }
     if (trade.transactionHash) {
       const txLink = element("a", "trade-tx-link", "TX");
@@ -12167,7 +12923,7 @@ function renderTradeTape(market, detail) {
 function renderWalletSignals(market, detail) {
   const signals = detail.walletSignals;
   const count = (category) => signals.filter((signal) => signal.categories.includes(category)).length;
-  byId("walletSignalCount").textContent = detail.sources.transfers === "unavailable" ? "Unavailable" : `${signals.length} signal${signals.length === 1 ? "" : "s"}`;
+  setCopy("walletSignalCount", detail.sources.transfers === "unavailable" ? "Unavailable" : copy("{count} signals", { count: signals.length }));
   byId("walletCreatorMoves").textContent = String(count("creator"));
   byId("walletWhaleMoves").textContent = String(count("whale"));
   byId("walletEntries").textContent = String(count("entry"));
@@ -12178,7 +12934,11 @@ function renderWalletSignals(market, detail) {
     if (detail.sources.creator === "unavailable") byId("walletCreatorMoves").textContent = "--";
     if (detail.sources.holders === "unavailable") byId("walletEntries").textContent = "--";
   }
-  byId("walletSignalNote").textContent = `Transfers: ${detail.sources.transfers}${detail.transferHistoryTruncated ? "; partial history" : ""}. Holders: ${detail.sources.holders}. Pool transfers are not proof of a swap or full exit.`;
+  setCopy("walletSignalNote", copy("Transfers: {transfers}{partial}. Holders: {holders}. Pool transfers are not proof of a swap or full exit.", {
+    transfers: copy(detail.sources.transfers),
+    partial: copy(detail.transferHistoryTruncated ? "; partial history" : ""),
+    holders: copy(detail.sources.holders)
+  }));
   document.querySelectorAll("[data-wallet-filter]").forEach((button) => {
     const active = button.dataset.walletFilter === activeWalletSignalFilter;
     button.classList.toggle("active", active);
@@ -12189,8 +12949,7 @@ function renderWalletSignals(market, detail) {
   const list = byId("walletSignalList");
   list.replaceChildren();
   if (visible.length === 0) {
-    const label = filter === "all" ? "priority wallet movement" : `${filter} movement`;
-    list.append(element("div", "wallet-signal-empty", detail.sources.transfers === "unavailable" ? "Transfer history could not be loaded. Wallet activity is unknown." : `No ${label} appears in the available indexed transfers.`));
+    list.append(element("div", "wallet-signal-empty", copy(detail.sources.transfers === "unavailable" ? "Transfer history could not be loaded. Wallet activity is unknown." : "No wallet movement matches this filter in the available indexed transfers.")));
     return;
   }
   for (const signal of visible) {
@@ -12228,40 +12987,44 @@ function renderWalletSignals(market, detail) {
 }
 function renderLiquidityMonitor(market, detail) {
   const events = market.liquidityEvents;
-  const cutoff = Date.now() - DAY_MS;
-  const recent = events.filter((event) => new Date(event.timestamp).getTime() >= cutoff);
+  const now = Date.now();
+  const cutoff = now - DAY_MS;
+  const recent = events.filter((event) => Date.parse(event.timestamp) >= cutoff && Date.parse(event.timestamp) <= now);
   const added = recent.filter((event) => event.direction === "add").reduce((sum, event) => sum + event.usdcAmount, 0);
   const removed = recent.filter((event) => event.direction === "remove").reduce((sum, event) => sum + event.usdcAmount, 0);
-  byId("liquidityEventCount").textContent = `${events.length} event${events.length === 1 ? "" : "s"}`;
+  setCopy("liquidityEventCount", copy("{count} events", { count: events.length }));
+  setCopy("liquidityHistoryNote", copy("Showing {shown} of {count} indexed liquidity events. 24H totals use fetched events only{partial}.", {
+    shown: Math.min(events.length, 8),
+    count: events.length,
+    partial: copy(market.historyTruncated ? "; history may be incomplete" : "")
+  }));
   byId("liquidityCurrent").textContent = formatValue(market.usdcReserve, 3);
   byId("liquidityAdded").textContent = formatValue(added, 3);
   byId("liquidityRemoved").textContent = formatValue(removed, 3);
   byId("liquidityBurned").textContent = shareText(detail.lpBurnedShare);
-  if (detail.lpBurnedShare !== null && detail.lpBurnedShare >= 90) {
-    byId("liquidityLpStatus").textContent = `${shareText(detail.lpBurnedShare)} of LP supply is held by burn addresses.`;
-  } else if (detail.lpTopHolderShare !== null) {
-    byId("liquidityLpStatus").textContent = `Top ${detail.lpTopHolderIsContract ? "contract" : "wallet"} controls ${shareText(detail.lpTopHolderShare)} of LP supply; a lock is not confirmed.`;
-  } else {
-    byId("liquidityLpStatus").textContent = "LP ownership is unavailable from the current index.";
-  }
-  byId("liquidityLpStatus").append(` LP data: ${detail.sources.lp}${detail.lpHistoryPartial ? "; partial holder page" : ""}.`);
+  const lpOwnership = detail.lpBurnedShare !== null && detail.lpBurnedShare >= 90 ? copy("{share} of LP supply is held by burn addresses.", { share: shareText(detail.lpBurnedShare) }) : detail.lpTopHolderShare !== null ? copy("Top {holder} controls {share} of LP supply; a lock is not confirmed.", { holder: copy(detail.lpTopHolderIsContract ? "contract" : "wallet"), share: shareText(detail.lpTopHolderShare) }) : copy("LP ownership is unavailable from the current index.");
+  setCopy("liquidityLpStatus", copy("{ownership} LP data: {state}{partial}.", {
+    ownership: lpOwnership,
+    state: copy(detail.sources.lp),
+    partial: copy(detail.lpHistoryPartial ? "; partial holder page" : "")
+  }));
   const list = byId("liquidityEventList");
   list.replaceChildren();
   if (events.length === 0) {
-    list.append(element("div", "liquidity-empty", "No Mint or Burn event appears in the visible pair history."));
+    list.append(element("div", "liquidity-empty", copy("No Mint or Burn event appears in the visible pair history.")));
     return;
   }
   for (const event of events.slice(0, 8)) {
     const row = element("div", `liquidity-event-row ${event.direction}`);
     const head = element("div", "liquidity-event-head");
-    const time = element("time", "", `${relativeTime(event.timestamp)} ago`);
+    const time = element("time", "", copy("{time} ago", { time: relativeTime(event.timestamp) }));
     time.dateTime = event.timestamp;
-    head.append(element("strong", "", event.direction === "add" ? "Liquidity added" : "Liquidity removed"), time);
+    head.append(element("strong", "", copy(event.direction === "add" ? "Liquidity added" : "Liquidity removed")), time);
     const values = element("div", "liquidity-event-values");
     values.append(
       element("strong", "", `${formatValue(event.usdcAmount, 4)} USDC`),
       element("span", "", `${formatValue(event.tokenAmount, 3)} ${market.token.symbol || "tokens"}`),
-      element("span", "", event.changePercent === null ? "Initial / unknown base" : `${event.changePercent.toFixed(1)}% of prior USDC reserve`)
+      element("span", "", event.changePercent === null ? copy("Initial / unknown base") : copy("{percent}% of prior USDC reserve", { percent: event.changePercent.toFixed(1) }))
     );
     const links = element("span", "liquidity-event-links");
     const wallet = detail.transactionSenders[event.transactionHash.toLowerCase()] ?? event.fallbackAddress;
@@ -12287,16 +13050,22 @@ function shareText(value) {
   return `${value.toFixed(value >= 10 ? 1 : 2)}%`;
 }
 function renderHolders(market, detail) {
-  byId("holderCountSummary").textContent = `${fullNumber(market.token.holders_count)} indexed`;
+  setCopy("holderCountSummary", copy("{count} indexed", { count: fullNumber(market.token.holders_count) }));
   byId("holderTop1").textContent = shareText(detail.top1Share);
   byId("holderTop5").textContent = shareText(detail.top5Share);
   byId("holderTop10").textContent = shareText(detail.top10Share);
   byId("holderCreator").textContent = shareText(detail.creatorShare);
-  byId("holderSupplyNote").textContent = `Holders: ${detail.sources.holders}${detail.holderHistoryPartial ? "; first page only" : ""}. Selected pool ${shareText(detail.poolShare)} \xB7 Burned ${shareText(detail.burnedTokenShare)}. Rankings exclude burn addresses and ${detail.poolScope.split(",").filter(Boolean).length} known same-token pool(s), not all possible pools.`;
+  setCopy("holderSupplyNote", copy("Holders: {state}{partial}. Selected pool {poolShare} \xB7 Burned {burnedShare}. Rankings exclude burn addresses and {count} known same-token pool(s), not all possible pools.", {
+    state: copy(detail.sources.holders),
+    partial: copy(detail.holderHistoryPartial ? "; first page only" : ""),
+    poolShare: shareText(detail.poolShare),
+    burnedShare: shareText(detail.burnedTokenShare),
+    count: detail.poolScope.split(",").filter(Boolean).length
+  }));
   const list = byId("holderList");
   list.replaceChildren();
   if (detail.holderPositions.length === 0) {
-    list.append(element("div", "holder-empty", "Holder positions are unavailable from the current index."));
+    list.append(element("div", "holder-empty", copy("Holder positions are unavailable from the current index.")));
     return;
   }
   detail.holderPositions.forEach((position, index) => {
@@ -12310,7 +13079,7 @@ function renderHolders(market, detail) {
     address.rel = "noreferrer";
     address.title = position.address;
     addressLine.append(address);
-    if (position.isCreator) addressLine.append(element("span", "holder-tag creator", "Creation sender"));
+    if (position.isCreator) addressLine.append(element("span", "holder-tag creator", copy("Creation sender")));
     if (position.isContract) addressLine.append(element("span", "holder-tag contract", "Contract"));
     identity.append(addressLine, element("small", "", `${formatValue(position.balance, 3)} ${market.token.symbol || "tokens"}`));
     const ownership = element("div", "holder-ownership");
@@ -12329,7 +13098,7 @@ function renderHolderConnections(detail) {
   const clusters = detail.holderClusters;
   const connectedWallets = new Set(connections.flatMap((connection) => [connection.addressA.toLowerCase(), connection.addressB.toLowerCase()]));
   const unavailable = detail.sources.holders === "unavailable" || detail.sources.transfers === "unavailable";
-  byId("holderClusterSummary").textContent = unavailable ? "Unavailable" : connections.length === 0 ? "No visible links" : `${connections.length} link${connections.length === 1 ? "" : "s"}`;
+  setCopy("holderClusterSummary", unavailable ? "Unavailable" : connections.length === 0 ? "No visible links" : copy("{count} links", { count: connections.length }));
   byId("clusterConnections").textContent = String(connections.length);
   byId("clusterWallets").textContent = String(connectedWallets.size);
   byId("clusterCount").textContent = String(clusters.length);
@@ -12341,7 +13110,7 @@ function renderHolderConnections(detail) {
   const map = byId("holderClusterMap");
   map.replaceChildren();
   if (clusters.length === 0) {
-    map.append(element("div", "cluster-empty", unavailable ? "Holder connections cannot be checked without holder and transfer data." : `No connection appears in the available post-launch history. Holders: ${detail.sources.holders}; transfers: ${detail.sources.transfers}.`));
+    map.append(element("div", "cluster-empty", unavailable ? copy("Holder connections cannot be checked without holder and transfer data.") : copy("No connection appears in the available post-launch history. Holders: {holders}; transfers: {transfers}.", { holders: copy(detail.sources.holders), transfers: copy(detail.sources.transfers) })));
   } else {
     clusters.forEach((cluster, index) => {
       const group = element("div", "cluster-group");
@@ -12371,8 +13140,8 @@ function renderHolderConnections(detail) {
   list.replaceChildren();
   for (const connection of connections.slice(0, 8)) {
     const row = element("div", "connection-row");
-    const copy = element("div", "connection-copy");
-    copy.append(
+    const copy2 = element("div", "connection-copy");
+    copy2.append(
       element("strong", "", connection.kind === "direct" ? "Direct holder transfer" : "Shared funding source"),
       element("span", "", connection.kind === "direct" ? "Tokens moved directly between these top holders." : "Both top holders received tokens from the same indexed wallet.")
     );
@@ -12397,7 +13166,7 @@ function renderHolderConnections(detail) {
       transaction.rel = "noreferrer";
       links.append(transaction);
     }
-    row.append(copy, links);
+    row.append(copy2, links);
     list.append(row);
   }
 }
@@ -12406,8 +13175,8 @@ function updateWatchToggle(market) {
   const button = byId("watchToggle");
   button.classList.toggle("active", watched);
   button.setAttribute("aria-pressed", String(watched));
-  button.setAttribute("aria-label", watched ? "Remove token from watchlist" : "Add token to watchlist");
-  button.title = watched ? "Remove from watchlist" : "Add to watchlist";
+  localize(button, watched ? "Remove token from watchlist" : "Add token to watchlist", "aria-label");
+  localize(button, watched ? "Remove from watchlist" : "Add to watchlist", "title");
   byId("watchIcon").textContent = watched ? "\u2605" : "\u2606";
 }
 function renderWatchDigest() {
@@ -12418,19 +13187,19 @@ function renderWatchDigest() {
   const events = watched.flatMap((market) => (readTracking(market.pairAddress)?.alerts ?? []).map((alert) => ({ ...alert, market })));
   const onlyNew = byId("watchChangeView").value === "new";
   const recent = recentWatchChanges(events, onlyNew ? watchReviewedAt : null, Date.now());
-  byId("watchDigestTitle").textContent = "Watchlist changes";
+  localize(byId("watchDigestTitle"), "Watchlist changes");
   const covered = new Set(watched.map((market) => market.tokenAddress.toLowerCase())).size;
   const checked = watched.filter((market) => {
     const detail = detailCache.get(poolCacheKey(market));
     return !market.stale && detail && Date.now() - detail.data.checkedAt < DETAIL_CACHE_TTL_MS && detail.data.sources.holders === "fresh" && detail.data.sources.lp === "fresh" && detail.data.sources.creator === "fresh";
   }).length;
-  byId("watchDigestCoverage").textContent = `${covered} / ${watchlist.size} watched tokens loaded \xB7 ${checked} / ${watched.length} pools with recent ownership reads \xB7 ${watchScanRunning ? "Checking" : document.hidden ? "Paused" : "Tab-only monitoring"}`;
-  byId("watchMonitorNote").textContent = `Up to 3 loaded watched pools checked per minute while this tab is visible. No monitoring while hidden or closed. ${watchReviewedAt ? `Reviewed ${new Date(watchReviewedAt).toLocaleString()}.` : "Not reviewed yet."}`;
+  setCopy("watchDigestCoverage", copy("{covered} / {total} watched tokens loaded \xB7 {checked} / {pools} pools with recent ownership reads \xB7 {state}", { covered, total: watchlist.size, checked, pools: watched.length, state: copy(watchScanRunning ? "Checking" : document.hidden ? "Paused" : "Tab-only monitoring") }));
+  setCopy("watchMonitorNote", copy("Up to 3 loaded watched pools checked per minute while this tab is visible. No monitoring while hidden or closed. {review}", { review: watchReviewedAt ? copy("Reviewed {time}.", { time: new Date(watchReviewedAt).toLocaleString() }) : copy("Not reviewed yet.") }));
   byId("markWatchReviewed").disabled = recent.length === 0 || marketLoadFailed;
   const list = byId("watchDigestList");
   list.replaceChildren();
   if (!recent.length) {
-    list.append(element("p", "watch-digest-empty", watchlist.size === 0 ? "No watched tokens." : covered === 0 ? "Watched tokens are outside the loaded pool coverage." : "No recorded changes in this view. Gaps in observation are not proof of no activity."));
+    list.append(element("p", "watch-digest-empty", copy(watchlist.size === 0 ? "No watched tokens." : covered === 0 ? "Watched tokens are outside the loaded pool coverage." : "No recorded changes in this view. Gaps in observation are not proof of no activity.")));
     return;
   }
   for (const event of recent) {
@@ -12486,7 +13255,7 @@ function renderObservedAlerts(market) {
   if (!watched) return;
   const tracking = readTracking(market.pairAddress) ?? startTracking(market);
   const alerts = tracking.alerts ?? [];
-  byId("observedAlertCount").textContent = `${alerts.length} event${alerts.length === 1 ? "" : "s"}`;
+  setCopy("observedAlertCount", copy("{count} events", { count: alerts.length }));
   const list = byId("observedAlertList");
   list.replaceChildren();
   if (alerts.length === 0) {
@@ -12505,7 +13274,7 @@ function renderObservedAlerts(market) {
   }
   const started = new Date(tracking.startedAt);
   const baseline = Number.isFinite(started.getTime()) ? new Intl.DateTimeFormat("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(started) : "this browser";
-  byId("observedAlertNote").textContent = `Baseline ${baseline} \xB7 stored in this browser.`;
+  setCopy("observedAlertNote", copy("Baseline {time} \xB7 stored in this browser.", { time: baseline }));
 }
 function exitEstimate(market, supplyPercent) {
   const supply = decimalValue(market.token.total_supply, market.token.decimals);
@@ -12526,7 +13295,7 @@ function renderExitCurve(market) {
     const label = svgNode("text", { x: "12", y: "36", class: "chart-label" });
     label.textContent = "Pool reserves are unavailable.";
     chart.append(label);
-    byId("exitEstimate").textContent = "Unavailable";
+    localize(byId("exitEstimate"), "Unavailable");
     return;
   }
   const width = 440;
@@ -12552,7 +13321,7 @@ function renderExitCurve(market) {
   );
   estimates.forEach((entry, index) => chart.append(svgNode("circle", { cx: String(x(index)), cy: String(y(entry.estimate.impact)), r: "4", class: "exit-dot" })));
   const onePercent = estimates.find((entry) => entry.percent === 1).estimate;
-  byId("exitEstimate").textContent = `1% -> ${formatValue(onePercent.output, 3)} USDC \xB7 ${onePercent.impact.toFixed(1)}% impact`;
+  setCopy("exitEstimate", copy("1% -> {amount} USDC \xB7 {impact}% impact", { amount: formatValue(onePercent.output, 3), impact: onePercent.impact.toFixed(1) }));
 }
 function renderPoolComparison(market) {
   const peers = groupTokenPools(markets.filter((entry) => entry.chainId === market.chainId && entry.tokenAddress.toLowerCase() === market.tokenAddress.toLowerCase()))[0]?.pools ?? [market];
@@ -12565,7 +13334,7 @@ function renderPoolComparison(market) {
   }
   select.value = market.pairAddress.toLowerCase();
   select.disabled = peers.length < 2;
-  byId("poolComparisonNote").textContent = `${peers.length} loaded pool${peers.length === 1 ? "" : "s"}. Quotes are pool-specific, not executable prices. Default: fresh data first, then highest liquidity.`;
+  setCopy("poolComparisonNote", copy("Loaded pools: {count}. Quotes are pool-specific, not executable prices. Default: fresh data first, then highest liquidity.", { count: peers.length }));
   const list = byId("poolComparisonList");
   list.replaceChildren();
   for (const peer of peers) {
@@ -12579,7 +13348,7 @@ function renderPoolComparison(market) {
       link,
       quote,
       element("span", "", `${formatValue(peer.totalLiquidity)} USDC`),
-      element("small", "", `${peer.stale ? "Cached" : "Fetched"}${peer.historyTruncated ? " \xB7 Partial" : ""} \xB7 ${peer.lastTradeAt ? `trade ${relativeTime(peer.lastTradeAt)}` : "no trade"}`)
+      element("small", "", copy("{state}{partial} \xB7 {trade}", { state: copy(peer.stale ? "Cached" : "Fetched"), partial: copy(peer.historyTruncated ? " \xB7 Partial history" : ""), trade: peer.lastTradeAt ? copy("trade {time}", { time: relativeTime(peer.lastTradeAt) }) : copy("no trades") }))
     );
     list.append(row);
   }
@@ -12590,10 +13359,10 @@ function renderAuthority(market) {
   const button = byId("readAuthority");
   const cooling = Boolean(entry && Date.now() - entry.attemptedAt < 6e4);
   button.disabled = !NETWORK || Boolean(authorityRunning) || cooling;
-  button.textContent = authorityRunning === key ? "Reading..." : entry ? "Read again" : "Read state";
-  button.title = cooling ? "Public RPC cooldown: one request per token per minute." : "Read selected contract getters without connecting a wallet";
+  localize(button, authorityRunning === key ? "Reading..." : entry ? "Read again" : "Read state");
+  localize(button, cooling ? "Public RPC cooldown: one request per token per minute." : "Read selected contract getters without connecting a wallet", "title");
   const status = byId("authorityStatus");
-  status.textContent = authorityRunning === key ? "Reading verified ABI and public RPC state..." : entry?.error ? entry.error : entry?.snapshot?.block ? "Fixed-block snapshot. Values may have changed since this read." : entry?.snapshot ? "State not read: no supported verified getters available." : "No state snapshot requested.";
+  localize(status, authorityRunning === key ? "Reading verified ABI and public RPC state..." : entry?.error ? entry.error : entry?.snapshot?.block ? "Fixed-block snapshot. Values may have changed since this read." : entry?.snapshot ? "State not read: no supported verified getters available." : "No state snapshot requested.");
   const provenance = byId("authoritySource");
   const rows = byId("authorityRows");
   provenance.replaceChildren();
@@ -12617,23 +13386,23 @@ function renderAuthority(market) {
   for (const address of snapshot.abiAddresses) provenance.append(sourceLink(`ABI ${shortHash(address)}`, `/address/${address}?tab=contract`));
   const unchecked = element("details", "authority-unchecked");
   const uncheckedCount = snapshot.rows.filter((item) => item.state === "unsupported").length;
-  unchecked.append(element("summary", "", `${uncheckedCount} checks unavailable from ABI`));
+  unchecked.append(element("summary", "", copy("{count} checks unavailable from ABI", { count: uncheckedCount })));
   for (const item of snapshot.rows) {
     const row = element("div", "authority-row");
     const value = element("div", "authority-value");
-    value.append(element("strong", "", item.value));
+    value.append(element("strong", "", item.state === "unsupported" || item.value === "Unavailable" ? copy(item.value) : item.value));
     if (item.addresses?.length) {
       const addresses = element("div", "authority-addresses");
       for (const address of item.addresses) addresses.append(sourceLink(address, `/address/${address}`));
       if (item.addresses.length === 1 && item.value === item.addresses[0]) value.replaceChildren();
       value.append(addresses);
     }
-    value.append(element("small", "", item.note));
-    row.append(element("span", "", item.label), value);
+    value.append(element("small", "", copy(item.note)));
+    row.append(element("span", "", copy(item.label)), value);
     (item.state === "unsupported" ? unchecked : rows).append(row);
   }
   if (uncheckedCount) rows.append(unchecked);
-  for (const note of snapshot.notes) rows.append(element("p", "authority-note", note));
+  for (const note of snapshot.notes) rows.append(element("p", "authority-note", copy(note)));
 }
 async function readSelectedAuthority() {
   const market = markets.find((entry2) => entry2.pairAddress.toLowerCase() === selectedPair);
@@ -12678,9 +13447,9 @@ function renderDetail(market, detail) {
   const detailChange = byId("detailPriceChange");
   detailChange.textContent = `24H ${compactChange(market.periods.h24.priceChange)}`;
   detailChange.className = changeClass(market.periods.h24.priceChange);
-  byId("detailFdv").textContent = `${formatValue(market.fdv)} USDC`;
+  setCopy("detailFdv", market.fdv === null ? "Unavailable" : copy("{value} USDC", { value: formatValue(market.fdv) }));
   byId("detailLiquidity").textContent = `${formatValue(market.totalLiquidity)} USDC`;
-  byId("detailLiquidityNote").textContent = `${formatValue(market.usdcReserve)} USDC exit side \xB7 ${market.reserveSource === "sync" ? "Sync reserves" : "balance fallback"}`;
+  setCopy("detailLiquidityNote", copy("{amount} USDC exit side \xB7 {source}", { amount: formatValue(market.usdcReserve), source: copy(market.reserveSource === "sync" ? "Sync reserves" : "balance fallback") }));
   byId("detailHolders").textContent = fullNumber(market.token.holders_count);
   const change = byId("priceChange");
   change.textContent = formatChange(market.priceChange);
@@ -12691,7 +13460,7 @@ function renderDetail(market, detail) {
   byId("detailBuys").textContent = String(recent.buyCount);
   byId("detailSells").textContent = String(recent.sellCount);
   byId("detailVolume").textContent = `${formatValue(recent.volumeUsdc, 3)} USDC`;
-  byId("detailLastTrade").textContent = market.lastTradeAt ? `${relativeTime(market.lastTradeAt)} ago` : "None";
+  setCopy("detailLastTrade", market.lastTradeAt ? copy("{time} ago", { time: relativeTime(market.lastTradeAt) }) : "None");
   const totalFlow = Math.max(1, recent.buyCount + recent.sellCount);
   byId("detailBuyBar").style.width = `${recent.buyCount / totalFlow * 100}%`;
   byId("detailSellBar").style.width = `${recent.sellCount / totalFlow * 100}%`;
@@ -12702,16 +13471,16 @@ function renderDetail(market, detail) {
   renderHolderConnections(detail);
   const warnings = buildWarnings(market, detail);
   const summary = evidenceSummary(warnings);
-  byId("warningCount").textContent = `${summary.observed} indexed \xB7 ${summary.estimates} calculated \xB7 ${summary.unverified} unverified`;
+  setCopy("warningCount", copy("{indexed} indexed \xB7 {calculated} calculated \xB7 {unverified} unverified", { indexed: summary.observed, calculated: summary.estimates, unverified: summary.unverified }));
   const badge = byId("riskBadge");
   badge.className = "risk-badge";
-  badge.textContent = summary.label;
-  badge.title = "Evidence completeness, not a risk score or safety verdict.";
-  byId("evidenceFreshness").textContent = `Market: ${market.stale ? "cached" : "fetched"} \xB7 Contract: ${detail.sources.contract} \xB7 Holders: ${detail.sources.holders} \xB7 No safety score`;
+  localize(badge, summary.label);
+  localize(badge, "Evidence completeness, not a risk score or safety verdict.", "title");
+  setCopy("evidenceFreshness", copy("Market: {market} \xB7 Contract: {contract} \xB7 Holders: {holders} \xB7 No safety score", { market: copy(market.stale ? "Cached" : "Fetched"), contract: copy(detail.sources.contract), holders: copy(detail.sources.holders) }));
   const sources = byId("evidenceSources");
   sources.replaceChildren();
   for (const [label, path] of [["Token contract", `/address/${market.tokenAddress}?tab=contract`], ["Pool events", `/address/${market.pairAddress}?tab=logs`], ["Holder index", `/token/${market.tokenAddress}?tab=holders`]]) {
-    const link = element("a", "", label);
+    const link = element("a", "", copy(label));
     link.href = `${EXPLORER_BASE}${path}`;
     link.target = "_blank";
     link.rel = "noreferrer";
@@ -12721,9 +13490,9 @@ function renderDetail(market, detail) {
   list.replaceChildren();
   for (const warning of warnings) {
     const row = element("div", `warning-item ${warning.tone}`);
-    const copy = element("div", "warning-copy");
-    copy.append(element("small", `evidence-label ${warning.basis}`, warning.basis === "observed" ? "Indexed event" : warning.basis === "estimate" ? "Calculated" : "Unverified"), element("strong", "", warning.title), element("span", "", warning.detail));
-    row.append(element("span", "warning-dot"), copy);
+    const copyBlock = element("div", "warning-copy");
+    copyBlock.append(element("small", `evidence-label ${warning.basis}`, copy(warning.basis === "observed" ? "Indexed event" : warning.basis === "estimate" ? "Calculated" : "Unverified")), element("strong", "", copy(warning.title)), element("span", "", typeof warning.detail === "string" ? copy(warning.detail) : warning.detail));
+    row.append(element("span", "warning-dot"), copyBlock);
     list.append(row);
   }
   renderExitCurve(market);
@@ -12752,7 +13521,7 @@ async function loadDetail(market, force = false) {
   const url = marketUrl(location.href, NETWORK.id, market.pairAddress);
   byId("fullMarketLink").href = url;
   byId("copyMarketLink").disabled = false;
-  byId("shareMarketStatus").textContent = "";
+  setCopy("shareMarketStatus", "");
   if (linkedPool) document.title = `${market.token.symbol ?? "Token"} | ARCROW`;
   const requestId = ++detailRequest;
   const key = poolCacheKey(market);
@@ -12784,7 +13553,7 @@ async function selectMarket(market, scrollOnMobile) {
 }
 function setNotice(message) {
   const notice = byId("dataNotice");
-  notice.textContent = message ?? "";
+  localize(notice, message ?? "");
   notice.classList.toggle("hidden", !message);
 }
 async function loadMarkets(force) {
@@ -12806,6 +13575,9 @@ async function loadMarkets(force) {
   const discovery = await discoverDexPools(dexAdapters, marketLimit, (path) => fetchData(path, 6e4, force));
   const loaded = await mapLimited(discovery.seeds, 3, (seed) => loadMarketPair(seed, force));
   failedMarketCount = loaded.filter((market) => market === null).length;
+  if (discovery.seeds.length > 0 && failedMarketCount === loaded.length) {
+    throw new Error("All discovered pools failed to load. Market activity is unknown. Retry with Refresh.");
+  }
   const previous = new Map(markets.map((market) => [market.pairAddress.toLowerCase(), market]));
   markets = loaded.flatMap((market, index) => {
     if (market) return [market];
@@ -12817,7 +13589,6 @@ async function loadMarkets(force) {
   const shown = visibleMarkets();
   const current = markets.find((market) => market.pairAddress.toLowerCase() === selectedPair);
   if (!current || !shown.some((market) => market.tokenAddress.toLowerCase() === current.tokenAddress.toLowerCase())) selectedPair = shown[0]?.pairAddress.toLowerCase() ?? "";
-  renderMarketRows();
   const selected = markets.find((market) => market.pairAddress.toLowerCase() === selectedPair);
   if (selected) void loadDetail(selected, force);
   else {
@@ -12832,22 +13603,23 @@ async function loadDashboard(force = false) {
   renderDiscoveryControls();
   const refresh = byId("refreshButton");
   refresh.disabled = true;
-  refresh.textContent = "Refreshing";
+  localize(refresh, "Refreshing");
   setNotice();
   try {
     const stale = await loadMarkets(force);
     marketLoadFailed = false;
-    renderMarketBrief();
+    renderMarketRows();
     void checkWatchedPools();
     if (stale) setNotice("Live indexing is temporarily unavailable. Showing the latest cached market snapshot.");
-    byId("lastUpdated").textContent = `${stale ? "Cached" : "Updated"} ${new Intl.DateTimeFormat("en", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(/* @__PURE__ */ new Date())}`;
+    else if (failedMarketCount > 0) setNotice(copy("Pool loads failed: {count}. Totals cover available pools only.", { count: failedMarketCount }));
+    setCopy("lastUpdated", copy("{state} {time}", { state: copy(stale ? "Cached" : failedMarketCount > 0 ? "Partial update" : "Updated"), time: new Intl.DateTimeFormat("en", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(/* @__PURE__ */ new Date()) }));
   } catch (error) {
     marketLoadFailed = true;
     markets = markets.map((market) => ({ ...market, stale: true }));
     renderMarketRows();
     adPreview.setContentAvailable(false);
-    setNotice(error instanceof Error ? `Market data unavailable: ${error.message}` : "Market data unavailable.");
-    byId("lastUpdated").textContent = "Connection unavailable";
+    setNotice(error instanceof Error ? copy("Market data unavailable: {error}", { error: copy(error.message) }) : "Market data unavailable.");
+    localize(byId("lastUpdated"), "Connection unavailable");
     detailRequest += 1;
     setDetailState("empty");
     if (linkedPool) {
@@ -12858,7 +13630,7 @@ async function loadDashboard(force = false) {
     lastRefreshAt = Date.now();
     loading = false;
     refresh.disabled = false;
-    refresh.textContent = "Refresh";
+    localize(refresh, "Refresh");
     renderDiscoveryControls();
   }
 }
@@ -12938,9 +13710,9 @@ byId("copyMarketLink").addEventListener("click", async () => {
   const url = marketUrl(location.href, NETWORK.id, market.pairAddress);
   try {
     await navigator.clipboard.writeText(url);
-    byId("shareMarketStatus").textContent = "Link copied";
+    localize(byId("shareMarketStatus"), "Link copied");
   } catch {
-    byId("shareMarketStatus").textContent = "Copy unavailable. Use the Full details link.";
+    localize(byId("shareMarketStatus"), "Copy unavailable. Use the Full details link.");
   }
 });
 byId("watchToggle").addEventListener("click", toggleSelectedWatch);
@@ -12977,6 +13749,7 @@ byId("loadMoreMarkets").addEventListener("click", () => {
   if (!marketLoadFailed) marketLimit = Math.min(MAX_MARKETS, marketLimit + MARKET_LIMIT);
   void loadDashboard();
 });
+initializeLanguage();
 if (NETWORK) {
   byId("backToMarkets").href = marketUrl(location.href, NETWORK.id);
   if (linkedPool || routeError) {
@@ -12985,7 +13758,7 @@ if (NETWORK) {
     byId("poolPageAddress").textContent = linkedPool ? `Pool ${shortHash(linkedPool)}` : "Invalid pool link";
     byId("fullMarketLink").classList.add("hidden");
   }
-  document.querySelector(".status-row strong").textContent = `${NETWORK.label.toUpperCase()} MARKET FEED`;
+  localize(document.querySelector(".status-row strong"), copy("{network} MARKET FEED", { network: NETWORK.label.toUpperCase() }));
   document.querySelector(".chain-id").textContent = `CHAIN ${NETWORK.chainId}`;
   document.querySelector(".network-lockup small").textContent = NETWORK.testnet ? "TESTNET" : "MAINNET";
   document.querySelector(".pulse-heading .eyebrow").textContent = `ARCROW / ${NETWORK.label.toUpperCase()}`;
@@ -12996,12 +13769,12 @@ if (NETWORK) {
   if (routeError) {
     setNotice(routeError);
     byId("marketDetailEmpty").textContent = "This pool link is invalid. Return to markets.";
-    byId("lastUpdated").textContent = "Invalid link";
+    localize(byId("lastUpdated"), "Invalid link");
     byId("refreshButton").disabled = true;
   } else void loadDashboard();
 } else {
   setNotice(networkError);
-  byId("lastUpdated").textContent = "Network unavailable";
+  localize(byId("lastUpdated"), "Network unavailable");
   document.querySelector(".status-row strong").textContent = "ARCROW";
   document.querySelector(".live-dot").classList.add("hidden");
   document.querySelector(".chain-id").textContent = "";
@@ -13009,7 +13782,7 @@ if (NETWORK) {
   document.querySelector(".footer-brand small").textContent = "";
   byId("markets").classList.add("hidden");
   document.querySelectorAll("a[data-explorer]").forEach((link) => link.removeAttribute("href"));
-  document.querySelectorAll("button, input, select").forEach((control) => {
+  document.querySelectorAll('button, input:not([name="arcrow-theme"]), select:not(#languageSelect)').forEach((control) => {
     control.disabled = true;
   });
 }

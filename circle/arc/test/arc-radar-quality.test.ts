@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
-import { decimalValue } from "../src/arc-radar-core.js";
+import { decimalValue, fullyDilutedValue } from "../src/arc-radar-core.js";
+import { createDexAdapter } from "../src/arc-radar-dex.js";
+import { ARC_RADAR_TESTNET } from "../src/arc-radar-networks.js";
+import { copy, translate } from "../src/arc-radar-i18n.js";
 import { capabilityText, detectCapabilities, nextWatchBatch } from "../src/arc-radar-evidence.js";
 import { holderMetrics, holderShare, knownTokenPools, nextOwnershipSnapshot, sourceState, tradeActor, windowPriceChange } from "../src/arc-radar-quality.js";
 
@@ -91,6 +94,112 @@ test("swap recipient fallback is never labeled as transaction sender", () => {
 
 // Exercise the real detail orchestration with fixture API responses, without a DOM or network.
 const mainSource = ts.createSourceFile("arc-radar.ts", readFileSync(new URL("../src/arc-radar.ts", import.meta.url), "utf8"), ts.ScriptTarget.Latest, true);
+function compileMain(names: string[]): string {
+  const program = mainSource.statements.filter(node => ts.isFunctionDeclaration(node) && names.includes(node.name?.text ?? ""))
+    .map(node => node.getText(mainSource)).join("\n");
+  return ts.transpileModule(program, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+}
+
+test("real market loading preserves missing FDV instead of fabricating zero", async () => {
+  const adapter = createDexAdapter(ARC_RADAR_TESTNET.sources[0]!, ARC_RADAR_TESTNET);
+  const seed = { ...selected, sourceId: adapter.source.id, quoteAsset: ARC_RADAR_TESTNET.quoteAsset, token0: selected.tokenAddress, token1: ARC_RADAR_TESTNET.quoteAsset.address };
+  const logs = [{ index: 1, block_timestamp: new Date().toISOString(), decoded: { method_call: "Sync(...)", parameters: [
+    { name: "reserve0", value: "1000000000000000000" }, { name: "reserve1", value: "9000000" },
+  ] } }];
+  const script = compileMain(["loadMarketPair", "marketPeriods", "periodMetrics"]);
+  const market = await runInNewContext(`${script}\nloadMarketPair(seed, true)`, {
+    seed, DAY_MS: 86_400_000, decimalValue, fullyDilutedValue, windowPriceChange, adapterFor: () => adapter, observeMarketChanges: () => {},
+    fetchData: async () => ({ data: { decimals: "18", total_supply: null }, stale: false }),
+    fetchAddressLogs: async () => ({ items: logs, stale: false, truncated: false }),
+  });
+  assert.equal(market.currentPrice, 9);
+  assert.equal(market.fdv, null);
+  assert.equal(market.stale, false);
+});
+
+function refreshFixture(mode: "failed" | "partial" | "empty", previous = false) {
+  const nodes = new Map<string, { textContent: string; disabled?: boolean }>();
+  const byId = (id: string) => { if (!nodes.has(id)) nodes.set(id, { textContent: "" }); return nodes.get(id)!; };
+  const notices: string[] = [];
+  const renderedFailureStates: boolean[] = [];
+  const script = compileMain(["loadMarkets", "loadDashboard", "mapLimited"]);
+  const context: Record<string, any> = {
+    copy, loading: false, NETWORK: {}, routeError: "", linkedPool: null, marketLimit: 15,
+    markets: previous ? [{ ...selected, stale: false }] : [], selectedPair: "", marketLoadFailed: previous,
+    dexAdapters: [], failedMarketCount: 0, hasMoreMarkets: false, discoveryLimited: false, detailRequest: 0, lastRefreshAt: 0,
+    discoverDexPools: async () => ({ seeds: mode === "empty" ? [] : [selected, { ...selected, pairAddress: address(2) }], stale: false, hasMore: true, limited: false }),
+    loadMarketPair: async (seed: typeof selected) => mode === "partial" && seed.pairAddress === selected.pairAddress ? { ...seed, stale: false } : null,
+    visibleMarkets: () => context.markets, renderDiscoveryControls: () => {},
+    renderMarketRows: () => renderedFailureStates.push(context.marketLoadFailed), checkWatchedPools: async () => {},
+    loadDetail: async () => {}, setDetailState: () => {}, adPreview: { setContentAvailable: () => {} }, byId,
+    localize: (node: { textContent: string }, message: string) => { node.textContent = message; },
+    setCopy: (id: string, message: Parameters<typeof translate>[0]) => { byId(id).textContent = translate(message, "en"); },
+    setNotice: (message?: Parameters<typeof translate>[0] | string) => notices.push(typeof message === "string" ? message : message ? translate(message, "en") : ""),
+  };
+  return { context, nodes, notices, renderedFailureStates, run: () => runInNewContext(`${script}\nloadDashboard(true)`, context) };
+}
+
+test("all pool loads failing is an error, preserving prior markets only as stale", async () => {
+  for (const previous of [false, true]) {
+    const fixture = refreshFixture("failed", previous);
+    await fixture.run();
+    assert.equal(fixture.context.marketLoadFailed, true);
+    assert.equal(fixture.context.failedMarketCount, 2);
+    assert.equal(fixture.context.markets.length, previous ? 1 : 0);
+    if (previous) assert.equal(fixture.context.markets[0].stale, true);
+    assert.match(fixture.notices.at(-1)!, /All discovered pools failed/);
+    assert.equal(fixture.nodes.get("lastUpdated")!.textContent, "Connection unavailable");
+    assert.equal(fixture.nodes.get("refreshButton")!.disabled, false);
+  }
+});
+
+test("partial loading is labeled partial, and a genuine empty recovery clears the failure view", async () => {
+  const partial = refreshFixture("partial");
+  await partial.run();
+  assert.equal(partial.context.marketLoadFailed, false);
+  assert.equal(partial.context.markets.length, 1);
+  assert.match(partial.nodes.get("lastUpdated")!.textContent, /^Partial update /);
+  assert.match(partial.notices.at(-1)!, /Pool loads failed: 1/);
+  const empty = refreshFixture("empty", true);
+  await empty.run();
+  assert.equal(empty.context.marketLoadFailed, false);
+  assert.equal(empty.context.markets.length, 0);
+  assert.deepEqual(empty.renderedFailureStates, [false]);
+  assert.match(empty.nodes.get("lastUpdated")!.textContent, /^Updated /);
+});
+
+test("unavailable initial market data renders unknown activity, not zero volume", () => {
+  const nodes = new Map<string, { textContent: string }>();
+  const byId = (id: string) => { if (!nodes.has(id)) nodes.set(id, { textContent: "" }); return nodes.get(id)!; };
+  runInNewContext(`${compileMain(["renderMarketSummary", "renderMarketPulse"])}\nrenderMarketSummary(); renderMarketPulse();`, {
+    marketLoadFailed: true, markets: [], byId, setCopy: (id: string, value: string) => { byId(id).textContent = value; },
+  });
+  assert.equal(byId("pulseVolume").textContent, "--");
+  assert.equal(byId("pulseTrades").textContent, "--");
+  assert.match(byId("pulseStatus").textContent, /unknown/);
+  assert.match(byId("marketSummary").textContent, /unknown/);
+});
+
+test("liquidity UI totals all fetched in-window events while rendering only eight rows", () => {
+  const now = Date.now();
+  const events = Array.from({ length: 13 }, (_, index) => ({ timestamp: new Date(now - (index + 1) * 60_000).toISOString(),
+    direction: index === 12 ? "remove" : "add", usdcAmount: 1, tokenAmount: 1, changePercent: 10, transactionHash: `0x${index}`, fallbackAddress: null }));
+  events.push({ ...events[0]!, timestamp: new Date(now - 2 * 86_400_000).toISOString(), usdcAmount: 100 },
+    { ...events[0]!, timestamp: new Date(now + 86_400_000).toISOString(), usdcAmount: 100 });
+  const nodes = new Map<string, any>();
+  const element = () => ({ textContent: "", children: [] as unknown[], append(...children: unknown[]) { this.children.push(...children); }, replaceChildren() { this.children = []; } });
+  const byId = (id: string) => { if (!nodes.has(id)) nodes.set(id, element()); return nodes.get(id); };
+  runInNewContext(`${compileMain(["renderLiquidityMonitor"])}\nrenderLiquidityMonitor(market, detail);`, {
+    market: { liquidityEvents: events, token: { symbol: "Price" }, usdcReserve: 9, historyTruncated: false },
+    detail: { lpBurnedShare: null, lpTopHolderShare: null, sources: { lp: "unavailable" }, transactionSenders: {} },
+    DAY_MS: 86_400_000, copy, byId, element, EXPLORER_BASE: "https://example.invalid", relativeTime: () => "1m", shortHash: (value: string) => value,
+    formatValue: String, shareText: () => "--", setCopy: (id: string, value: Parameters<typeof translate>[0]) => { byId(id).textContent = translate(value, "en"); },
+  });
+  assert.equal(byId("liquidityAdded").textContent, "12");
+  assert.equal(byId("liquidityRemoved").textContent, "1");
+  assert.equal(byId("liquidityEventList").children.length, 8);
+  assert.match(byId("liquidityHistoryNote").textContent, /Showing 8 of 15/);
+});
 const detailFunctions = new Set(["fetchOptional", "fetchTokenTransfers", "mapLimited", "fetchMarketDetail", "mergeContracts", "contractFunctions", "buildWarnings", "classifyWalletSignals", "analyzeHolderConnections"]);
 const detailProgram = mainSource.statements.filter(node => ts.isFunctionDeclaration(node) && detailFunctions.has(node.name?.text ?? ""))
   .map(node => node.getText(mainSource)).join("\n");
@@ -112,7 +221,7 @@ function detailFixture(mode: "failed" | "cached" | "fresh") {
   };
   const script = ts.transpileModule(detailProgram, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
   return runInNewContext(`${script}\nfetchMarketDetail(fixtureMarket, true).then(detail => ({...detail, warnings: buildWarnings(fixtureMarket, detail)}))`, {
-    fetchData, fixtureMarket, markets: [fixtureMarket, { ...fixtureMarket, pairAddress: address(2) }],
+    fetchData, fixtureMarket, copy, markets: [fixtureMarket, { ...fixtureMarket, pairAddress: address(2) }],
     holderMetrics, holderShare, knownTokenPools, sourceState, decimalValue, detectCapabilities, capabilityText, URLSearchParams,
     formatValue: (value: number) => String(value), relativeTime: () => "1m",
     TRANSFER_PAGE_LIMIT: 3, BURN_ADDRESSES: new Set([address(0), "0x000000000000000000000000000000000000dead"]),
@@ -148,7 +257,8 @@ test("real detail warnings never promote a matching mint ABI into verified suppl
   const detail = await detailFixture("fresh");
   const mint = detail.warnings.find((warning: { title: string }) => warning.title === "Supply-related function names");
   assert.equal(mint.basis, "unverified");
-  assert.match(mint.detail, /ABI: mint/);
+  assert.match(translate(mint.detail, "en"), /ABI: mint/);
+  assert.match(translate(mint.detail, "ko"), /실행 가능하다는 뜻은 아닙니다/);
   assert.ok(detail.warnings.every((warning: { basis?: string }) => ["observed", "estimate", "unverified"].includes(warning.basis ?? "")));
   assert.ok(detail.warnings.some((warning: { title: string; detail: string }) => warning.title === "Execution paths not verified"
     && warning.detail.includes("No sell simulation or full permission audit")));

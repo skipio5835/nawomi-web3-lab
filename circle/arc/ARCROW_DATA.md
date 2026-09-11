@@ -31,6 +31,25 @@ event decoder, concentrated-liquidity valuation, hook handling, and
 ownership/exit-risk model. Do not reuse v2 reserve or LP-token assumptions.
 
 Run `npm run test-arc-radar` and `npm run build-arc-radar`.
+
+Color theme is independent of market loading: Light / Dark / System is stored
+locally as `arcrow:theme`, defaults to the OS preference, and syncs across tabs.
+Blocked storage falls back to the current tab. The small pre-CSS script applies
+the initial theme before market code loads. Semantic CSS tokens cover controls,
+charts, and state colors. The original full-color ARCROW emblem is preserved on
+a fixed light ground; it is not inverted. No theme setting leaves the browser.
+
+Language selection supports English, Korean, and Japanese for core navigation, filters,
+market labels, and key warnings. The `arcrow:language` browser preference takes
+precedence over the browser language and syncs across tabs. Only explicitly
+marked application copy is translated; token identity, addresses, numbers, and
+external data remain literal. Some detailed technical descriptions and raw errors
+remain English. Switching language preserves the active view and does not refetch
+market data or use a translation API. Preferences remain local to the browser.
+Pool pricing, transfer interpretation, LP ownership, and holder-coverage notes are
+included in both translations. The stacked detail view links back to the market
+list in the same page without clearing filters or requesting fresh data.
+
 # Shareable pool detail and watchlist digest
 
 The same static HTML supports `?network=arc-testnet&pool=0x...` for a focused
@@ -110,6 +129,18 @@ Window returns need an indexed price at or before the requested start time;
 otherwise they display `--`, including newly created pools. A current balance
 fallback is never assigned a fabricated pool-creation timestamp. Counts and
 volume remain limited to fetched event pages, as indicated by history coverage.
+
+Liquidity totals and screening use every decoded event in the fetched pages;
+only the visible event list is capped at eight rows. The UI reports displayed and
+fetched counts and flags truncated history. The 24H sum excludes events outside
+the time window, including future timestamps. Missing or invalid total supply,
+decimals, or a usable price makes FDV unavailable; a genuine zero supply remains
+distinct from missing data.
+
+If discovery finds pools but none can be loaded, the refresh fails explicitly.
+Previous rows remain marked cached, while an initial failure shows unknown
+activity instead of zero volume. Partial failures identify the omitted pool count
+and scope of the totals. A successful empty discovery remains a valid empty result.
 
 ## Evidence-first product view
 

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createDexAdapter, discoverDexPools, type DexLogPage } from "../src/arc-radar-dex.js";
 import { ARC_RADAR_TESTNET, radarPoolKey, radarStoragePrefix, resolveRadarNetwork } from "../src/arc-radar-networks.js";
+import { marketBriefs } from "../src/arc-radar-evidence.js";
 
 const token = "0x1000000000000000000000000000000000000000";
 const quote = ARC_RADAR_TESTNET.quoteAsset.address;
@@ -83,4 +84,25 @@ test("multiple sources merge newest pools, deduplicate addresses and apply a glo
 
 test("a source failure is surfaced instead of returning an apparently complete market list", async () => {
   await assert.rejects(discoverDexPools([adapter], 15, async () => { throw new Error("offline"); }), /offline/);
+});
+
+test("liquidity aggregation and briefs retain a removal older than the first twelve events", () => {
+  const now = Date.parse("2026-09-11T00:00:00Z");
+  const pool = adapter.pairSeeds({ items: [poolLog()] })[0]!;
+  const logs = Array.from({ length: 13 }, (_, offset) => {
+    const timestamp = new Date(now - (offset + 1) * 60_000).toISOString();
+    const hash = `0x${(offset + 1).toString(16).padStart(64, "0")}`;
+    return [
+      { ...event(offset === 12 ? "Burn" : "Mint", { amount0: "1000000000000000000", amount1: "1000000" }, timestamp, 2), transaction_hash: hash },
+      { ...event("Sync", { reserve0: "10000000000000000000", reserve1: "9000000" }, timestamp, 1), transaction_hash: hash },
+    ];
+  }).flat();
+  const events = adapter.liquidityEvents(logs, pool, "18");
+  assert.equal(events.length, 13);
+  assert.equal(events.filter(event => event.direction === "add").reduce((sum, event) => sum + event.usdcAmount, 0), 12);
+  assert.equal(events.filter(event => event.direction === "remove").reduce((sum, event) => sum + event.usdcAmount, 0), 1);
+  const briefs = marketBriefs([{ ...pool, stale: false, historyTruncated: false, reserveSource: "sync", periods: { h1: { priceChange: null } }, trades: [], liquidityEvents: events }], now);
+  assert.equal(briefs.length, 1);
+  assert.equal(briefs[0]!.kind, "liquidity");
+  assert.equal(briefs[0]!.value, 1);
 });

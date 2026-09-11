@@ -1,5 +1,6 @@
 import {
   decimalValue,
+  fullyDilutedValue,
 } from "./arc-radar-core.js";
 import { refineMarkets, type DiscoveryOptions, type MarketSort } from "./arc-radar-discovery.js";
 import { createDexAdapter, discoverDexPools, type RadarPool, type DexPricePoint, type DexTrade, type DexLiquidityEvent } from "./arc-radar-dex.js";
@@ -10,6 +11,7 @@ import { observeSellEvents, groupTokenPools, type SellObservation } from "./arc-
 import { holderShare, holderMetrics, knownTokenPools, windowPriceChange, tradeActor, sourceState, nextOwnershipSnapshot, type SourceState } from "./arc-radar-quality.js";
 import { detectCapabilities, capabilityText, evidenceSummary, marketBriefs, nextWatchBatch, type CapabilityFinding, type EvidenceBasis } from "./arc-radar-evidence.js";
 import { readAuthoritySnapshot, type AuthoritySnapshot } from "./arc-radar-authority.js";
+import { copy, localize, initializeLanguage, type UiCopy } from "./arc-radar-i18n.js";
 
 let routeError = "";
 const linkedPool = (() => {
@@ -143,7 +145,7 @@ type MarketPeriods = Record<PeriodKey, PeriodMetrics>;
 type MarketPair = PairSeed & {
   buyCount: number;
   currentPrice: number;
-  fdv: number;
+  fdv: number | null;
   historyTruncated: boolean;
   lastSellAt: string | null;
   lastTradeAt: string | null;
@@ -257,7 +259,7 @@ type MarketDetail = {
 
 type RiskWarning = {
   basis: EvidenceBasis;
-  detail: string;
+  detail: string | UiCopy;
   title: string;
   tone: WarningTone;
 };
@@ -311,11 +313,18 @@ function poolCacheKey(pool: PairSeed): string {
   return radarPoolKey(NETWORK, pool.pairAddress);
 }
 
-function element<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
+function element<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string | UiCopy): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
   if (className) node.className = className;
-  if (text !== undefined) node.textContent = text;
+  if (text !== undefined) {
+    if (typeof text === "string") node.textContent = text;
+    else localize(node, text);
+  }
   return node;
+}
+
+function setCopy(id: string, message: string | UiCopy): void {
+  localize(byId(id), message);
 }
 
 function svgNode<K extends keyof SVGElementTagNameMap>(tag: K, attributes: Record<string, string>): SVGElementTagNameMap[K] {
@@ -806,7 +815,6 @@ async function loadMarketPair(seed: PairSeed, force: boolean): Promise<MarketPai
       balanceStale = balanceResult.stale;
     }
     const currentPrice = tokenReserve > 0 ? usdcReserve / tokenReserve : 0;
-    const supply = decimalValue(token.total_supply, token.decimals);
     const trades = logs
       .map((log) => adapter.trade(log, seed))
       .filter((trade): trade is MarketTrade => trade !== null)
@@ -824,7 +832,7 @@ async function loadMarketPair(seed: PairSeed, force: boolean): Promise<MarketPai
       ...seed,
       buyCount: buys.length,
       currentPrice,
-      fdv: currentPrice * supply,
+      fdv: fullyDilutedValue(currentPrice, token.total_supply, token.decimals),
       historyTruncated: logResult.truncated,
       lastSellAt: sells[0]?.timestamp ?? null,
       lastTradeAt: trades[0]?.timestamp ?? null,
@@ -880,28 +888,33 @@ function visibleMarkets(): MarketPair[] {
 }
 
 function renderMarketSummary(): void {
+  if (marketLoadFailed && markets.length === 0) {
+    setCopy("marketSummary", "Market activity is unknown because pool data could not be loaded.");
+    return;
+  }
   const shown = visibleMarkets();
   const trades = shown.reduce((sum, market) => sum + market.swapCount, 0);
   const liquidity = shown.reduce((sum, market) => sum + market.totalLiquidity, 0);
   const partial = shown.filter((market) => market.historyTruncated).length;
-  byId("marketSummary").textContent = `${shown.length} tokens · ${markets.length} loaded pools · representative pools: ${trades} indexed swaps · ${formatValue(liquidity)} USDC liquidity${partial > 0 ? ` · ${partial} partial histories` : ""}`;
+  setCopy("marketSummary", copy("{tokens} tokens · {pools} loaded pools · representative pools: {trades} indexed swaps · {liquidity} USDC liquidity · {partial} partial histories", { tokens: shown.length, pools: markets.length, trades, liquidity: formatValue(liquidity), partial }));
 }
 
 function renderDiscoveryControls(): void {
   const button = byId<HTMLButtonElement>("loadMoreMarkets");
   button.disabled = loading || (!marketLoadFailed && (!hasMoreMarkets || marketLimit >= MAX_MARKETS));
-  button.textContent = loading ? "Loading pools..." : marketLoadFailed ? "Retry loading"
+  localize(button, loading ? "Loading pools..." : marketLoadFailed ? "Retry loading"
     : hasMoreMarkets && marketLimit < MAX_MARKETS ? "Load 15 more"
-    : discoveryLimited || (hasMoreMarkets && marketLimit >= MAX_MARKETS) ? "Scan limit reached" : "No more pools";
-  byId("discoveryCoverage").textContent = `${markets.length} pools loaded · ${dexAdapters.length} ${NETWORK?.label ?? ""} USDC market source${dexAdapters.length === 1 ? "" : "s"}${discoveryLimited ? " · Scan limit reached" : ""}${marketLimit >= MAX_MARKETS && hasMoreMarkets ? " · 150-pool limit" : ""}${failedMarketCount ? ` · ${failedMarketCount} unavailable` : ""}`;
+    : discoveryLimited || (hasMoreMarkets && marketLimit >= MAX_MARKETS) ? "Scan limit reached" : "No more pools");
+  setCopy("discoveryCoverage", copy("{pools} pools loaded · {sources} {network} USDC market sources{limit}", { pools: markets.length, sources: dexAdapters.length, network: NETWORK?.label ?? "",
+    limit: copy("{scan}{cap}{failed}", { scan: copy(discoveryLimited ? " · Scan limit reached" : ""), cap: copy(marketLimit >= MAX_MARKETS && hasMoreMarkets ? " · 150-pool limit" : ""), failed: copy(failedMarketCount ? " · {count} unavailable" : "", { count: failedMarketCount }) }) }));
   renderCoverage();
 }
 
 function renderCoverage(): void {
   const cached = markets.filter(market => market.stale).length;
   const partial = markets.filter(market => market.historyTruncated).length;
-  byId("coverageSummary").textContent = `${NETWORK?.label ?? "Unavailable"} · ${dexAdapters.length} configured v2 source(s) · ${markets.length} loaded pools · Not the whole chain`;
-  byId("coverageStatus").textContent = `${cached} cached · ${partial} partial histories${marketLoadFailed ? " · Refresh failed" : ""}`;
+  setCopy("coverageSummary", copy("{network} · {sources} configured v2 source(s) · {pools} loaded pools · Not the whole chain", { network: NETWORK?.label ?? "--", sources: dexAdapters.length, pools: markets.length }));
+  setCopy("coverageStatus", copy("{cached} cached · {partial} partial histories{failed}", { cached, partial, failed: copy(marketLoadFailed ? " · Refresh failed" : "") }));
   const sources = byId("coverageSources");
   sources.replaceChildren();
   for (const adapter of dexAdapters) {
@@ -918,40 +931,46 @@ function renderMarketBrief(): void {
   const expanded = list.querySelector<HTMLDetailsElement>(".brief-more")?.open ?? false;
   list.replaceChildren();
   const briefs = marketLoadFailed ? [] : marketBriefs(markets, Date.now());
-  byId("marketBriefCount").textContent = `${briefs.length} token${briefs.length === 1 ? "" : "s"}`;
+  setCopy("marketBriefCount", copy("{count} tokens", { count: briefs.length }));
   if (!briefs.length) {
-    list.append(element("p", "brief-empty", marketLoadFailed ? "Market refresh failed. Recent changes cannot be assessed." : "No qualifying recent change in the loaded pools. This is not an all-clear."));
+    list.append(element("p", "brief-empty", copy(marketLoadFailed ? "Market refresh failed. Recent changes cannot be assessed." : "No qualifying recent change in the loaded pools. This is not an all-clear.")));
     return;
   }
   const more = element("details", "brief-more");
   more.open = expanded;
   const moreList = element("div", "brief-more-list");
-  more.append(element("summary", "", `${Math.max(0, briefs.length - 3)} more changes`), moreList);
+  more.append(element("summary", "", copy("{count} more changes", { count: Math.max(0, briefs.length - 3) })), moreList);
   for (const [index, brief] of briefs.entries()) {
     const row = element("article", "brief-row");
-    const copy = element("div", "brief-copy");
-    const title = element("a", "", `${brief.market.token.symbol || "Token"} · ${brief.title}`);
+    const copyBlock = element("div", "brief-copy");
+    const title = element("a", "", copy("{symbol} · {title}", { symbol: brief.market.token.symbol || "Token", title: copy(brief.title) }));
     title.href = marketUrl(location.href, NETWORK!.id, brief.market.pairAddress);
-    const description = brief.kind === "liquidity" ? `${formatValue(brief.value, 4)} USDC removed; ${brief.secondaryValue!.toFixed(1)}% of prior USDC reserve.`
-      : brief.kind === "price" ? `1H reserve-price change: ${compactChange(brief.value)}. Not an executable quote.`
-      : "Pool creation and subsequent trades appear in the available index. Not a token endorsement.";
-    copy.append(title, element("p", "", description), element("small", "", `Pool ${shortHash(brief.market.pairAddress)} · ${relativeTime(brief.timestamp)} ago${brief.market.historyTruncated ? " · partial history" : ""}`));
+    const description = brief.kind === "liquidity" ? copy("{amount} USDC removed; {percent}% of prior USDC reserve.", { amount: formatValue(brief.value, 4), percent: brief.secondaryValue!.toFixed(1) })
+      : brief.kind === "price" ? copy("1H reserve-price change: {change}. Not an executable quote.", { change: compactChange(brief.value) })
+      : copy("Pool creation and subsequent trades appear in the available index. Not a token endorsement.");
+    copyBlock.append(title, element("p", "", description), element("small", "", copy("Pool {address} · {time} ago{partial}", { address: shortHash(brief.market.pairAddress), time: relativeTime(brief.timestamp), partial: copy(brief.market.historyTruncated ? " · partial history" : "") })));
     const evidence = element("div", "brief-evidence");
-    evidence.append(element("span", `evidence-label ${brief.basis}`, brief.basis === "observed" ? "Indexed event" : "Calculated"));
+    evidence.append(element("span", `evidence-label ${brief.basis}`, copy(brief.basis === "observed" ? "Indexed event" : "Calculated")));
     if (brief.transactionHash) {
-      const link = element("a", "", "Source TX");
+      const link = element("a", "", copy("Source TX"));
       link.href = `${EXPLORER_BASE}/tx/${brief.transactionHash}`;
       link.target = "_blank";
       link.rel = "noreferrer";
       evidence.append(link);
     }
-    row.append(copy, evidence);
+    row.append(copyBlock, evidence);
     (index < 3 ? list : moreList).append(row);
   }
   if (briefs.length > 3) list.append(more);
 }
 
 function renderMarketPulse(): void {
+  if (marketLoadFailed && markets.length === 0) {
+    for (const id of ["pulseVolume", "pulseTrades", "pulseNetFlow", "pulseNewest", "pulseNewestAge", "pulseSellVerified"]) byId(id).textContent = "--";
+    setCopy("pulseNewestAge", "Unavailable");
+    setCopy("pulseStatus", "Market activity is unknown because pool data could not be loaded.");
+    return;
+  }
   const period = markets.map((market) => market.periods.h24);
   const volume = period.reduce((sum, metrics) => sum + metrics.volumeUsdc, 0);
   const buys = period.reduce((sum, metrics) => sum + metrics.buyCount, 0);
@@ -967,12 +986,11 @@ function renderMarketPulse(): void {
   net.textContent = formatSignedUsdc(netFlow);
   net.className = changeClass(netFlow);
   byId("pulseNewest").textContent = newest ? newest.token.symbol || newest.token.name || "Unknown" : "--";
-  byId("pulseNewestAge").textContent = newest ? `${relativeTime(newest.createdAt)} old` : "No pool indexed";
+  setCopy("pulseNewestAge", newest ? copy("{time} old", { time: relativeTime(newest.createdAt) }) : "No pool indexed");
   byId("pulseSellVerified").textContent = `${sellVerified} / ${markets.length}`;
   const swapTotal = buys + sells;
   const cached = markets.filter(market => market.stale).length;
-  const coverage = `${partial > 0 ? ` · ${partial} pool${partial === 1 ? "" : "s"} partial` : ""}${cached > 0 ? ` · ${cached} cached pools` : ""}`;
-  byId("pulseStatus").textContent = swapTotal > 0 ? `${swapTotal} swaps indexed in the last 24 hours${coverage}` : `No swaps indexed in the available 24-hour history${coverage}`;
+  setCopy("pulseStatus", copy("{count} swaps indexed in the last 24 hours · {partial} partial pools · {cached} cached pools", { count: swapTotal, partial, cached }));
 }
 
 function changeClass(value: number | null): string {
@@ -990,10 +1008,10 @@ function renderMarketRows(): void {
   renderMarketBrief();
   renderWatchDigest();
   if (shown.length === 0) {
-    const message = activeFilter === "active"
+    const message = marketLoadFailed && markets.length === 0 ? "Market activity is unknown because pool data could not be loaded." : activeFilter === "active"
       ? "No token has indexed trading activity in the last 24 hours."
       : activeFilter === "watchlist" ? "No token is currently on this browser's watchlist." : "No token matches this view.";
-    container.append(element("div", "market-loading-row", message));
+    container.append(element("div", "market-loading-row", copy(message)));
     return;
   }
   for (const market of shown) {
@@ -1004,20 +1022,20 @@ function renderMarketRows(): void {
     const isSelected = selected?.tokenAddress.toLowerCase() === market.tokenAddress.toLowerCase();
     row.classList.toggle("selected", isSelected);
     row.setAttribute("aria-pressed", String(isSelected));
-    row.setAttribute("aria-label", `Open ${market.token.symbol || market.token.name || "token"} market`);
+    localize(row, copy("Open {symbol} market", { symbol: market.token.symbol || market.token.name || "token" }), "aria-label");
 
     const identity = element("span", "market-token");
     const icon = element("span", "market-token-icon", (market.token.symbol || market.token.name || "?").slice(0, 2).toUpperCase());
-    const copy = element("span", "market-token-copy");
+    const copyBlock = element("span", "market-token-copy");
     const watched = watchlist.has(market.tokenAddress.toLowerCase());
     const poolCount = markets.filter(entry => entry.tokenAddress.toLowerCase() === market.tokenAddress.toLowerCase()).length;
-    copy.append(
+    copyBlock.append(
       element("strong", watched ? "watched-token" : "", `${watched ? "★ " : ""}${market.token.symbol || "Unknown"}`),
       element("span", "", market.token.name || shortHash(market.tokenAddress)),
-      element("small", "", `${fullNumber(market.token.holders_count)} holders · ${poolCount} pool${poolCount === 1 ? "" : "s"}`),
-      element("small", "market-data-state", `${market.stale ? "Cached" : "Fetched"}${market.historyTruncated ? " · Partial history" : ""}`),
+      element("small", "", copy("{holders} holders · {pools} pools", { holders: fullNumber(market.token.holders_count), pools: poolCount })),
+      element("small", "market-data-state", copy("{state}{partial}", { state: copy(market.stale ? "Cached" : "Fetched"), partial: copy(market.historyTruncated ? " · Partial history" : "") })),
     );
-    identity.append(icon, copy);
+    identity.append(icon, copyBlock);
 
     const price = element("span", "market-cell price-cell");
     price.append(priceElement(market.currentPrice), element("small", changeClass(market.periods.m5.priceChange), `5M ${compactChange(market.periods.m5.priceChange)}`));
@@ -1027,11 +1045,11 @@ function renderMarketRows(): void {
       element("small", changeClass(market.periods.h24.priceChange), `24H ${compactChange(market.periods.h24.priceChange)} · ${formatValue(market.periods.h24.volumeUsdc, 3)} USDC${market.historyTruncated ? " · partial" : ""}`),
     );
     const liquidity = element("span", "market-cell");
-    liquidity.append(element("strong", "", `${formatValue(market.totalLiquidity)} USDC`), element("small", "", `${formatValue(market.usdcReserve)} exit side`));
+    liquidity.append(element("strong", "", `${formatValue(market.totalLiquidity)} USDC`), element("small", "", copy("{amount} exit side", { amount: formatValue(market.usdcReserve) })));
 
     const flow = element("span", "row-flow");
     const counts = element("strong");
-    counts.append(element("span", "positive", `B ${market.buyCount}`), element("span", "negative", `S ${market.sellCount}`));
+    counts.append(element("span", "positive", copy("B {count}", { count: market.buyCount })), element("span", "negative", copy("S {count}", { count: market.sellCount })));
     const track = element("span", "mini-flow-track");
     const total = Math.max(1, market.buyCount + market.sellCount);
     const buyBar = element("span");
@@ -1042,7 +1060,7 @@ function renderMarketRows(): void {
     flow.append(counts, track, element("small", "", `${formatValue(market.volumeUsdc, 3)} USDC`));
 
     const age = element("span", "market-cell");
-    age.append(element("strong", "", relativeTime(market.createdAt)), element("small", "", market.lastTradeAt ? `trade ${relativeTime(market.lastTradeAt)}` : "no trades"));
+    age.append(element("strong", "", relativeTime(market.createdAt)), element("small", "", market.lastTradeAt ? copy("trade {time}", { time: relativeTime(market.lastTradeAt) }) : copy("no trades")));
     row.append(identity, price, pulse, liquidity, flow, age);
     row.addEventListener("click", () => void selectMarket(market, true));
     container.append(row);
@@ -1364,19 +1382,21 @@ async function fetchMarketDetail(market: MarketPair, force: boolean): Promise<Ma
 function buildWarnings(market: MarketPair, detail: MarketDetail): RiskWarning[] {
   const warnings: RiskWarning[] = [];
   const incomplete = Object.entries(detail.sources).filter(([, state]) => state !== "fresh");
-  if (incomplete.length) warnings.push({ basis: "unverified", title: "Detail checks are incomplete", detail: incomplete.map(([name, state]) => `${name}: ${state}`).join("; ") + ". Missing data is not a clean risk check.", tone: "warning" });
+  if (incomplete.length) warnings.push({ basis: "unverified", title: "Detail checks are incomplete", detail: copy("{sources}. Missing data is not a clean risk check.", { sources: incomplete.map(([name, state]) => `${name}: ${state}`).join("; ") }), tone: "warning" });
   if (detail.holderHistoryPartial || detail.lpHistoryPartial) warnings.push({ basis: "unverified", title: "Holder index is partial", detail: "Only the first holder page is available. Unseen balances and incomplete burn totals remain unknown.", tone: "info" });
   if (market.periods.h24.priceChange === null) warnings.push({ basis: "unverified", title: "24H starting price unavailable", detail: "The 24H return is not estimated from a shorter window.", tone: "info" });
   if (market.historyTruncated) warnings.push({ basis: "unverified", title: "24-hour activity is partial", detail: "Older events beyond the ArcScan page limit are not included in totals.", tone: "info" });
   if (market.reserveSource === "balance") warnings.push({ basis: "estimate", title: "Token-balance fallback", detail: "No indexed Sync event was available. Price and liquidity are derived from the pair's token balances.", tone: "info" });
-  if (market.sellCount > 0) warnings.push({ basis: "observed", title: "Sell event indexed", detail: `A token-to-USDC Swap was indexed ${relativeTime(market.lastSellAt)} ago. This does not prove that any wallet can sell now.`, tone: "info" });
+  if (market.sellCount > 0) warnings.push({ basis: "observed", title: "Sell event indexed", detail: copy("A token-to-USDC Swap was indexed {time} ago. This does not prove that any wallet can sell now.", { time: relativeTime(market.lastSellAt) }), tone: "info" });
   else warnings.push({ basis: "unverified", title: "No sell in available history", detail: "Absence of indexed sells does not prove a token is unsellable.", tone: "info" });
-  if (market.totalLiquidity < 200) warnings.push({ basis: "estimate", title: "Pool liquidity below 200 USDC", detail: `Reserve-based estimate: ${formatValue(market.totalLiquidity)} USDC total, ${formatValue(market.usdcReserve)} USDC on the quote side. This threshold is a screening rule, not a safety rating.`, tone: "warning" });
-  if (detail.top10Share !== null && detail.top10Share >= 25) warnings.push({ basis: "estimate", title: "Top-10 ownership exceeds 25%", detail: `${detail.top10Share.toFixed(1)}% of indexed supply, excluding burn addresses and known pools. Addresses are not necessarily independent owners.`, tone: "warning" });
-  if (detail.creatorShare !== null && detail.creatorShare >= 10) warnings.push({ basis: "estimate", title: "Pool-creation sender holds at least 10%", detail: `Indexed share: ${detail.creatorShare.toFixed(1)}%. This transaction sender may be a relayer; it is not proof of the token team's identity.`, tone: "info" });
-  if (detail.lpBurnedShare !== null) warnings.push({ basis: "estimate", title: "LP at burn addresses", detail: `${detail.lpBurnedShare.toFixed(1)}% of indexed LP supply. This does not establish token safety or sale availability.`, tone: "info" });
-  warnings.push({ basis: "unverified", title: "Liquidity lock not independently checked", detail: detail.lpTopHolderShare !== null ? `Top indexed LP holder: ${detail.lpTopHolderShare.toFixed(1)}%. Lock contract rules and unlock times have not been checked.` : "LP ownership or lock terms could not be established.", tone: "info" });
-  detail.capabilities.forEach(finding => warnings.push({ ...capabilityText(finding), tone: "info" }));
+  if (market.totalLiquidity < 200) warnings.push({ basis: "estimate", title: "Pool liquidity below 200 USDC", detail: copy("Reserve-based estimate: {total} USDC total, {quote} USDC on the quote side. This threshold is a screening rule, not a safety rating.", { total: formatValue(market.totalLiquidity), quote: formatValue(market.usdcReserve) }), tone: "warning" });
+  if (detail.top10Share !== null && detail.top10Share >= 25) warnings.push({ basis: "estimate", title: "Top-10 ownership exceeds 25%", detail: copy("{share}% of indexed supply, excluding burn addresses and known pools. Addresses are not necessarily independent owners.", { share: detail.top10Share.toFixed(1) }), tone: "warning" });
+  if (detail.creatorShare !== null && detail.creatorShare >= 10) warnings.push({ basis: "estimate", title: "Pool-creation sender holds at least 10%", detail: copy("Indexed share: {share}%. This transaction sender may be a relayer; it is not proof of the token team's identity.", { share: detail.creatorShare.toFixed(1) }), tone: "info" });
+  if (detail.lpBurnedShare !== null) warnings.push({ basis: "estimate", title: "LP at burn addresses", detail: copy("{share}% of indexed LP supply. This does not establish token safety or sale availability.", { share: detail.lpBurnedShare.toFixed(1) }), tone: "info" });
+  warnings.push({ basis: "unverified", title: "Liquidity lock not independently checked", detail: detail.lpTopHolderShare !== null ? copy("Top indexed LP holder: {share}%. Lock contract rules and unlock times have not been checked.", { share: detail.lpTopHolderShare.toFixed(1) }) : "LP ownership or lock terms could not be established.", tone: "info" });
+  detail.capabilities.forEach(finding => warnings.push({ ...capabilityText(finding), detail: copy("{evidence} Names alone do not establish current permissions or execution paths. Selected getter values, when requested, appear separately under Contract state and do not confirm this capability is usable.", {
+    evidence: [finding.functions.length ? `ABI: ${finding.functions.join(", ")}.` : "", finding.proxyType ? `Explorer proxy type: ${finding.proxyType}.` : ""].filter(Boolean).join(" "),
+  }), tone: "info" }));
   warnings.push({ basis: "unverified", title: "Execution paths not verified", detail: "No sell simulation or full permission audit is performed. Optional contract-state reads below report selected getter values only; they do not prove a control is usable, disabled, or absent elsewhere.", tone: "info" });
   if (!detail.contractVisible) warnings.push({ basis: "unverified", title: "Contract ABI unavailable", detail: "Supply and trading controls cannot be assessed from the available ABI.", tone: "info" });
   else if (detail.capabilities.length === 0) warnings.push({ basis: "unverified", title: "No matching ABI names", detail: "No configured function-name pattern matched. Custom logic, external contracts, or different function names may still impose restrictions.", tone: "info" });
@@ -1449,14 +1469,14 @@ function renderTradeTape(market: MarketPair, detail: MarketDetail): void {
   const list = byId("tradeList");
   list.replaceChildren();
   const trades = market.trades.slice(0, 10);
-  byId("detailTradeCount").textContent = trades.length > 0 ? `${trades.length} visible` : "No trades";
+  setCopy("detailTradeCount", trades.length > 0 ? copy("{count} visible", { count: trades.length }) : "No trades");
   if (trades.length === 0) {
-    list.append(element("div", "trade-empty", "No swaps are available in the indexed history."));
+    list.append(element("div", "trade-empty", copy("No swaps are available in the indexed history.")));
     return;
   }
   for (const trade of trades) {
     const row = element("div", `trade-row ${trade.direction}`);
-    const side = element("span", "trade-side", trade.direction === "buy" ? "BUY" : "SELL");
+    const side = element("span", "trade-side", copy(trade.direction === "buy" ? "BUY" : "SELL"));
     const value = element("span", "trade-value");
     value.append(element("strong", "", `${formatValue(trade.usdcValue, 4)} USDC`), element("small", "", `${relativeTime(trade.timestamp)} ago`));
     const links = element("span", "trade-links");
@@ -1468,9 +1488,9 @@ function renderTradeTape(market: MarketPair, detail: MarketDetail): void {
       senderLink.rel = "noreferrer";
       senderLink.title = `${actor.role}: ${actor.address}`;
       senderLink.setAttribute("aria-label", `${actor.role} ${actor.address}`);
-      links.append(element("span", "trade-sender-label", actor.role), senderLink);
+      links.append(element("span", "trade-sender-label", copy(actor.role)), senderLink);
     } else {
-      links.append(element("span", "", "Sender unknown"));
+      links.append(element("span", "", copy("Sender unknown")));
     }
     if (trade.transactionHash) {
       const txLink = element("a", "trade-tx-link", "TX");
@@ -1487,7 +1507,7 @@ function renderTradeTape(market: MarketPair, detail: MarketDetail): void {
 function renderWalletSignals(market: MarketPair, detail: MarketDetail): void {
   const signals = detail.walletSignals;
   const count = (category: WalletSignalCategory) => signals.filter((signal) => signal.categories.includes(category)).length;
-  byId("walletSignalCount").textContent = detail.sources.transfers === "unavailable" ? "Unavailable" : `${signals.length} signal${signals.length === 1 ? "" : "s"}`;
+  setCopy("walletSignalCount", detail.sources.transfers === "unavailable" ? "Unavailable" : copy("{count} signals", { count: signals.length }));
   byId("walletCreatorMoves").textContent = String(count("creator"));
   byId("walletWhaleMoves").textContent = String(count("whale"));
   byId("walletEntries").textContent = String(count("entry"));
@@ -1498,7 +1518,9 @@ function renderWalletSignals(market: MarketPair, detail: MarketDetail): void {
     if (detail.sources.creator === "unavailable") byId("walletCreatorMoves").textContent = "--";
     if (detail.sources.holders === "unavailable") byId("walletEntries").textContent = "--";
   }
-  byId("walletSignalNote").textContent = `Transfers: ${detail.sources.transfers}${detail.transferHistoryTruncated ? "; partial history" : ""}. Holders: ${detail.sources.holders}. Pool transfers are not proof of a swap or full exit.`;
+  setCopy("walletSignalNote", copy("Transfers: {transfers}{partial}. Holders: {holders}. Pool transfers are not proof of a swap or full exit.", {
+    transfers: copy(detail.sources.transfers), partial: copy(detail.transferHistoryTruncated ? "; partial history" : ""), holders: copy(detail.sources.holders),
+  }));
   document.querySelectorAll<HTMLButtonElement>("[data-wallet-filter]").forEach((button) => {
     const active = button.dataset.walletFilter === activeWalletSignalFilter;
     button.classList.toggle("active", active);
@@ -1512,8 +1534,7 @@ function renderWalletSignals(market: MarketPair, detail: MarketDetail): void {
   const list = byId("walletSignalList");
   list.replaceChildren();
   if (visible.length === 0) {
-    const label = filter === "all" ? "priority wallet movement" : `${filter} movement`;
-    list.append(element("div", "wallet-signal-empty", detail.sources.transfers === "unavailable" ? "Transfer history could not be loaded. Wallet activity is unknown." : `No ${label} appears in the available indexed transfers.`));
+    list.append(element("div", "wallet-signal-empty", copy(detail.sources.transfers === "unavailable" ? "Transfer history could not be loaded. Wallet activity is unknown." : "No wallet movement matches this filter in the available indexed transfers.")));
     return;
   }
 
@@ -1554,42 +1575,45 @@ function renderWalletSignals(market: MarketPair, detail: MarketDetail): void {
 
 function renderLiquidityMonitor(market: MarketPair, detail: MarketDetail): void {
   const events = market.liquidityEvents;
-  const cutoff = Date.now() - DAY_MS;
-  const recent = events.filter((event) => new Date(event.timestamp).getTime() >= cutoff);
+  const now = Date.now();
+  const cutoff = now - DAY_MS;
+  const recent = events.filter((event) => Date.parse(event.timestamp) >= cutoff && Date.parse(event.timestamp) <= now);
   const added = recent.filter((event) => event.direction === "add").reduce((sum, event) => sum + event.usdcAmount, 0);
   const removed = recent.filter((event) => event.direction === "remove").reduce((sum, event) => sum + event.usdcAmount, 0);
-  byId("liquidityEventCount").textContent = `${events.length} event${events.length === 1 ? "" : "s"}`;
+  setCopy("liquidityEventCount", copy("{count} events", { count: events.length }));
+  setCopy("liquidityHistoryNote", copy("Showing {shown} of {count} indexed liquidity events. 24H totals use fetched events only{partial}.", {
+    shown: Math.min(events.length, 8), count: events.length, partial: copy(market.historyTruncated ? "; history may be incomplete" : ""),
+  }));
   byId("liquidityCurrent").textContent = formatValue(market.usdcReserve, 3);
   byId("liquidityAdded").textContent = formatValue(added, 3);
   byId("liquidityRemoved").textContent = formatValue(removed, 3);
   byId("liquidityBurned").textContent = shareText(detail.lpBurnedShare);
-  if (detail.lpBurnedShare !== null && detail.lpBurnedShare >= 90) {
-    byId("liquidityLpStatus").textContent = `${shareText(detail.lpBurnedShare)} of LP supply is held by burn addresses.`;
-  } else if (detail.lpTopHolderShare !== null) {
-    byId("liquidityLpStatus").textContent = `Top ${detail.lpTopHolderIsContract ? "contract" : "wallet"} controls ${shareText(detail.lpTopHolderShare)} of LP supply; a lock is not confirmed.`;
-  } else {
-    byId("liquidityLpStatus").textContent = "LP ownership is unavailable from the current index.";
-  }
-  byId("liquidityLpStatus").append(` LP data: ${detail.sources.lp}${detail.lpHistoryPartial ? "; partial holder page" : ""}.`);
+  const lpOwnership = detail.lpBurnedShare !== null && detail.lpBurnedShare >= 90
+    ? copy("{share} of LP supply is held by burn addresses.", { share: shareText(detail.lpBurnedShare) })
+    : detail.lpTopHolderShare !== null ? copy("Top {holder} controls {share} of LP supply; a lock is not confirmed.", { holder: copy(detail.lpTopHolderIsContract ? "contract" : "wallet"), share: shareText(detail.lpTopHolderShare) })
+      : copy("LP ownership is unavailable from the current index.");
+  setCopy("liquidityLpStatus", copy("{ownership} LP data: {state}{partial}.", {
+    ownership: lpOwnership, state: copy(detail.sources.lp), partial: copy(detail.lpHistoryPartial ? "; partial holder page" : ""),
+  }));
 
   const list = byId("liquidityEventList");
   list.replaceChildren();
   if (events.length === 0) {
-    list.append(element("div", "liquidity-empty", "No Mint or Burn event appears in the visible pair history."));
+    list.append(element("div", "liquidity-empty", copy("No Mint or Burn event appears in the visible pair history.")));
     return;
   }
   for (const event of events.slice(0, 8)) {
     const row = element("div", `liquidity-event-row ${event.direction}`);
     const head = element("div", "liquidity-event-head");
-    const time = element("time", "", `${relativeTime(event.timestamp)} ago`);
+    const time = element("time", "", copy("{time} ago", { time: relativeTime(event.timestamp) }));
     time.dateTime = event.timestamp;
-    head.append(element("strong", "", event.direction === "add" ? "Liquidity added" : "Liquidity removed"), time);
+    head.append(element("strong", "", copy(event.direction === "add" ? "Liquidity added" : "Liquidity removed")), time);
 
     const values = element("div", "liquidity-event-values");
     values.append(
       element("strong", "", `${formatValue(event.usdcAmount, 4)} USDC`),
       element("span", "", `${formatValue(event.tokenAmount, 3)} ${market.token.symbol || "tokens"}`),
-      element("span", "", event.changePercent === null ? "Initial / unknown base" : `${event.changePercent.toFixed(1)}% of prior USDC reserve`),
+      element("span", "", event.changePercent === null ? copy("Initial / unknown base") : copy("{percent}% of prior USDC reserve", { percent: event.changePercent.toFixed(1) })),
     );
     const links = element("span", "liquidity-event-links");
     const wallet = detail.transactionSenders[event.transactionHash.toLowerCase()] ?? event.fallbackAddress;
@@ -1617,17 +1641,19 @@ function shareText(value: number | null): string {
 }
 
 function renderHolders(market: MarketPair, detail: MarketDetail): void {
-  byId("holderCountSummary").textContent = `${fullNumber(market.token.holders_count)} indexed`;
+  setCopy("holderCountSummary", copy("{count} indexed", { count: fullNumber(market.token.holders_count) }));
   byId("holderTop1").textContent = shareText(detail.top1Share);
   byId("holderTop5").textContent = shareText(detail.top5Share);
   byId("holderTop10").textContent = shareText(detail.top10Share);
   byId("holderCreator").textContent = shareText(detail.creatorShare);
-  byId("holderSupplyNote").textContent = `Holders: ${detail.sources.holders}${detail.holderHistoryPartial ? "; first page only" : ""}. Selected pool ${shareText(detail.poolShare)} · Burned ${shareText(detail.burnedTokenShare)}. Rankings exclude burn addresses and ${detail.poolScope.split(",").filter(Boolean).length} known same-token pool(s), not all possible pools.`;
+  setCopy("holderSupplyNote", copy("Holders: {state}{partial}. Selected pool {poolShare} · Burned {burnedShare}. Rankings exclude burn addresses and {count} known same-token pool(s), not all possible pools.", {
+    state: copy(detail.sources.holders), partial: copy(detail.holderHistoryPartial ? "; first page only" : ""), poolShare: shareText(detail.poolShare), burnedShare: shareText(detail.burnedTokenShare), count: detail.poolScope.split(",").filter(Boolean).length,
+  }));
 
   const list = byId("holderList");
   list.replaceChildren();
   if (detail.holderPositions.length === 0) {
-    list.append(element("div", "holder-empty", "Holder positions are unavailable from the current index."));
+    list.append(element("div", "holder-empty", copy("Holder positions are unavailable from the current index.")));
     return;
   }
 
@@ -1642,7 +1668,7 @@ function renderHolders(market: MarketPair, detail: MarketDetail): void {
     address.rel = "noreferrer";
     address.title = position.address;
     addressLine.append(address);
-    if (position.isCreator) addressLine.append(element("span", "holder-tag creator", "Creation sender"));
+    if (position.isCreator) addressLine.append(element("span", "holder-tag creator", copy("Creation sender")));
     if (position.isContract) addressLine.append(element("span", "holder-tag contract", "Contract"));
     identity.append(addressLine, element("small", "", `${formatValue(position.balance, 3)} ${market.token.symbol || "tokens"}`));
 
@@ -1663,7 +1689,7 @@ function renderHolderConnections(detail: MarketDetail): void {
   const clusters = detail.holderClusters;
   const connectedWallets = new Set(connections.flatMap((connection) => [connection.addressA.toLowerCase(), connection.addressB.toLowerCase()]));
   const unavailable = detail.sources.holders === "unavailable" || detail.sources.transfers === "unavailable";
-  byId("holderClusterSummary").textContent = unavailable ? "Unavailable" : connections.length === 0 ? "No visible links" : `${connections.length} link${connections.length === 1 ? "" : "s"}`;
+  setCopy("holderClusterSummary", unavailable ? "Unavailable" : connections.length === 0 ? "No visible links" : copy("{count} links", { count: connections.length }));
   byId("clusterConnections").textContent = String(connections.length);
   byId("clusterWallets").textContent = String(connectedWallets.size);
   byId("clusterCount").textContent = String(clusters.length);
@@ -1676,7 +1702,7 @@ function renderHolderConnections(detail: MarketDetail): void {
   const map = byId("holderClusterMap");
   map.replaceChildren();
   if (clusters.length === 0) {
-    map.append(element("div", "cluster-empty", unavailable ? "Holder connections cannot be checked without holder and transfer data." : `No connection appears in the available post-launch history. Holders: ${detail.sources.holders}; transfers: ${detail.sources.transfers}.`));
+    map.append(element("div", "cluster-empty", unavailable ? copy("Holder connections cannot be checked without holder and transfer data.") : copy("No connection appears in the available post-launch history. Holders: {holders}; transfers: {transfers}.", { holders: copy(detail.sources.holders), transfers: copy(detail.sources.transfers) })));
   } else {
     clusters.forEach((cluster, index) => {
       const group = element("div", "cluster-group");
@@ -1743,8 +1769,8 @@ function updateWatchToggle(market: MarketPair): void {
   const button = byId<HTMLButtonElement>("watchToggle");
   button.classList.toggle("active", watched);
   button.setAttribute("aria-pressed", String(watched));
-  button.setAttribute("aria-label", watched ? "Remove token from watchlist" : "Add token to watchlist");
-  button.title = watched ? "Remove from watchlist" : "Add to watchlist";
+  localize(button, watched ? "Remove token from watchlist" : "Add token to watchlist", "aria-label");
+  localize(button, watched ? "Remove from watchlist" : "Add to watchlist", "title");
   byId("watchIcon").textContent = watched ? "★" : "☆";
 }
 
@@ -1756,20 +1782,20 @@ function renderWatchDigest(): void {
   const events = watched.flatMap(market => (readTracking(market.pairAddress)?.alerts ?? []).map(alert => ({ ...alert, market })));
   const onlyNew = byId<HTMLSelectElement>("watchChangeView").value === "new";
   const recent = recentWatchChanges(events, onlyNew ? watchReviewedAt : null, Date.now());
-  byId("watchDigestTitle").textContent = "Watchlist changes";
+  localize(byId("watchDigestTitle"), "Watchlist changes");
   const covered = new Set(watched.map(market => market.tokenAddress.toLowerCase())).size;
   const checked = watched.filter(market => {
     const detail = detailCache.get(poolCacheKey(market));
     return !market.stale && detail && Date.now() - detail.data.checkedAt < DETAIL_CACHE_TTL_MS
       && detail.data.sources.holders === "fresh" && detail.data.sources.lp === "fresh" && detail.data.sources.creator === "fresh";
   }).length;
-  byId("watchDigestCoverage").textContent = `${covered} / ${watchlist.size} watched tokens loaded · ${checked} / ${watched.length} pools with recent ownership reads · ${watchScanRunning ? "Checking" : document.hidden ? "Paused" : "Tab-only monitoring"}`;
-  byId("watchMonitorNote").textContent = `Up to 3 loaded watched pools checked per minute while this tab is visible. No monitoring while hidden or closed. ${watchReviewedAt ? `Reviewed ${new Date(watchReviewedAt).toLocaleString()}.` : "Not reviewed yet."}`;
+  setCopy("watchDigestCoverage", copy("{covered} / {total} watched tokens loaded · {checked} / {pools} pools with recent ownership reads · {state}", { covered, total: watchlist.size, checked, pools: watched.length, state: copy(watchScanRunning ? "Checking" : document.hidden ? "Paused" : "Tab-only monitoring") }));
+  setCopy("watchMonitorNote", copy("Up to 3 loaded watched pools checked per minute while this tab is visible. No monitoring while hidden or closed. {review}", { review: watchReviewedAt ? copy("Reviewed {time}.", { time: new Date(watchReviewedAt).toLocaleString() }) : copy("Not reviewed yet.") }));
   byId<HTMLButtonElement>("markWatchReviewed").disabled = recent.length === 0 || marketLoadFailed;
   const list = byId("watchDigestList");
   list.replaceChildren();
   if (!recent.length) {
-    list.append(element("p", "watch-digest-empty", watchlist.size === 0 ? "No watched tokens." : covered === 0 ? "Watched tokens are outside the loaded pool coverage." : "No recorded changes in this view. Gaps in observation are not proof of no activity."));
+    list.append(element("p", "watch-digest-empty", copy(watchlist.size === 0 ? "No watched tokens." : covered === 0 ? "Watched tokens are outside the loaded pool coverage." : "No recorded changes in this view. Gaps in observation are not proof of no activity.")));
     return;
   }
   for (const event of recent) {
@@ -1823,7 +1849,7 @@ function renderObservedAlerts(market: MarketPair): void {
   if (!watched) return;
   const tracking = readTracking(market.pairAddress) ?? startTracking(market);
   const alerts = tracking.alerts ?? [];
-  byId("observedAlertCount").textContent = `${alerts.length} event${alerts.length === 1 ? "" : "s"}`;
+  setCopy("observedAlertCount", copy("{count} events", { count: alerts.length }));
   const list = byId("observedAlertList");
   list.replaceChildren();
   if (alerts.length === 0) {
@@ -1844,7 +1870,7 @@ function renderObservedAlerts(market: MarketPair): void {
   const baseline = Number.isFinite(started.getTime())
     ? new Intl.DateTimeFormat("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(started)
     : "this browser";
-  byId("observedAlertNote").textContent = `Baseline ${baseline} · stored in this browser.`;
+  setCopy("observedAlertNote", copy("Baseline {time} · stored in this browser.", { time: baseline }));
 }
 
 function exitEstimate(market: MarketPair, supplyPercent: number): { impact: number; output: number } | null {
@@ -1867,7 +1893,7 @@ function renderExitCurve(market: MarketPair): void {
     const label = svgNode("text", { x: "12", y: "36", class: "chart-label" });
     label.textContent = "Pool reserves are unavailable.";
     chart.append(label);
-    byId("exitEstimate").textContent = "Unavailable";
+    localize(byId("exitEstimate"), "Unavailable");
     return;
   }
   const width = 440;
@@ -1893,7 +1919,7 @@ function renderExitCurve(market: MarketPair): void {
   );
   estimates.forEach((entry, index) => chart.append(svgNode("circle", { cx: String(x(index)), cy: String(y(entry.estimate!.impact)), r: "4", class: "exit-dot" })));
   const onePercent = estimates.find((entry) => entry.percent === 1)!.estimate!;
-  byId("exitEstimate").textContent = `1% -> ${formatValue(onePercent.output, 3)} USDC · ${onePercent.impact.toFixed(1)}% impact`;
+  setCopy("exitEstimate", copy("1% -> {amount} USDC · {impact}% impact", { amount: formatValue(onePercent.output, 3), impact: onePercent.impact.toFixed(1) }));
 }
 
 function renderPoolComparison(market: MarketPair): void {
@@ -1907,7 +1933,7 @@ function renderPoolComparison(market: MarketPair): void {
   }
   select.value = market.pairAddress.toLowerCase();
   select.disabled = peers.length < 2;
-  byId("poolComparisonNote").textContent = `${peers.length} loaded pool${peers.length === 1 ? "" : "s"}. Quotes are pool-specific, not executable prices. Default: fresh data first, then highest liquidity.`;
+  setCopy("poolComparisonNote", copy("Loaded pools: {count}. Quotes are pool-specific, not executable prices. Default: fresh data first, then highest liquidity.", { count: peers.length }));
   const list = byId("poolComparisonList");
   list.replaceChildren();
   for (const peer of peers) {
@@ -1918,7 +1944,7 @@ function renderPoolComparison(market: MarketPair): void {
     const quote = element("span");
     quote.append(priceElement(peer.currentPrice));
     row.append(link, quote, element("span", "", `${formatValue(peer.totalLiquidity)} USDC`),
-      element("small", "", `${peer.stale ? "Cached" : "Fetched"}${peer.historyTruncated ? " · Partial" : ""} · ${peer.lastTradeAt ? `trade ${relativeTime(peer.lastTradeAt)}` : "no trade"}`));
+      element("small", "", copy("{state}{partial} · {trade}", { state: copy(peer.stale ? "Cached" : "Fetched"), partial: copy(peer.historyTruncated ? " · Partial history" : ""), trade: peer.lastTradeAt ? copy("trade {time}", { time: relativeTime(peer.lastTradeAt) }) : copy("no trades") })));
     list.append(row);
   }
 }
@@ -1929,12 +1955,12 @@ function renderAuthority(market: MarketPair): void {
   const button = byId<HTMLButtonElement>("readAuthority");
   const cooling = Boolean(entry && Date.now() - entry.attemptedAt < 60_000);
   button.disabled = !NETWORK || Boolean(authorityRunning) || cooling;
-  button.textContent = authorityRunning === key ? "Reading..." : entry ? "Read again" : "Read state";
-  button.title = cooling ? "Public RPC cooldown: one request per token per minute." : "Read selected contract getters without connecting a wallet";
+  localize(button, authorityRunning === key ? "Reading..." : entry ? "Read again" : "Read state");
+  localize(button, cooling ? "Public RPC cooldown: one request per token per minute." : "Read selected contract getters without connecting a wallet", "title");
   const status = byId("authorityStatus");
-  status.textContent = authorityRunning === key ? "Reading verified ABI and public RPC state..."
+  localize(status, authorityRunning === key ? "Reading verified ABI and public RPC state..."
     : entry?.error ? entry.error : entry?.snapshot?.block ? "Fixed-block snapshot. Values may have changed since this read."
-      : entry?.snapshot ? "State not read: no supported verified getters available." : "No state snapshot requested.";
+      : entry?.snapshot ? "State not read: no supported verified getters available." : "No state snapshot requested.");
   const provenance = byId("authoritySource");
   const rows = byId("authorityRows");
   provenance.replaceChildren();
@@ -1956,11 +1982,11 @@ function renderAuthority(market: MarketPair): void {
   for (const address of snapshot.abiAddresses) provenance.append(sourceLink(`ABI ${shortHash(address)}`, `/address/${address}?tab=contract`));
   const unchecked = element("details", "authority-unchecked");
   const uncheckedCount = snapshot.rows.filter(item => item.state === "unsupported").length;
-  unchecked.append(element("summary", "", `${uncheckedCount} checks unavailable from ABI`));
+  unchecked.append(element("summary", "", copy("{count} checks unavailable from ABI", { count: uncheckedCount })));
   for (const item of snapshot.rows) {
     const row = element("div", "authority-row");
     const value = element("div", "authority-value");
-    value.append(element("strong", "", item.value));
+    value.append(element("strong", "", item.state === "unsupported" || item.value === "Unavailable" ? copy(item.value) : item.value));
     if (item.addresses?.length) {
       const addresses = element("div", "authority-addresses");
       for (const address of item.addresses) addresses.append(sourceLink(address, `/address/${address}`));
@@ -1968,12 +1994,12 @@ function renderAuthority(market: MarketPair): void {
       if (item.addresses.length === 1 && item.value === item.addresses[0]) value.replaceChildren();
       value.append(addresses);
     }
-    value.append(element("small", "", item.note));
-    row.append(element("span", "", item.label), value);
+    value.append(element("small", "", copy(item.note)));
+    row.append(element("span", "", copy(item.label)), value);
     (item.state === "unsupported" ? unchecked : rows).append(row);
   }
   if (uncheckedCount) rows.append(unchecked);
-  for (const note of snapshot.notes) rows.append(element("p", "authority-note", note));
+  for (const note of snapshot.notes) rows.append(element("p", "authority-note", copy(note)));
 }
 
 async function readSelectedAuthority(): Promise<void> {
@@ -2020,9 +2046,9 @@ function renderDetail(market: MarketPair, detail: MarketDetail): void {
   const detailChange = byId("detailPriceChange");
   detailChange.textContent = `24H ${compactChange(market.periods.h24.priceChange)}`;
   detailChange.className = changeClass(market.periods.h24.priceChange);
-  byId("detailFdv").textContent = `${formatValue(market.fdv)} USDC`;
+  setCopy("detailFdv", market.fdv === null ? "Unavailable" : copy("{value} USDC", { value: formatValue(market.fdv) }));
   byId("detailLiquidity").textContent = `${formatValue(market.totalLiquidity)} USDC`;
-  byId("detailLiquidityNote").textContent = `${formatValue(market.usdcReserve)} USDC exit side · ${market.reserveSource === "sync" ? "Sync reserves" : "balance fallback"}`;
+  setCopy("detailLiquidityNote", copy("{amount} USDC exit side · {source}", { amount: formatValue(market.usdcReserve), source: copy(market.reserveSource === "sync" ? "Sync reserves" : "balance fallback") }));
   byId("detailHolders").textContent = fullNumber(market.token.holders_count);
 
   const change = byId("priceChange");
@@ -2035,7 +2061,7 @@ function renderDetail(market: MarketPair, detail: MarketDetail): void {
   byId("detailBuys").textContent = String(recent.buyCount);
   byId("detailSells").textContent = String(recent.sellCount);
   byId("detailVolume").textContent = `${formatValue(recent.volumeUsdc, 3)} USDC`;
-  byId("detailLastTrade").textContent = market.lastTradeAt ? `${relativeTime(market.lastTradeAt)} ago` : "None";
+  setCopy("detailLastTrade", market.lastTradeAt ? copy("{time} ago", { time: relativeTime(market.lastTradeAt) }) : "None");
   const totalFlow = Math.max(1, recent.buyCount + recent.sellCount);
   byId<HTMLElement>("detailBuyBar").style.width = `${(recent.buyCount / totalFlow) * 100}%`;
   byId<HTMLElement>("detailSellBar").style.width = `${(recent.sellCount / totalFlow) * 100}%`;
@@ -2047,16 +2073,16 @@ function renderDetail(market: MarketPair, detail: MarketDetail): void {
 
   const warnings = buildWarnings(market, detail);
   const summary = evidenceSummary(warnings);
-  byId("warningCount").textContent = `${summary.observed} indexed · ${summary.estimates} calculated · ${summary.unverified} unverified`;
+  setCopy("warningCount", copy("{indexed} indexed · {calculated} calculated · {unverified} unverified", { indexed: summary.observed, calculated: summary.estimates, unverified: summary.unverified }));
   const badge = byId("riskBadge");
   badge.className = "risk-badge";
-  badge.textContent = summary.label;
-  badge.title = "Evidence completeness, not a risk score or safety verdict.";
-  byId("evidenceFreshness").textContent = `Market: ${market.stale ? "cached" : "fetched"} · Contract: ${detail.sources.contract} · Holders: ${detail.sources.holders} · No safety score`;
+  localize(badge, summary.label);
+  localize(badge, "Evidence completeness, not a risk score or safety verdict.", "title");
+  setCopy("evidenceFreshness", copy("Market: {market} · Contract: {contract} · Holders: {holders} · No safety score", { market: copy(market.stale ? "Cached" : "Fetched"), contract: copy(detail.sources.contract), holders: copy(detail.sources.holders) }));
   const sources = byId("evidenceSources");
   sources.replaceChildren();
   for (const [label, path] of [["Token contract", `/address/${market.tokenAddress}?tab=contract`], ["Pool events", `/address/${market.pairAddress}?tab=logs`], ["Holder index", `/token/${market.tokenAddress}?tab=holders`]]) {
-    const link = element("a", "", label);
+    const link = element("a", "", copy(label));
     link.href = `${EXPLORER_BASE}${path}`;
     link.target = "_blank";
     link.rel = "noreferrer";
@@ -2066,9 +2092,9 @@ function renderDetail(market: MarketPair, detail: MarketDetail): void {
   list.replaceChildren();
   for (const warning of warnings) {
     const row = element("div", `warning-item ${warning.tone}`);
-    const copy = element("div", "warning-copy");
-    copy.append(element("small", `evidence-label ${warning.basis}`, warning.basis === "observed" ? "Indexed event" : warning.basis === "estimate" ? "Calculated" : "Unverified"), element("strong", "", warning.title), element("span", "", warning.detail));
-    row.append(element("span", "warning-dot"), copy);
+    const copyBlock = element("div", "warning-copy");
+    copyBlock.append(element("small", `evidence-label ${warning.basis}`, copy(warning.basis === "observed" ? "Indexed event" : warning.basis === "estimate" ? "Calculated" : "Unverified")), element("strong", "", copy(warning.title)), element("span", "", typeof warning.detail === "string" ? copy(warning.detail) : warning.detail));
+    row.append(element("span", "warning-dot"), copyBlock);
     list.append(row);
   }
   renderExitCurve(market);
@@ -2096,7 +2122,7 @@ async function loadDetail(market: MarketPair, force = false): Promise<void> {
   const url = marketUrl(location.href, NETWORK!.id, market.pairAddress);
   byId<HTMLAnchorElement>("fullMarketLink").href = url;
   byId<HTMLButtonElement>("copyMarketLink").disabled = false;
-  byId("shareMarketStatus").textContent = "";
+  setCopy("shareMarketStatus", "");
   if (linkedPool) document.title = `${market.token.symbol ?? "Token"} | ARCROW`;
   const requestId = ++detailRequest;
   const key = poolCacheKey(market);
@@ -2128,9 +2154,9 @@ async function selectMarket(market: MarketPair, scrollOnMobile: boolean): Promis
   }
 }
 
-function setNotice(message?: string): void {
+function setNotice(message?: string | UiCopy): void {
   const notice = byId("dataNotice");
-  notice.textContent = message ?? "";
+  localize(notice, message ?? "");
   notice.classList.toggle("hidden", !message);
 }
 
@@ -2150,6 +2176,9 @@ async function loadMarkets(force: boolean): Promise<boolean> {
   const discovery = await discoverDexPools(dexAdapters, marketLimit, path => fetchData<LogResponse>(path, 60_000, force));
   const loaded = await mapLimited(discovery.seeds, 3, (seed) => loadMarketPair(seed, force));
   failedMarketCount = loaded.filter((market) => market === null).length;
+  if (discovery.seeds.length > 0 && failedMarketCount === loaded.length) {
+    throw new Error("All discovered pools failed to load. Market activity is unknown. Retry with Refresh.");
+  }
   const previous = new Map(markets.map((market) => [market.pairAddress.toLowerCase(), market]));
   markets = loaded.flatMap((market, index) => {
     if (market) return [market];
@@ -2161,7 +2190,6 @@ async function loadMarkets(force: boolean): Promise<boolean> {
   const shown = visibleMarkets();
   const current = markets.find(market => market.pairAddress.toLowerCase() === selectedPair);
   if (!current || !shown.some(market => market.tokenAddress.toLowerCase() === current.tokenAddress.toLowerCase())) selectedPair = shown[0]?.pairAddress.toLowerCase() ?? "";
-  renderMarketRows();
   const selected = markets.find((market) => market.pairAddress.toLowerCase() === selectedPair);
   if (selected) void loadDetail(selected, force);
   else { detailRequest += 1; setDetailState("empty"); }
@@ -2174,22 +2202,23 @@ async function loadDashboard(force = false): Promise<void> {
   renderDiscoveryControls();
   const refresh = byId<HTMLButtonElement>("refreshButton");
   refresh.disabled = true;
-  refresh.textContent = "Refreshing";
+  localize(refresh, "Refreshing");
   setNotice();
   try {
     const stale = await loadMarkets(force);
     marketLoadFailed = false;
-    renderMarketBrief();
+    renderMarketRows();
     void checkWatchedPools();
     if (stale) setNotice("Live indexing is temporarily unavailable. Showing the latest cached market snapshot.");
-    byId("lastUpdated").textContent = `${stale ? "Cached" : "Updated"} ${new Intl.DateTimeFormat("en", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date())}`;
+    else if (failedMarketCount > 0) setNotice(copy("Pool loads failed: {count}. Totals cover available pools only.", { count: failedMarketCount }));
+    setCopy("lastUpdated", copy("{state} {time}", { state: copy(stale ? "Cached" : failedMarketCount > 0 ? "Partial update" : "Updated"), time: new Intl.DateTimeFormat("en", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(new Date()) }));
   } catch (error) {
     marketLoadFailed = true;
     markets = markets.map(market => ({ ...market, stale: true }));
     renderMarketRows();
     adPreview.setContentAvailable(false);
-    setNotice(error instanceof Error ? `Market data unavailable: ${error.message}` : "Market data unavailable.");
-    byId("lastUpdated").textContent = "Connection unavailable";
+    setNotice(error instanceof Error ? copy("Market data unavailable: {error}", { error: copy(error.message) }) : "Market data unavailable.");
+    localize(byId("lastUpdated"), "Connection unavailable");
     detailRequest += 1;
     setDetailState("empty");
     if (linkedPool) {
@@ -2200,7 +2229,7 @@ async function loadDashboard(force = false): Promise<void> {
     lastRefreshAt = Date.now();
     loading = false;
     refresh.disabled = false;
-    refresh.textContent = "Refresh";
+    localize(refresh, "Refresh");
     renderDiscoveryControls();
   }
 }
@@ -2285,9 +2314,9 @@ byId<HTMLButtonElement>("copyMarketLink").addEventListener("click", async () => 
   const url = marketUrl(location.href, NETWORK.id, market.pairAddress);
   try {
     await navigator.clipboard.writeText(url);
-    byId("shareMarketStatus").textContent = "Link copied";
+    localize(byId("shareMarketStatus"), "Link copied");
   } catch {
-    byId("shareMarketStatus").textContent = "Copy unavailable. Use the Full details link.";
+    localize(byId("shareMarketStatus"), "Copy unavailable. Use the Full details link.");
   }
 });
 byId<HTMLButtonElement>("watchToggle").addEventListener("click", toggleSelectedWatch);
@@ -2322,6 +2351,8 @@ byId<HTMLButtonElement>("loadMoreMarkets").addEventListener("click", () => {
   void loadDashboard();
 });
 
+initializeLanguage();
+
 if (NETWORK) {
   byId<HTMLAnchorElement>("backToMarkets").href = marketUrl(location.href, NETWORK.id);
   if (linkedPool || routeError) {
@@ -2330,7 +2361,7 @@ if (NETWORK) {
     byId("poolPageAddress").textContent = linkedPool ? `Pool ${shortHash(linkedPool)}` : "Invalid pool link";
     byId<HTMLAnchorElement>("fullMarketLink").classList.add("hidden");
   }
-  document.querySelector(".status-row strong")!.textContent = `${NETWORK.label.toUpperCase()} MARKET FEED`;
+  localize(document.querySelector(".status-row strong")!, copy("{network} MARKET FEED", { network: NETWORK.label.toUpperCase() }));
   document.querySelector(".chain-id")!.textContent = `CHAIN ${NETWORK.chainId}`;
   document.querySelector(".network-lockup small")!.textContent = NETWORK.testnet ? "TESTNET" : "MAINNET";
   document.querySelector(".pulse-heading .eyebrow")!.textContent = `ARCROW / ${NETWORK.label.toUpperCase()}`;
@@ -2339,12 +2370,12 @@ if (NETWORK) {
   if (routeError) {
     setNotice(routeError);
     byId("marketDetailEmpty").textContent = "This pool link is invalid. Return to markets.";
-    byId("lastUpdated").textContent = "Invalid link";
+    localize(byId("lastUpdated"), "Invalid link");
     byId<HTMLButtonElement>("refreshButton").disabled = true;
   } else void loadDashboard();
 } else {
   setNotice(networkError);
-  byId("lastUpdated").textContent = "Network unavailable";
+  localize(byId("lastUpdated"), "Network unavailable");
   document.querySelector(".status-row strong")!.textContent = "ARCROW";
   document.querySelector(".live-dot")!.classList.add("hidden");
   document.querySelector(".chain-id")!.textContent = "";
@@ -2352,7 +2383,7 @@ if (NETWORK) {
   document.querySelector(".footer-brand small")!.textContent = "";
   byId("markets").classList.add("hidden");
   document.querySelectorAll<HTMLAnchorElement>("a[data-explorer]").forEach(link => link.removeAttribute("href"));
-  document.querySelectorAll<HTMLButtonElement | HTMLInputElement | HTMLSelectElement>("button, input, select").forEach(control => { control.disabled = true; });
+  document.querySelectorAll<HTMLButtonElement | HTMLInputElement | HTMLSelectElement>('button, input:not([name="arcrow-theme"]), select:not(#languageSelect)').forEach(control => { control.disabled = true; });
 }
 window.setInterval(() => {
   if (!document.hidden) void loadDashboard();
