@@ -70,6 +70,7 @@ const targets = {
     "circle/arc/public/appkit-unified-balance.bundle.js",
   ],
   "arc-usdc-tools": ["circle/arc/src/arc-usdc-tools.ts", "circle/arc/public/arc-usdc-tools.bundle.js"],
+  "arc-usdc-receipt": ["circle/arc/src/arc-usdc-receipt.ts", "circle/arc/public/arc-usdc-receipt.bundle.js"],
   "arc-invoice": ["circle/arc/src/arc-invoice.ts", "circle/arc/public/arc-invoice.bundle.js"],
   "arc-pay-link": ["circle/arc/src/arc-pay-link.ts", "circle/arc/public/arc-pay-link.bundle.js"],
   "arc-revenue-splitter": ["circle/arc/src/arc-revenue-splitter.ts", "circle/arc/public/arc-revenue-splitter.bundle.js"],

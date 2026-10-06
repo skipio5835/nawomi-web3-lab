@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#ffffff" />
-    <meta name="description" content="ARCROW is an independent Arc Testnet market watch tool. Selected indexed pools, evidence-linked changes, and explicit data coverage. No wallet connection or safety guarantee." />
+    <meta name="description" content="ARCROW is an independent Arc market watch tool. Read-only mainnet Uniswap v3/v4 samples and separate testnet markets, with explicit data coverage. No wallet connection or safety guarantee." />
     <title>ARCROW | Arc Meme Intelligence</title>
     <link rel="icon" type="image/png" href="./assets/arcrow-mark.png" />
     <script src="./arc-radar-theme.js"></script>
@@ -20,10 +20,10 @@
             <span class="brand-mark" aria-hidden="true"><img src="./assets/arcrow-mark.png" alt="" /></span>
             <span class="brand-copy"><strong>ARCROW</strong><small>Meme Intelligence</small></span>
           </a>
-          <a class="network-lockup" href="https://www.arc.network/" target="_blank" rel="noreferrer" aria-label="Visit the Arc network website">
+          <a class="network-lockup" href="https://www.arc.io/" target="_blank" rel="noreferrer" aria-label="Visit the Arc network website">
             <span>NETWORK</span>
             <strong>ARC</strong>
-            <small>TESTNET</small>
+            <small>NETWORK</small>
           </a>
         </div>
         <form class="search-form" id="searchForm" role="search">
@@ -43,9 +43,10 @@
         </div>
       </div>
       <div class="shell status-row">
+        <label class="network-picker"><span class="sr-only" data-i18n="Market network">Market network</span><select id="networkSelect" disabled></select></label>
         <span class="live-dot" aria-hidden="true"></span>
-        <strong>ARC TESTNET MARKET FEED</strong>
-        <span class="chain-id">CHAIN 5042002</span>
+        <strong>ARCROW MARKET FEED</strong>
+        <span class="chain-id"></span>
         <span id="lastUpdated" data-i18n="Connecting...">Connecting...</span>
         <span class="independent-label">INDEPENDENT ANALYTICS</span>
         <a data-explorer href="https://testnet.arcscan.app" target="_blank" rel="noreferrer">ArcScan</a>
@@ -54,7 +55,22 @@
 
     <div class="notice hidden" id="dataNotice" role="status" aria-live="polite"></div>
 
+    <section class="shell network-unavailable hidden" id="networkUnavailable" aria-labelledby="networkUnavailableTitle">
+      <p class="eyebrow">ARCROW / ARC</p>
+      <h1 id="networkUnavailableTitle">Arc Mainnet</h1>
+      <p id="networkUnavailableMessage" data-i18n="Mainnet market data is not connected. Network and DEX configuration are awaiting verification.">Mainnet market data is not connected. Network and DEX configuration are awaiting verification.</p>
+      <a id="returnToTestnet" href="?network=arc-testnet" data-i18n="View Arc Testnet">View Arc Testnet</a>
+    </section>
+
     <main class="shell trader-layout" id="markets">
+      <details class="market-context">
+        <summary data-i18n="Market context and data coverage">Market context and data coverage</summary>
+      <section class="mainnet-coverage hidden" id="mainnetCoverage" aria-labelledby="mainnetCoverageTitle">
+        <div class="section-title"><h2 id="mainnetCoverageTitle" data-i18n="Mainnet · Recent RPC sample">Mainnet · Recent RPC sample</h2><span id="mainnetBlock" data-i18n="Checking mainnet RPC...">Checking mainnet RPC...</span></div>
+        <p data-i18n="Recent Uniswap v3/v4 pools and observed swaps only. Volumes are partial, not full 24H totals. Older pools may be outside the scan window.">Recent Uniswap v3/v4 pools and observed swaps only. Volumes are partial, not full 24H totals. Older pools may be outside the scan window.</p>
+        <p data-i18n="Holder distribution, verified source and per-pool liquidity are unavailable. Explorer links may require login.">Holder distribution, verified source and per-pool liquidity are unavailable. Explorer links may require login.</p>
+        <p id="mainnetStorageNote" data-i18n="Public demo observations remain browser-only.">Public demo observations remain browser-only.</p>
+      </section>
       <nav class="pool-page-nav hidden" id="poolPageNav" aria-label="Market navigation">
         <a id="backToMarkets" href="./arc-radar.html" data-i18n="Back to markets">Back to markets</a><span id="poolPageAddress"></span>
       </nav>
@@ -62,8 +78,32 @@
         <summary id="coverageSummary">Arc Testnet · Selected pools only</summary>
         <p id="coverageStatus" data-i18n="Reading source coverage...">Reading source coverage...</p>
         <div id="coverageSources"></div>
-        <p data-i18n="Source: ArcScan. Indexing may lag. V2 pools only; mainnet and other DEX protocols are not connected.">Source: ArcScan. Indexing may lag. V2 pools only; mainnet and other DEX protocols are not connected.</p>
+        <p id="coverageNote"></p>
+        <h3 data-i18n="Sources and launch plans">Sources and launch plans</h3>
+        <div id="venueRegistry"></div>
+        <p data-i18n="References are not endorsements, audits, or official-token labels. Announced venues do not supply market data.">References are not endorsements, audits, or official-token labels. Announced venues do not supply market data.</p>
       </details>
+
+      <section class="local-recorder hidden" id="localRecorder" aria-labelledby="recorderTitle">
+        <div class="section-title"><h2 id="recorderTitle" data-i18n="Local event history">Local event history</h2><span id="recorderStatus"></span></div>
+        <p id="recorderCoverage"></p><p id="recorderHealth"></p><p class="observation-note" id="recorderLimits"></p>
+        <details><summary data-i18n="Recently recorded pool creations">Recently recorded pool creations</summary><ul id="recorderDiscoveries"></ul></details>
+        <p class="observation-note" data-i18n="Stored on this PC, separate from browser history. Collection requires the recorder process and PC to remain running; not a complete chain archive.">Stored on this PC, separate from browser history. Collection requires the recorder process and PC to remain running; not a complete chain archive.</p>
+      </section>
+
+      <section class="discovery-journal" aria-labelledby="discoveryJournalTitle">
+        <div class="section-title"><h2 id="discoveryJournalTitle" data-i18n="Pool discoveries">Pool discoveries</h2>
+          <label><span class="sr-only" data-i18n="Discovery view">Discovery view</span><select id="discoveryView">
+            <option value="all" data-i18n="Recently observed">Recently observed</option>
+            <option value="new" data-i18n="Created in 24H">Created in 24H</option>
+            <option value="follow" data-i18n="Trading across intervals">Trading across intervals</option>
+          </select></label>
+        </div>
+        <p id="discoveryJournalCount"></p>
+        <div id="discoveryJournalList"></div>
+        <p class="observation-note" id="observationStorage"></p>
+        <p class="observation-note" data-i18n="First observation is not launch time. Activity spans indexed five-minute windows, not independent traders or proven demand.">First observation is not launch time. Activity spans indexed five-minute windows, not independent traders or proven demand.</p>
+      </section>
 
       <section class="market-brief" aria-labelledby="marketBriefTitle">
         <div class="section-title"><div><p class="eyebrow">ARCROW / LAST 24H</p><h2 id="marketBriefTitle" data-i18n="Changes to review">Changes to review</h2></div><span id="marketBriefCount">--</span></div>
@@ -95,12 +135,22 @@
         <p id="watchMonitorNote"></p>
       </section>
 
+      </details>
       <aside class="ad-preview" data-ad-preview aria-label="Advertisement preview" hidden>
         <span>Advertisements</span>
         <div class="ad-preview-creative"><strong>Preview</strong></div>
       </aside>
 
       <section class="market-board" id="marketList" tabindex="-1">
+        <p class="feed-status hidden" id="localFeedStatus" role="status"></p>
+        <div class="protocol-toolbar hidden" id="protocolControls">
+          <div class="protocol-filter" role="group" aria-label="DEX version" data-i18n-aria-label="DEX version">
+            <button type="button" data-protocol-filter="all" aria-pressed="true" class="active" data-i18n="All versions">All (V3+V4)</button>
+            <button type="button" data-protocol-filter="uniswap-v3" aria-pressed="false">V3</button>
+            <button type="button" data-protocol-filter="uniswap-v4" aria-pressed="false">V4</button>
+          </div>
+          <span id="protocolScope" aria-live="polite"></span>
+        </div>
         <header class="board-header">
           <div>
             <p class="eyebrow">ARCROW DISCOVERY</p>
@@ -117,14 +167,38 @@
           </div>
         </header>
 
-        <div class="discovery-toolbar">
-          <label><span data-i18n="Sort by">Sort by</span>
+        <div class="market-query-toolbar">
+          <form id="marketSearchForm" class="market-search" role="search" aria-label="Search tokens" data-i18n-aria-label="Search tokens">
+            <label for="marketSearchInput" data-i18n="Search tokens">Search tokens</label>
+            <div class="search-form">
+              <input id="marketSearchInput" type="search" autocomplete="off" placeholder="Name, symbol, or token address" data-i18n-placeholder="Name, symbol, or token address" />
+              <button type="submit" data-i18n="Search">Search</button>
+            </div>
+          </form>
+          <label class="market-sort"><span data-i18n="Sort by">Sort by</span>
             <select id="marketSort">
+              <option value="volume" selected data-i18n="Observed volume: high to low">Observed volume: high to low</option>
+              <option value="fdv" data-i18n="FDV: high to low">FDV: high to low</option>
               <option value="default" data-i18n="View default">View default</option>
               <option value="newest" data-i18n="Newest pool">Newest pool</option>
-              <option value="volume" data-i18n="24H volume">24H volume</option>
               <option value="liquidity" data-i18n="Liquidity">Liquidity</option>
               <option value="recent" data-i18n="Latest trade">Latest trade</option>
+            </select>
+          </label>
+          <p class="market-ranking-scope" data-i18n="Loaded pools only · partial observed volume, not a chain-wide ranking">Loaded pools only · partial observed volume, not a chain-wide ranking</p>
+          <p class="market-ranking-scope hidden" id="mainnetListScope" data-i18n="Mainnet discovery: 8 pools per batch, up to 150 per session. Partial market coverage, not the full chain.">Mainnet discovery: 8 pools per batch, up to 150 per session. Partial market coverage, not the full chain.</p>
+        </div>
+        <details class="market-advanced">
+          <summary data-i18n="Filters and valuation coverage">Filters and valuation coverage</summary>
+        <div class="discovery-toolbar">
+          <label><span data-i18n="Min. FDV (USDC)">Min. FDV (USDC)</span>
+            <select id="minimumFdv">
+              <option value="0" data-i18n="Any">Any</option>
+              <option value="1000000">1M</option>
+              <option value="5000000">5M</option>
+              <option value="10000000">10M</option>
+              <option value="50000000">50M</option>
+              <option value="100000000">100M</option>
             </select>
           </label>
           <label><span data-i18n="Min. liquidity (USDC)">Min. liquidity (USDC)</span>
@@ -138,9 +212,26 @@
           </label>
           <label class="discovery-check"><input id="traded24h" type="checkbox" /><span data-i18n="Traded in 24H">Traded in 24H</span></label>
           <label class="discovery-check"><input id="sellSeenOnly" type="checkbox" /><span data-i18n="Sell observed">Sell observed</span></label>
+          <button id="resetMarketFilters" type="button" class="filter-reset" title="Reset market filters and search" aria-label="Reset market filters and search" data-i18n-title="Reset market filters and search" data-i18n-aria-label="Reset market filters and search"></button>
+          <p class="valuation-filter-note" data-i18n="FDV = price × total supply, not circulating market cap. Loaded markets only; unknown values excluded when filtered.">FDV = price × total supply, not circulating market cap. Loaded markets only; unknown values excluded when filtered.</p>
+          <p class="valuation-filter-note filter-result-summary" id="filterResultSummary" aria-live="polite"></p>
+          <p class="valuation-filter-note" id="fdvCoverage" aria-live="polite"></p>
+          <p class="valuation-filter-note" id="fdvFilterSummary" aria-live="polite"></p>
+          <p class="valuation-filter-note" id="liquidityFilterSummary" aria-live="polite"></p>
+        </div>
+        </details>
+        <div class="token-search-panel hidden" id="tokenSearchPanel" aria-labelledby="tokenSearchHeading">
+          <div class="token-search-heading">
+            <h2 id="tokenSearchHeading" data-i18n="Token search results">Token search results</h2>
+            <span id="tokenSearchCount" role="status"></span>
+            <button id="closeTokenSearch" type="button" aria-label="Clear search" title="Clear search" data-i18n-aria-label="Clear search" data-i18n-title="Clear search"></button>
+          </div>
+          <p id="tokenSearchScope"></p>
+          <p id="tokenSearchUnvalued" class="token-search-note hidden" role="status"></p>
+          <p class="token-search-note" data-i18n="Saved-only tokens are excluded when market conditions cannot be checked.">Saved-only tokens are excluded when market conditions cannot be checked.</p>
         </div>
         <div class="market-column-head" aria-hidden="true">
-          <span data-i18n="Token">Token</span><span data-i18n="Price">Price</span><span data-i18n="Market pulse">Market pulse</span><span data-i18n="Liquidity">Liquidity</span><span data-i18n="Buys / Sells">Buys / Sells</span><span data-i18n="Age">Age</span>
+          <span data-i18n="Token">Token</span><span data-i18n="Price">Price</span><span>FDV (USDC)</span><span data-i18n="Observed volume (partial)">Observed volume (partial)</span><span data-i18n="Buys / Sells">Buys / Sells</span><span data-i18n="Latest trade">Latest trade</span>
         </div>
         <div class="market-rows" id="marketRows" aria-live="polite">
           <div class="market-loading-row" data-i18n="Reading pools and recent trades...">Reading pools and recent trades...</div>
@@ -152,6 +243,7 @@
       </section>
 
       <aside class="token-panel" aria-live="polite">
+        <div class="detail-close-bar"><button type="button" id="closeMarketDetail" class="filter-reset" title="Close details" aria-label="Close details" data-i18n-title="Close details" data-i18n-aria-label="Close details"></button></div>
         <div class="detail-empty" id="marketDetailEmpty">
           <span class="empty-pulse" aria-hidden="true"></span>
           <div><strong data-i18n="Select a token">Select a token</strong><p data-i18n="Price, flow, ownership, and exit risk will appear here.">Price, flow, ownership, and exit risk will appear here.</p></div>
@@ -181,11 +273,106 @@
             <button id="copyMarketLink" type="button" disabled data-i18n="Copy link">Copy link</button>
             <span id="shareMarketStatus" role="status"></span>
           </div>
+          <p class="observation-note" id="selectedVenue"></p>
+          <p class="observation-note" id="detailCheckStatus" role="status"></p>
+          <div class="launch-origin" aria-label="Launch platform" data-i18n-aria-label="Launch platform">
+            <div class="launch-origin-heading">
+              <span data-i18n="Launch platform">Launch platform</span>
+              <strong id="launchOriginStatus" role="status"></strong>
+            </div>
+            <div class="launch-origin-links" id="launchOriginLinks"></div>
+            <p id="launchOriginScope"></p>
+          </div>
           <section class="key-metrics" aria-label="Selected token market metrics">
             <div><span data-i18n="Price">Price</span><strong id="detailPrice">--</strong><small id="detailPriceChange">--</small></div>
-            <div><span>FDV</span><strong id="detailFdv">--</strong><small data-i18n="fully diluted">fully diluted</small></div>
+            <div><span data-i18n="Supply value">Supply value</span><strong id="detailFdv">--</strong><small data-i18n="Price × latest total supply">Price × latest total supply</small></div>
             <div><span data-i18n="Liquidity">Liquidity</span><strong id="detailLiquidity">--</strong><small id="detailLiquidityNote">--</small></div>
             <div><span data-i18n="Holders">Holders</span><strong id="detailHolders">--</strong><small data-i18n="indexed addresses">indexed addresses</small></div>
+          </section>
+
+          <section class="quote-comparison" id="quoteComparison" aria-labelledby="quoteTitle">
+            <div class="section-title">
+              <div><h3 id="quoteTitle" data-i18n="Size quotes">Size quotes</h3><p id="quoteScope"></p></div>
+              <button type="button" id="compareQuotes"><span data-i18n="Compare quotes">Compare quotes</span></button>
+            </div>
+            <div class="quote-controls">
+              <div class="quote-modes" role="group" aria-label="Quote direction" data-i18n-aria-label="Quote direction">
+                <button type="button" data-quote-side="buy" aria-pressed="true" data-i18n="Buy quote">Buy quote</button>
+                <button type="button" data-quote-side="sell" aria-pressed="false" data-i18n="Sell quote">Sell quote</button>
+              </div>
+              <label id="quoteSellFields" hidden><span id="quoteQuantityLabel"></span><input id="quoteSellQuantity" type="text" inputmode="decimal" maxlength="115" autocomplete="off" spellcheck="false"></label>
+            </div>
+            <p id="quoteStatus" role="status" aria-live="polite"></p>
+            <table>
+              <caption class="sr-only" data-i18n="Buy and sell size quotes">Buy and sell size quotes</caption>
+              <thead><tr><th scope="col" id="quoteInputHeader">USDC</th><th scope="col" id="quoteOutputHeader">Estimated tokens</th><th scope="col" data-i18n="Rate vs baseline">Rate vs baseline</th></tr></thead>
+              <tbody id="quoteRows"></tbody>
+            </table>
+            <p class="quote-note" data-i18n="Each row compares output per input with the first size. Sell sizes are the base quantity, 10x and 100x. Not market-price impact or a safety score; quotes can change between reads.">Each row compares output per input with the first size. Sell sizes are the base quantity, 10x and 100x. Not market-price impact or a safety score; quotes can change between reads.</p>
+            <p class="quote-note" data-i18n="ARCROW fee: 0%. Pool costs affect the quote; gas is extra. KyberSwap may retain positive slippage. Sellability and execution are not verified.">ARCROW fee: 0%. Pool costs affect the quote; gas is extra. KyberSwap may retain positive slippage. Sellability and execution are not verified.</p>
+          </section>
+
+          <section class="price-section" aria-labelledby="chartTitle">
+            <div class="section-title">
+              <div><p class="eyebrow" data-i18n="Selected pool">Selected pool</p><h3 id="chartTitle" data-i18n="Observed chart">Observed chart</h3></div>
+              <strong id="priceChange">--</strong>
+            </div>
+            <div class="chart-toolbar">
+              <div class="chart-modes" role="group" aria-label="Chart value" data-i18n-aria-label="Chart value">
+                <button type="button" data-chart-mode="price" aria-pressed="true" data-i18n="Price">Price</button>
+                <button type="button" data-chart-mode="valuation" aria-pressed="false" data-i18n="Supply value">Supply value</button>
+              </div>
+              <div class="chart-tools">
+                <button type="button" id="chartZoomIn" title="Zoom in" aria-label="Zoom in" data-i18n-title="Zoom in" data-i18n-aria-label="Zoom in"></button>
+                <button type="button" id="chartZoomOut" title="Zoom out" aria-label="Zoom out" data-i18n-title="Zoom out" data-i18n-aria-label="Zoom out"></button>
+                <button type="button" id="chartFit" title="Fit observed range" aria-label="Fit observed range" data-i18n-title="Fit observed range" data-i18n-aria-label="Fit observed range"></button>
+              </div>
+            </div>
+            <p class="chart-readout" id="chartReadout"></p>
+            <div class="chart-frame">
+              <div id="priceChart" role="img" aria-label="Observed price and volume chart in USDC, time in UTC" data-i18n-aria-label="Observed price and volume chart in USDC, time in UTC" aria-describedby="priceWindow chartReadout chartSupplyNote"></div>
+              <p class="chart-empty hidden" id="chartEmpty"></p>
+            </div>
+            <p class="chart-note" id="chartVolumeLabel"></p>
+            <p class="chart-note" id="priceWindow"></p>
+            <p class="chart-note" id="chartSupplyNote"></p>
+            <p class="chart-note" id="priceFreshness" aria-live="polite"></p>
+            <p class="chart-attribution">TradingView Lightweight Charts™ · Copyright © 2025 <a href="https://www.tradingview.com/" target="_blank" rel="noreferrer">TradingView, Inc.</a></p>
+            <div class="window-metrics" aria-label="Price and trading windows">
+              <div><span>5M</span><strong id="window5mChange">--</strong><small id="window5mFlow">--</small></div>
+              <div><span>1H</span><strong id="window1hChange">--</strong><small id="window1hFlow">--</small></div>
+              <div><span>6H</span><strong id="window6hChange">--</strong><small id="window6hFlow">--</small></div>
+              <div><span>24H</span><strong id="window24hChange">--</strong><small id="window24hFlow">--</small></div>
+            </div>
+          </section>
+
+          <section class="analysis-section" aria-labelledby="analysisTitle">
+            <div class="section-title"><h3 id="analysisTitle" data-i18n="Token readout">Token readout</h3><span>1H</span></div>
+            <h4 id="analysisHeadline" class="analysis-headline"></h4>
+            <p id="analysisSummary"></p>
+            <p class="analysis-window" id="analysisWindow"></p>
+            <h5 data-i18n="Supporting observations">Supporting observations</h5>
+            <ul id="analysisEvidence"></ul>
+            <h5 data-i18n="Unresolved points">Unresolved points</h5>
+            <ul class="analysis-limits" id="analysisLimits"></ul>
+            <p class="analysis-disclaimer" data-i18n="Selected pool and indexed snapshots only. No prediction, safety rating, or sell guarantee.">Selected pool and indexed snapshots only. No prediction, safety rating, or sell guarantee.</p>
+          </section>
+
+          <section class="observation-section" aria-labelledby="observationTitle">
+            <div class="section-title"><h3 id="observationTitle" data-i18n="Since first observation">Since first observation</h3></div>
+            <p id="observationSummary"></p>
+            <div class="observation-comparison-row observation-comparison-head" aria-hidden="true"><span data-i18n="Metric">Metric</span><span data-i18n="First read">First read</span><span data-i18n="Latest read">Latest read</span><span data-i18n="Change">Change</span></div>
+            <div id="observationComparison"></div>
+            <p class="observation-note" data-i18n="Read-to-read changes are not trade returns or net liquidity flows. Missing or incomparable values stay blank.">Read-to-read changes are not trade returns or net liquidity flows. Missing or incomparable values stay blank.</p>
+            <h4 data-i18n="Observation timeline">Observation timeline</h4>
+            <ol id="observationTimeline"></ol>
+            <p class="observation-note" id="observationTimelineCount"></p>
+            <p class="observation-note" data-i18n="Partial browser-local history. Gaps, delayed indexing and discarded older entries may exist; not a full chain history.">Partial browser-local history. Gaps, delayed indexing and discarded older entries may exist; not a full chain history.</p>
+            <details class="recorder-pool-history hidden" id="recorderHistorySection">
+              <summary data-i18n="Events retained on this PC">Events retained on this PC</summary>
+              <p class="observation-note" id="recorderPoolStatus"></p><ul id="recorderPoolEvents"></ul>
+              <p class="observation-note" data-i18n="Latest 20 retained events. Initial history and indexing may be incomplete; not independently reorg-verified.">Latest 20 retained events. Initial history and indexing may be incomplete; not independently reorg-verified.</p>
+            </details>
           </section>
 
           <section class="alert-section hidden" id="observedAlertSection">
@@ -201,21 +388,6 @@
             <p id="poolComparisonNote"></p>
             <div class="pool-comparison-head" aria-hidden="true"><span data-i18n="Pool">Pool</span><span data-i18n="Price (USDC)">Price (USDC)</span><span data-i18n="Liquidity">Liquidity</span><span data-i18n="Data">Data</span></div>
             <div id="poolComparisonList"></div>
-          </section>
-
-          <section class="price-section">
-            <div class="section-title">
-              <div><p class="eyebrow" data-i18n="Pool price">Pool price</p><h3 data-i18n="Indexed price path">Indexed price path</h3></div>
-              <strong id="priceChange">--</strong>
-            </div>
-            <div class="window-metrics" aria-label="Price and trading windows">
-              <div><span>5M</span><strong id="window5mChange">--</strong><small id="window5mFlow">--</small></div>
-              <div><span>1H</span><strong id="window1hChange">--</strong><small id="window1hFlow">--</small></div>
-              <div><span>6H</span><strong id="window6hChange">--</strong><small id="window6hFlow">--</small></div>
-              <div><span>24H</span><strong id="window24hChange">--</strong><small id="window24hFlow">--</small></div>
-            </div>
-            <svg id="priceChart" role="img" aria-label="Recent indexed pool price path" viewBox="0 0 440 180" preserveAspectRatio="none"></svg>
-            <p class="chart-note" id="priceWindow">Waiting for reserve updates...</p>
           </section>
 
           <section class="flow-section">

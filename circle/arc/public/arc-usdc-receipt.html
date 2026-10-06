@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://rpc.mainnet.arc.io https://rpc.testnet.arc.io; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <title>USDC 입금 확인 | Arc Tools</title>
+  <link rel="stylesheet" href="./arc-usdc-receipt.css">
+  <script type="module" src="./arc-usdc-receipt.bundle.js"></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="./arc-usdc-receipt.html"><span id="brandIcon"></span><strong>ARC TOOLS</strong></a><span class="readonly">조회 전용</span></header>
+  <main>
+    <section class="heading"><div><p class="eyebrow">USDC RECEIPT</p><h1>USDC 입금 확인</h1></div><span id="networkBadge" class="network-badge">Arc Mainnet · 5042</span></section>
+    <form id="receiptForm" autocomplete="off">
+      <div class="query-grid">
+        <label>네트워크<select id="network"><option value="arc-mainnet">Arc Mainnet</option><option value="arc-testnet">Arc Testnet</option></select></label>
+        <label class="hash-field">거래 해시<input id="receiptHash" type="text" required maxlength="66" placeholder="0x..." spellcheck="false" autocapitalize="off" pattern="0x[0-9a-fA-F]{64}"></label>
+        <button id="receiptCheck" type="submit"><span id="searchIcon"></span>조회</button>
+      </div>
+      <div class="expectation-grid">
+        <label>수취·조회 주소 <span class="optional">선택</span><input id="receiptWallet" type="text" maxlength="42" placeholder="0x..." spellcheck="false" autocapitalize="off" pattern="0x[0-9a-fA-F]{40}"></label>
+        <label>예상 입금액 <span class="optional">선택 · USDC</span><input id="expectedAmount" type="text" inputmode="decimal" maxlength="96" placeholder="0.00" spellcheck="false" autocapitalize="off"></label>
+      </div>
+    </form>
+    <p id="status" role="status" aria-live="polite" data-tone="neutral">미조회</p>
+    <section id="result" hidden>
+      <div class="result-heading"><h2 id="resultTitle"></h2><div class="actions">
+        <a id="explorer" target="_blank" rel="noopener noreferrer"><span id="explorerIcon"></span>탐색기</a>
+        <button id="print" type="button" disabled title="확인 내역 인쇄 / PDF 저장" aria-label="확인 내역 인쇄 / PDF 저장"><span id="printIcon"></span></button>
+        <button id="download" type="button" disabled title="조회 결과 JSON 저장" aria-label="조회 결과 JSON 저장"><span id="downloadIcon"></span></button>
+      </div></div>
+      <p id="coverage" class="coverage"></p>
+      <section id="comparison" class="comparison" aria-labelledby="comparisonTitle" hidden>
+        <p class="eyebrow">입금 대조</p><h2 id="comparisonTitle"></h2>
+        <p id="comparisonNote"></p>
+        <p id="comparisonAddress" class="address"></p>
+        <div class="metrics">
+          <div><span>예상 입금액</span><strong id="expectedValue"></strong></div>
+          <div><span>주소 순이동액 · 가스비 제외</span><strong id="observedValue"></strong></div>
+          <div><span>예상 대비 차이</span><strong id="differenceValue"></strong></div>
+        </div>
+        <p class="coverage">단일 거래 내 조건 대조입니다. 송금인 신원·청구서 결제·같은 거래의 중복 사용 여부는 증명하지 않습니다.</p>
+      </section>
+      <h2 class="detail-heading">거래 상세</h2>
+      <dl id="summary"></dl>
+      <p class="coverage">이동액 합계에는 중간 경유가 포함되며 가스비는 제외됩니다. 실제 결제액이나 최종 수령액과 다를 수 있습니다.</p>
+      <h2 class="movement-heading">USDC 이동 내역</h2>
+      <div class="table-scroll" tabindex="0" role="region" aria-label="USDC 이동 내역"><table><thead><tr><th scope="col">종류</th><th scope="col">보낸 주소</th><th scope="col">받은 주소</th><th scope="col">금액</th></tr></thead><tbody id="movements"></tbody></table></div>
+      <p id="emptyMovements" class="coverage" hidden>표시할 USDC 이동 내역이 없습니다.</p>
+      <p id="checkedAt" class="timestamp"></p>
+    </section>
+    <footer>
+      <p>Circle이 운영하는 서비스가 아닌 독립 조회 도구입니다. 단일 거래의 공개 RPC 기록이며 전체 잔액 내역이나 법적 영수증이 아닙니다.</p>
+      <p>거래 해시는 선택한 네트워크의 RPC 제공자에게 전송됩니다. 수취 주소와 예상 금액의 대조는 브라우저 안에서만 처리합니다.</p>
+      <nav aria-label="공식 참고 자료">
+        <a href="https://portal.arc.io" target="_blank" rel="noopener noreferrer">공식 Arc Portal ↗</a>
+        <a href="https://docs.arc.io/arc/references/usdc-system-events" target="_blank" rel="noopener noreferrer">USDC 이벤트 문서 ↗</a>
+      </nav>
+    </footer>
+  </main>
+</body>
+</html>

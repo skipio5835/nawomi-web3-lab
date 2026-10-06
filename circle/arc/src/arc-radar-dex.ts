@@ -1,8 +1,14 @@
 import { decimalValue, latestSyncReserves, logParameter, swapDirection, swapUsdcValue, syncReserves, type RadarAddressLog, type RadarQuoteAsset, type ReserveSnapshot } from "./arc-radar-core.js";
 import { discoverSeeds } from "./arc-radar-discovery.js";
 import type { RadarDexSource, RadarNetwork } from "./arc-radar-networks.js";
+import { createV4Adapter } from "./arc-radar-v4.js";
+import { createV3Adapter } from "./arc-radar-v3.js";
+import { poolRef } from "./arc-radar-pool-id.js";
 
-type AddressLog = RadarAddressLog & { transaction_hash?: string };
+export type AddressLog = RadarAddressLog & {
+  transaction_hash?: string; address?: { hash?: string }; data?: string;
+  topics?: Array<string | null>; block_number?: number;
+};
 export type DexLogPage = { items?: AddressLog[]; next_page_params?: Record<string, string | number> | null };
 export type RadarPool = {
   sourceId: string;
@@ -14,21 +20,31 @@ export type RadarPool = {
   token0: string;
   token1: string;
   tokenAddress: string;
+  v3?: { fee: number; tickSpacing: number };
+  v4?: { poolId: string; fee: number; tickSpacing: number; hooks: string };
 };
-export type DexPricePoint = { price: number; timestamp: string };
+export type DexPricePoint = { price: number; timestamp: string; blockNumber?: number; eventIndex?: number };
 export type DexTrade = { direction: "buy" | "sell"; fallbackAddress: string | null; timestamp: string; transactionHash: string; eventIndex?: number; usdcValue: number };
-export type DexLiquidityEvent = { changePercent: number | null; direction: "add" | "remove"; fallbackAddress: string | null; timestamp: string; tokenAmount: number; transactionHash: string; usdcAmount: number };
+export type DexLiquidityEvent = { eventIndex?: number; changePercent: number | null; direction: "add" | "remove"; fallbackAddress: string | null; timestamp: string; tokenAmount: number; transactionHash: string; usdcAmount: number };
 export interface RadarDexAdapter {
   source: RadarDexSource;
   discoveryPath: string;
   pairSeeds(page: DexLogPage): RadarPool[];
+  historyIncomplete?(logs: AddressLog[]): boolean;
   latestReserves(logs: AddressLog[], pool: RadarPool, decimals: string | null): ReserveSnapshot | null;
   pricePoint(log: AddressLog, pool: RadarPool, decimals: string | null): DexPricePoint | null;
   trade(log: AddressLog, pool: RadarPool): DexTrade | null;
   liquidityEvents(logs: AddressLog[], pool: RadarPool, decimals: string | null): DexLiquidityEvent[];
 }
 
+export type RadarProtocolFilter = "all" | "uniswap-v3" | "uniswap-v4";
+export function selectDexAdapters(adapters: readonly RadarDexAdapter[], protocol: RadarProtocolFilter): RadarDexAdapter[] {
+  return adapters.filter(adapter => protocol === "all" || adapter.source.protocol === protocol);
+}
+
 export function createDexAdapter(source: RadarDexSource, network: RadarNetwork): RadarDexAdapter {
+  if (source.protocol === "uniswap-v3") return createV3Adapter(source, network);
+  if (source.protocol === "uniswap-v4") return createV4Adapter(source, network);
   if (source.protocol !== "uniswap-v2") throw new Error(`Unsupported DEX protocol: ${source.protocol}`);
   if (!/^0x[0-9a-fA-F]{40}$/.test(source.factoryAddress)) throw new Error("Invalid factory address");
   const USDC_ADDRESS = network.quoteAsset.address.toLowerCase();
@@ -71,7 +87,7 @@ export function createDexAdapter(source: RadarDexSource, network: RadarNetwork):
   function syncPrice(log: AddressLog, seed: RadarPool, tokenDecimals: string | null): DexPricePoint | null {
     const reserves = syncReserves(log, seed, tokenDecimals);
     if (!reserves || reserves.tokenReserve <= 0 || reserves.usdcReserve <= 0) return null;
-    return { price: reserves.usdcReserve / reserves.tokenReserve, timestamp: log.block_timestamp ?? "" };
+    return { price: reserves.usdcReserve / reserves.tokenReserve, timestamp: log.block_timestamp ?? "", blockNumber: log.block_number, eventIndex: log.index };
   }
 
   function liquidityEventsFromLogs(logs: AddressLog[], seed: RadarPool, tokenDecimals: string | null): DexLiquidityEvent[] {
@@ -102,6 +118,7 @@ export function createDexAdapter(source: RadarDexSource, network: RadarNetwork):
         : 0;
       const changePercent = reserveBefore > 0 ? (usdcAmount / reserveBefore) * 100 : null;
       events.push({
+        eventIndex: log.index,
         changePercent,
         direction,
         fallbackAddress: logParameter(log, direction === "add" ? "sender" : "to"),
@@ -141,6 +158,7 @@ export async function discoverDexPools(
   adapters: readonly RadarDexAdapter[],
   limit: number,
   readPage: (path: string) => Promise<{ data: DexLogPage; stale: boolean }>,
+  balanceProtocols = false,
 ) {
   if (adapters.length === 0 || adapters.length > 4) throw new Error("Configure between one and four DEX sources");
   if (new Set(adapters.map(a => a.source.id)).size !== adapters.length) throw new Error("Duplicate DEX source ID");
@@ -156,7 +174,7 @@ export async function discoverDexPools(
       return { seeds: adapter.pairSeeds(page.data), stale: page.stale, nextPath: next ? `${adapter.discoveryPath}?${query}` : null };
     });
     for (const pool of result.seeds) {
-      const key = `${pool.chainId}:${pool.pairAddress.toLowerCase()}`;
+      const key = `${pool.chainId}:${poolRef(pool)}`;
       if (!pools.has(key)) pools.set(key, pool);
     }
     hasMore ||= result.hasMore;
@@ -164,5 +182,20 @@ export async function discoverDexPools(
     limited ||= result.limited;
   }
   const sorted = [...pools.values()].sort((a, b) => (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0) || a.pairAddress.localeCompare(b.pairAddress));
-  return { seeds: sorted.slice(0, limit), hasMore: hasMore || sorted.length > limit, stale, limited };
+  let seeds = sorted.slice(0, limit);
+  if (balanceProtocols && adapters.length > 1) {
+    const protocols = [...new Set(adapters.map(adapter => adapter.source.protocol))];
+    const queues = protocols.map(protocol => sorted.filter(pool => adapters.some(adapter => adapter.source.id === pool.sourceId && adapter.source.protocol === protocol)));
+    const chosen = new Set<RadarPool>();
+    // Share the bounded result budget so frequent v4 creations cannot crowd out v3.
+    while (chosen.size < limit && queues.some(queue => queue.length)) {
+      for (const queue of queues) {
+        const pool = queue.shift();
+        if (pool) chosen.add(pool);
+        if (chosen.size >= limit) break;
+      }
+    }
+    seeds = sorted.filter(pool => chosen.has(pool));
+  }
+  return { seeds, hasMore: hasMore || sorted.length > limit, stale, limited };
 }

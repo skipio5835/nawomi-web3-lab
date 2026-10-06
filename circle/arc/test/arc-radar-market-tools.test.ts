@@ -41,3 +41,28 @@ test("tokens group by chain and address; representatives prefer fresh data then 
   assert.equal(grouped[0]!.primary.pairAddress, "0x2");
   assert.equal(input[0], a);
 });
+
+test("an empty fresh pool cannot hide another pool's cached price during rotating refresh", () => {
+  const base = { chainId: 5042, tokenAddress: "0xab", totalLiquidity: null, lastTradeAt: null };
+  const priced = { ...base, pairAddress: "0x2", currentPrice: 0.007, stale: true };
+  for (const currentPrice of [0, undefined, NaN, Infinity, -1]) {
+    const idle = { ...base, pairAddress: "0x1", currentPrice, stale: false };
+    const result = groupTokenPools([idle, priced])[0]!.primary;
+    assert.equal(result, priced);
+    assert.equal(result.stale, true, "selection must not relabel cached data as fresh");
+  }
+  const fresh = { ...priced, pairAddress: "0x3", currentPrice: 0.001, stale: false };
+  assert.equal(groupTokenPools([priced, fresh])[0]!.primary, fresh, "do not rank by the highest price");
+});
+
+test("slot0 quotes in idle pools cannot displace a recently traded unknown-liquidity pool during refresh", () => {
+  const idle = { chainId: 5042, tokenAddress: "0xab", pairAddress: "0x1", totalLiquidity: null, currentPrice: 0.1, stale: false, lastTradeAt: null as string | null };
+  const traded = { ...idle, pairAddress: "0x2", currentPrice: 0.007, stale: true, lastTradeAt: new Date(Date.now() - 60000).toISOString() };
+  assert.equal(groupTokenPools([idle, traded])[0]!.primary, traded);
+  assert.equal(groupTokenPools([traded, idle])[0]!.primary, traded);
+  assert.equal(traded.stale, true);
+  for (const time of [Date.now() - 16 * 60000, Date.now() + 60000, NaN]) {
+    const old = { ...traded, lastTradeAt: Number.isFinite(time) ? new Date(time).toISOString() : "invalid" };
+    assert.equal(groupTokenPools([idle, old])[0]!.primary, idle, "expired or future activity is not a ranking signal");
+  }
+});

@@ -10,6 +10,7 @@
   stringToHex,
 } from "viem";
 import type { Address, EIP1193Provider } from "viem";
+import { readUsdcReceipt } from "./arc-usdc-receipt-reader.js";
 
 declare global {
   interface Window {
@@ -37,7 +38,7 @@ const ARC_TESTNET = {
   chainId: "0x4cef52",
   chainName: "Arc Testnet",
   nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
-  rpcUrls: ["https://rpc.testnet.arc.network"],
+  rpcUrls: ["https://rpc.testnet.arc.io"],
   blockExplorerUrls: ["https://testnet.arcscan.app"],
 };
 
@@ -45,7 +46,7 @@ const arcTestnet = {
   id: 5042002,
   name: "Arc Testnet",
   nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
-  rpcUrls: { default: { http: ["https://rpc.testnet.arc.network"] } },
+  rpcUrls: { default: { http: ["https://rpc.testnet.arc.io"] } },
   blockExplorers: { default: { name: "ArcScan", url: "https://testnet.arcscan.app" } },
 } as const;
 
@@ -121,7 +122,7 @@ const multicall3FromAbi = [
 
 const client = createPublicClient({
   chain: arcTestnet,
-  transport: http("https://rpc.testnet.arc.network"),
+  transport: http("https://rpc.testnet.arc.io", { timeout: 12_000, retryCount: 1 }),
 });
 
 let address = "";
@@ -144,6 +145,13 @@ const el = {
   status: document.querySelector<HTMLElement>("#status")!,
   memoResult: document.querySelector<HTMLElement>("#memoResult")!,
   batchResult: document.querySelector<HTMLElement>("#batchResult")!,
+  receiptForm: document.querySelector<HTMLFormElement>("#receiptForm")!,
+  receiptHash: document.querySelector<HTMLInputElement>("#receiptHash")!,
+  receiptWallet: document.querySelector<HTMLInputElement>("#receiptWallet")!,
+  receiptCheck: document.querySelector<HTMLButtonElement>("#receiptCheck")!,
+  receiptStatus: document.querySelector<HTMLElement>("#receiptStatus")!,
+  receiptSummary: document.querySelector<HTMLElement>("#receiptSummary")!,
+  receiptRows: document.querySelector<HTMLElement>("#receiptRows")!,
 };
 
 const stamp = new Date().toISOString().replace(/[-:T.Z]/g, "").slice(0, 14);
@@ -216,13 +224,15 @@ async function assertContract(addressToCheck: Address, label: string): Promise<v
 async function refreshBalances(): Promise<void> {
   if (!address) return;
 
+  const blockNumber = await client.getBlockNumber();
   const [nativeBalance, tokenBalance] = await Promise.all([
-    client.getBalance({ address: address as Address }),
+    client.getBalance({ address: address as Address, blockNumber }),
     client.readContract({
       address: USDC_ADDRESS,
       abi: erc20Abi,
       functionName: "balanceOf",
       args: [address as Address],
+      blockNumber,
     }),
   ]);
 
@@ -244,6 +254,7 @@ async function connect(): Promise<void> {
     })) as string[];
 
     address = accounts[0] ?? "";
+    if (!el.receiptWallet.value && address) el.receiptWallet.value = address;
     el.sender.value = address || "Not connected";
     el.refresh.disabled = !address;
     el.memoSend.disabled = !address;
@@ -323,6 +334,8 @@ async function sendMemo(): Promise<void> {
     })) as string;
 
     const receipt = await waitForHash(hash);
+    el.receiptHash.value = hash;
+    void checkReceipt();
     el.memoResult.innerHTML = `
       <div><strong>mode</strong><span>Memo.memo -> USDC.transfer</span></div>
       <div><strong>txHash</strong><span>${escapeHtml(hash)}</span></div>
@@ -398,6 +411,8 @@ async function sendBatch(): Promise<void> {
     })) as string;
 
     const receipt = await waitForHash(hash);
+    el.receiptHash.value = hash;
+    void checkReceipt();
     el.batchResult.innerHTML = `
       <div><strong>mode</strong><span>Multicall3From.aggregate3</span></div>
       <div><strong>txHash</strong><span>${escapeHtml(hash)}</span></div>
@@ -415,6 +430,62 @@ async function sendBatch(): Promise<void> {
   }
 }
 
+let receiptRequest = 0;
+function clearReceipt(): void {
+  receiptRequest++;
+  el.receiptSummary.replaceChildren();
+  el.receiptRows.replaceChildren();
+  el.receiptStatus.textContent = "Not checked.";
+  el.receiptCheck.disabled = false;
+}
+
+async function checkReceipt(): Promise<void> {
+  clearReceipt();
+  const request = receiptRequest;
+  const hash = el.receiptHash.value.trim();
+  const wallet = el.receiptWallet.value.trim();
+  const current = () => request === receiptRequest && hash === el.receiptHash.value.trim() && wallet === el.receiptWallet.value.trim();
+  el.receiptCheck.disabled = true;
+  try {
+    if (!/^0x[\da-f]{64}$/i.test(hash)) throw new Error("Enter a 32-byte transaction hash.");
+    if (wallet && !isAddress(wallet)) throw new Error("Invalid wallet filter.");
+    el.receiptStatus.textContent = "Reading Arc Testnet receipt...";
+    const checked = await readUsdcReceipt("arc-testnet", hash, wallet, undefined, client);
+    const result = checked.ledger;
+    if (!current()) return;
+    const amount = (units: bigint | null) => units === null ? "Unavailable" : `${formatUnits(units, 18)} USDC`;
+    const summary: Array<[string, string]> = [
+      ["Transaction", result.transactionHash], ["Block", `${result.blockNumber} · ${new Date(checked.blockTimestamp * 1000).toISOString()}`],
+      ["Receipt", result.status], ["Paired ERC-20 logs (whole receipt)", String(result.pairedLogs)],
+      ["Gross routed movements (not payment amount; gas excluded)", amount(result.gross)], ["Receipt gas", amount(result.gasFee)], ["Gas payer", result.payer],
+    ];
+    if (wallet) summary.push(["Wallet filter", wallet], ["Received", amount(result.received)], ["Sent", amount(result.sent)], ["Net (gas excluded)", amount(result.net)]);
+    for (const [label, value] of summary) {
+      const term = document.createElement("dt"); term.textContent = label;
+      const detail = document.createElement("dd"); detail.textContent = value;
+      el.receiptSummary.append(term, detail);
+    }
+    for (const movement of result.movements) {
+      const row = document.createElement("tr");
+      for (const value of [movement.kind, movement.from, movement.to, formatUnits(movement.units18, 18), movement.erc20LogIndex === undefined ? "System" : "System + ERC-20"]) {
+        const cell = document.createElement("td"); cell.textContent = value; row.append(cell);
+      }
+      el.receiptRows.append(row);
+    }
+    el.receiptStatus.textContent = !result.complete
+      ? `Incomplete coverage: ${result.unmatchedErc20.length} unpaired ERC-20 movement(s)${result.legacy ? "; legacy system events are unsupported" : ""}. Totals withheld.`
+      : result.status === "reverted" ? "Transaction reverted. No USDC movements; gas is reported separately."
+        : `${result.movements.length} USDC movement(s). Mirrored events counted once. ${result.ignoredNonMovements} zero/self log(s) excluded. Receipt scope only; not wallet history or proof of invoice payment.`;
+  } catch (error) {
+    if (current()) el.receiptStatus.textContent = `Receipt unavailable: ${error instanceof Error ? error.message : "Unknown error"}`;
+  } finally {
+    if (request === receiptRequest) el.receiptCheck.disabled = false;
+  }
+}
+
+el.receiptForm.addEventListener("submit", event => { event.preventDefault(); void checkReceipt(); });
+el.receiptHash.addEventListener("input", clearReceipt);
+el.receiptWallet.addEventListener("input", clearReceipt);
 el.connect.addEventListener("click", () => void connect());
 el.refresh.addEventListener("click", () => void refreshBalances());
 el.memoSend.addEventListener("click", () => void sendMemo());

@@ -169,6 +169,18 @@
         font-weight: 700;
       }
 
+      .receipt-ledger { border-block: 1px solid #c8d2cf; padding-block: 20px; min-width: 0; }
+      .receipt-ledger h2 { margin: 0 0 16px; font-size: 20px; }
+      .receipt-ledger form { display: grid; gap: 12px; }
+      .receipt-ledger button { justify-self: start; }
+      .receipt-ledger dl { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 8px 16px; }
+      .receipt-ledger dt, .receipt-ledger dd { margin: 0; overflow-wrap: anywhere; font-size: 14px; }
+      .receipt-ledger dt { color: #52625e; }
+      .receipt-table { overflow-x: auto; }
+      .receipt-table table { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 600px; font-size: 13px; }
+      .receipt-table th, .receipt-table td { padding: 10px 8px; text-align: left; border-bottom: 1px solid #d7dfdc; overflow-wrap: anywhere; }
+      #receiptStatus { margin-top: 12px; overflow-wrap: anywhere; line-height: 1.5; }
+
       @media (max-width: 760px) {
         body {
           padding: 18px;
@@ -212,14 +224,32 @@
       <section class="panel">
         <div class="stats">
           <div class="stat">
-            <span>Native USDC</span>
+            <span>USDC balance · native view (18 decimals)</span>
             <strong id="nativeBalance">-</strong>
           </div>
           <div class="stat">
-            <span>ERC-20 USDC</span>
+            <span>Same balance · ERC-20 view (6 decimals)</span>
             <strong id="usdcBalance">-</strong>
           </div>
         </div>
+      </section>
+
+      <section class="receipt-ledger" aria-labelledby="receiptTitle">
+        <h2 id="receiptTitle">USDC Receipt Ledger</h2>
+        <p><a href="./arc-usdc-receipt.html">Arc Mainnet receipt lookup (read-only)</a></p>
+        <form id="receiptForm">
+          <div class="grid">
+            <label>Transaction hash<input id="receiptHash" maxlength="66" required spellcheck="false" autocomplete="off" /></label>
+            <label>Wallet filter (optional)<input id="receiptWallet" maxlength="42" spellcheck="false" autocomplete="off" /></label>
+          </div>
+          <button id="receiptCheck" type="submit">Check Receipt</button>
+        </form>
+        <p id="receiptStatus" role="status">Not checked.</p>
+        <dl id="receiptSummary"></dl>
+        <div class="receipt-table"><table>
+          <thead><tr><th>Type</th><th>From</th><th>To</th><th>USDC</th><th>Evidence</th></tr></thead>
+          <tbody id="receiptRows"></tbody>
+        </table></div>
       </section>
 
       <section class="panel">

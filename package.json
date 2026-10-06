@@ -8,8 +8,12 @@
   ],
   "scripts": {
     "build-arc-radar": "node circle/arc/scripts/build-browser.mjs arc-radar",
-    "test-arc-radar": "tsx --test circle/arc/test/arc-radar-core.test.ts circle/arc/test/arc-radar-dex.test.ts circle/arc/test/arc-radar-ads.test.ts circle/arc/test/arc-radar-navigation.test.ts circle/arc/test/arc-radar-market-tools.test.ts circle/arc/test/arc-radar-quality.test.ts circle/arc/test/arc-radar-evidence.test.ts circle/arc/test/arc-radar-authority.test.ts circle/arc/test/arc-radar-theme.test.ts circle/arc/test/arc-radar-i18n.test.ts",
-    "test-security-js": "tsx --test circle/arc/test/server-security.test.ts",
+    "collect-arc-radar": "tsx circle/arc/scripts/run-radar-collector.ts",
+    "start-arc-radar-recorder": "tsx circle/arc/scripts/run-radar-collector.ts --watch",
+    "test-arc-radar": "tsx --test circle/arc/test/arc-radar-core.test.ts circle/arc/test/arc-radar-dex.test.ts circle/arc/test/arc-radar-ads.test.ts circle/arc/test/arc-radar-navigation.test.ts circle/arc/test/arc-radar-market-tools.test.ts circle/arc/test/arc-radar-quality.test.ts circle/arc/test/arc-radar-evidence.test.ts circle/arc/test/arc-radar-authority.test.ts circle/arc/test/arc-radar-theme.test.ts circle/arc/test/arc-radar-i18n.test.ts circle/arc/test/arc-radar-network.test.ts circle/arc/test/arc-radar-analysis.test.ts circle/arc/test/arc-radar-observations.test.ts circle/arc/test/arc-radar-collector.test.ts circle/arc/test/arc-radar-rpc.test.ts circle/arc/test/arc-radar-v3.test.ts circle/arc/test/arc-radar-launch.test.ts circle/arc/test/arc-radar-market-feed.test.ts",
+    "check-arc-radar-network": "tsx circle/arc/scripts/check-radar-network.ts",
+    "test-arc-quotes": "tsx --test circle/arc/test/arc-radar-quotes.test.ts",
+    "test-security-js": "tsx --test circle/arc/test/server-security.test.ts circle/arc/test/arc-usdc-events.test.ts circle/arc/test/arc-usdc-receipt.test.ts circle/arc/test/arc-radar-quotes.test.ts",
     "test-dependency-security": "node --test circle/arc/test/dependency-security.test.mjs",
     "test-pre-push": "node --test circle/arc/test/pre-push.test.mjs",
     "hooks:install": "node circle/arc/scripts/install-git-hooks.mjs",
@@ -28,6 +32,7 @@
     "build-appkit-bridge": "node circle/arc/scripts/build-browser.mjs appkit-bridge",
     "build-appkit-unified": "node circle/arc/scripts/build-browser.mjs appkit-unified",
     "build-arc-usdc-tools": "node circle/arc/scripts/build-browser.mjs arc-usdc-tools",
+    "build-arc-usdc-receipt": "node circle/arc/scripts/build-browser.mjs arc-usdc-receipt",
     "build-arc-invoice": "node circle/arc/scripts/build-browser.mjs arc-invoice",
     "build-arc-pay-link": "node circle/arc/scripts/build-browser.mjs arc-pay-link",
     "build-arc-revenue-splitter": "node circle/arc/scripts/build-browser.mjs arc-revenue-splitter",
@@ -102,6 +107,8 @@
     "@openzeppelin/contracts": "^5.6.1",
     "ethers": "^6.16.0",
     "jayson": "4.3.0-arcrow.1",
+    "lightweight-charts": "5.2.1",
+    "lucide": "1.46.0",
     "viem": "^2.52.2"
   },
   "devDependencies": {

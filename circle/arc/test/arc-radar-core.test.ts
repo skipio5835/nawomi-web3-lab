@@ -29,11 +29,43 @@ test("discovery combines liquidity, recent trading, and sell filters inclusively
   assert.equal(refineMarkets(discoveryMarkets, discoveryDefaults).length, 3);
 });
 
+test("minimum FDV includes the boundary and excludes unknown, invalid and smaller values", () => {
+  const values = [null, undefined, NaN, Infinity, -1, 0, 9_999_999, 10_000_000, 12_000_000];
+  const markets = values.map((fdv, index) => ({ ...discoveryMarkets[1]!, pairAddress: String(index), fdv }));
+  const options = { ...discoveryDefaults, minimumFdv: 10_000_000 };
+  assert.deepEqual(refineMarkets(markets, options).map(m => m.fdv), [10_000_000, 12_000_000]);
+  assert.equal(refineMarkets(markets, { ...options, minimumLiquidity: 100 }).length, 0);
+  assert.equal(refineMarkets(markets, { ...options, minimumFdv: 0 }).length, markets.length);
+});
+
 test("discovery sorts volume, liquidity and trade recency without mutating the source", () => {
   for (const [sort, expected] of [["volume", ["c", "b", "a"]], ["liquidity", ["a", "b", "c"]], ["recent", ["c", "b", "a"]], ["newest", ["a", "b", "c"]]] as const) {
     assert.deepEqual(refineMarkets(discoveryMarkets, { ...discoveryDefaults, sort }).map(m => m.pairAddress), expected);
   }
   assert.deepEqual(discoveryMarkets.map(m => m.pairAddress), ["a", "b", "c"]);
+});
+
+test("FDV sorting keeps unavailable and malformed values last and uses full numeric precision", () => {
+  const values = [null, NaN, Infinity, -1, 0, 999_999.9999, 1_000_000, 10_000_000];
+  const markets = values.map((fdv, index) => ({ ...discoveryMarkets[0]!, pairAddress: String(index), fdv }));
+  const sorted = refineMarkets(markets, { ...discoveryDefaults, sort: "fdv" });
+  assert.deepEqual(sorted.slice(0, 4).map(market => market.fdv), [10_000_000, 1_000_000, 999_999.9999, 0]);
+  assert.deepEqual(refineMarkets(markets, { ...discoveryDefaults, minimumFdv: 1_000_000 }).map(market => market.fdv), [1_000_000, 10_000_000]);
+  assert.deepEqual(markets.map(market => market.fdv), values);
+});
+
+test("all numeric thresholds, sort orders and checkbox combinations intersect correctly", () => {
+  const markets = [0, 1, 2, 3, 4, 5].map(index => ({ ...discoveryMarkets[index % 3]!, pairAddress: String(index),
+    fdv: [null, 999_999.9, 1_000_000, 5_000_000, 10_000_000, 100_000_000][index] }));
+  for (const minimumFdv of [0, 1_000_000, 5_000_000, 10_000_000, 50_000_000, 100_000_000])
+    for (const minimumLiquidity of [0, 1, 10, 100, 1000])
+      for (const traded24h of [false, true]) for (const sellSeen of [false, true])
+        for (const sort of ["default", "volume", "fdv", "newest", "recent", "liquidity"] as const) {
+          const options = { minimumFdv, minimumLiquidity, traded24h, sellSeen, sort };
+          const expected = markets.filter(m => (!minimumFdv || typeof m.fdv === "number" && m.fdv >= minimumFdv)
+            && (!minimumLiquidity || m.totalLiquidity >= minimumLiquidity) && (!traded24h || m.periods.h24.swapCount > 0) && (!sellSeen || m.sellCount > 0));
+          assert.deepEqual(refineMarkets(markets, options).map(m => m.pairAddress).sort(), expected.map(m => m.pairAddress).sort());
+        }
 });
 
 test("discovery crosses empty pages and deduplicates pools with lookahead", async () => {

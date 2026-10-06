@@ -1,4 +1,5 @@
 :root {
+  --panel-shadow: #0003;
   --scheme: light;
   --page: #eef1f0;
   --surface: #ffffff;
@@ -139,4 +140,14 @@ html[lang="ko"] { word-break: keep-all; overflow-wrap: break-word; }
   .pool-page .header-actions .refresh-button { grid-column: 1 / -1; width: auto; }
   .search-form input { padding-inline: 8px; }
   .search-form button { min-width: 54px; }
+  .header-main, .pool-page .header-main { min-height: 0; padding-block: 10px; gap: 8px; }
+  .header-main .identity-lockup { grid-column: 1; grid-row: 1; gap: 8px; }
+  .header-main .brand { gap: 6px; }
+  .header-main .brand-mark { width: 36px; height: 36px; }
+  .header-main .brand-copy strong { font-size: 16px; }
+  .header-main .network-lockup { min-width: 0; padding-left: 8px; }
+  .header-main .network-lockup small { display: none; }
+  .header-actions .refresh-button, .pool-page .header-actions .refresh-button { grid-column: 2; grid-row: 1; height: 40px; min-height: 40px; }
+  .theme-picker span { height: 36px; }
+  .language-picker select { min-height: 38px; }
 }

@@ -3,6 +3,9 @@ import { createReadStream, existsSync, statSync } from "node:fs";
 import path from "node:path";
 import { handleArcInvoiceApi } from "./arcinvoice-api.js";
 import { buildProxyTarget } from "./proxy-target.js";
+import { handleCollectorApi } from "./radar-collector-api.js";
+import { handleMarketFeedApi } from "./radar-market-feed.js";
+import { handleQuoteApi } from "./radar-quotes-api.js";
 
 const radarOnly = process.env.ARC_RADAR_ONLY === "1";
 
@@ -74,6 +77,18 @@ async function proxyExternalApi(req: IncomingMessage, res: ServerResponse, prefi
 
 const server = createServer((req, res) => {
   try {
+    if ((req.url ?? "").startsWith("/api/arcrow/quotes")) {
+      void handleQuoteApi(req, res, port);
+      return;
+    }
+    if ((req.url ?? "").startsWith("/api/arcrow/markets")) {
+      void handleMarketFeedApi(req, res, port);
+      return;
+    }
+    if ((req.url ?? "").startsWith("/api/arcrow/collector")) {
+      handleCollectorApi(req, res, port);
+      return;
+    }
     if (new URL(req.url ?? "/", `http://localhost:${port}`).pathname === "/") {
       res.writeHead(302, { location: "/public/arc-radar.html" });
       res.end();
